@@ -10,12 +10,17 @@ class ApiServices extends BaseApiServices {
 
 
 // Your provided OAuth and token URLs
-  final authorizationEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth');
-  final tokenEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth/token');
+ // final authorizationEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth');
+//   final tokenEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth/token');
+// // Your provided client ID and secret
+//   final identifier = 'PEdOhv7Iqu4sCtQsRzbibQ..';
+//   final secret = '122w1TFTxsqTwY1-nhV9fA..';
+
+  final tokenEndpoint = Uri.parse('https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/oauth/token');
 
 // Your provided client ID and secret
-  final identifier = 'PEdOhv7Iqu4sCtQsRzbibQ..';
-  final secret = '122w1TFTxsqTwY1-nhV9fA..';
+  final identifier = 'LdvnAhHGx6Li4XXJTfIW0w..';
+  final secret = 'IMjAqywrUane3NA_qGVTWQ..';
 
 // This is a URL on your application's server. The authorization server will redirect the resource owner here after they authorize.
 //   final redirectUrl = Uri.parse('http://localhost:8000/callback');

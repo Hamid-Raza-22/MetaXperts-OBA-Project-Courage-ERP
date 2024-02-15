@@ -22,7 +22,7 @@ import '../Models/OrderModels/OrderMasterModel.dart';
 import '../View_Models/OrderViewModels/OrderDetailsViewModel.dart';
 import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
 
-List<String> creditLimitOptions = ['Option 1', 'Option 2', 'Option 3'];
+// List<String> creditLimitOptions = ['Option 1', 'Option 2', 'Option 3'];
 
 
 class OrderBooking_2ndPage extends StatefulWidget {
@@ -33,7 +33,6 @@ class OrderBooking_2ndPage extends StatefulWidget {
 class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
   bool isDataSavedInApex = true;
   bool isReConfirmButtonPressed = false;
-
   bool isOrderConfirmed = false;
   final ordermasterViewModel = Get.put(OrderMasterViewModel());
   final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
@@ -42,56 +41,6 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
   String currentMonth = DateFormat('MMM').format(DateTime.now());
   final TextEditingController orderIDController = TextEditingController();
   String currentOrderId = '';
-
-// String currentMonth = DateFormat('MMM').format(DateTime.now());
-
-
-  @override
-  void initState() {
-    // Initially add two rows
-
-    // _loadCounter();
-
-
-  }
-
-
-  // // You can maintain this as a global variable or retrieve it from somewhere
-  // _loadCounter() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   setState((){
-  //     serialCounter = prefs.getInt('serialCounter') ?? 1;
-  //     currentMonth = prefs.getString('currentMonth') ?? currentMonth;
-  //     currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
-  //   });
-  // }
-  //
-  // _saveCounter() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setInt('serialCounter', serialCounter);
-  //   await prefs.setString('currentMonth', currentMonth);
-  //   await prefs.setString('currentUserId', currentUserId); // Add this line
-  // }
-  //
-  // String generateNewOrderId( String userId, String currentMonth) {
-  //   if (this.currentUserId != userId) {
-  //     // Reset serial counter when the userId changes
-  //     serialCounter = 1;
-  //     this.currentUserId = userId;
-  //   }
-  //
-  //   if (this.currentMonth != currentMonth) {
-  //     // Reset serial counter when the month changes
-  //     serialCounter = 1;
-  //     this.currentMonth = currentMonth;
-  //   }
-  //
-  //   String orderId =
-  //       "$userId-$currentMonth-${serialCounter.toString().padLeft(3, '0')}";
-  //   serialCounter++;
-  //   _saveCounter(); // Save the updated counter value, current month, and userId
-  //   return orderId;
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -202,28 +151,6 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                     buildExpandedColumn(creditLimit, 10, readOnly: true),
                   ]),
 
-                  // buildSizedBox(10),
-                  //
-                  // // buildDropdownRow('Credit Limit', 10, creditLimitOptions,
-                  // //     onChanged: (value) {
-                  // //       // Handle the selected credit limit value
-                  // //       // You can save the selected value to your state or perform any other action.
-                  // //     } ),
-                  // // buildSizedBox(10),
-                  // buildRow([
-                  //   buildText('Discount               '),
-                  //   buildSizedBox(10),
-                  //   buildExpandedColumn(discount.toString(), 10,
-                  //       readOnly: true, controller: TextEditingController()),
-                  // ]),
-                  // buildSizedBox(10),
-                  // buildRow([
-                  //   buildText('Net Amount          '),
-                  //   buildSizedBox(10),
-                  //   buildExpandedColumn(subTotal.toString(), 10,
-                  //       readOnly: true, controller: TextEditingController()),
-                  // ]),
-
                   buildSizedBox(10),
                   buildRow([
                     buildText('Required Delivery '),
@@ -244,10 +171,11 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                               if (!isReConfirmButtonPressed) {
                                 // Mark the button as pressed
                                 isReConfirmButtonPressed = true;
-
                                 // Your existing code for handling the "Re Confirm" button press
                                 isOrderConfirmed = true;
-                                ordermasterViewModel.addOrderMaster(OrderMasterModel(
+                                generateAndSavePDF(orderMasterid, user_name, shopName, orderDate, selectedItems, quantities, rates, totalAmounts, totalAmount, creditLimit, requiredDelivery);
+
+                                await ordermasterViewModel.addOrderMaster(OrderMasterModel(
                                   orderId: OrderMasterid,
                                   shopName: shopName,
                                   ownerName: ownerName,
@@ -265,9 +193,9 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
                                 List<OrderDetailsModel> orderDetailsList = [];
 
-                                await saveRowDataDetailsToDatabase(rowDataDetails);
+                                 saveRowDataDetailsToDatabase(rowDataDetails);
 
-                                await DBHelper().addOrderDetails(orderDetailsList);
+                                 DBHelper().addOrderDetails(orderDetailsList);
 
                                 DBHelper dbmaster = DBHelper();
 
@@ -291,35 +219,53 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                 );
                               }
                             }),
+                            decoration: BoxDecoration(
+                              color: Colors.lightGreen[100], // Set the color of the button
+                              borderRadius: BorderRadius.circular(8), // Optional: Set border radius
+                            ),
                           ),
-
                         ],
                       ),
+
                       buildSizedBox(20),
 
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Container(
                             width: 100,
-                            child: buildElevatedButton('PDF Share', () {
-                              if (isOrderConfirmed) {
-                                // Order is confirmed, generate and share the PDF
-                                generateAndSharePDF(orderMasterid, user_name, shopName, orderDate, selectedItems, quantities, rates, totalAmounts, totalAmount, creditLimit, requiredDelivery);
-                              } else {
-                                // Order is not confirmed, show a toast message
-                                Fluttertoast.showToast(
-                                  msg: "Please confirm the order before sharing the PDF.",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  backgroundColor: Colors.red,
-                                  textColor: Colors.white,
-                                );
-                              }
-                            }),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (isOrderConfirmed) {
+                                  // Order is confirmed, generate and share the PDF
+                                  generateAndSharePDF(orderMasterid, user_name, shopName, orderDate, selectedItems, quantities, rates, totalAmounts, totalAmount, creditLimit, requiredDelivery);
+                                } else {
+                                  // Order is not confirmed, show a toast message
+                                  Fluttertoast.showToast(
+                                    msg: "Please confirm the order before sharing the PDF.",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                  );
+                                }
+                              },
+                              child: Text('PDF '),
+                              style: ElevatedButton.styleFrom(
+
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                                // Set the background color of the button
+                                // Set the background color of the button
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8), // Optional: Set border radius
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
+
                     ],
                   ),
 
@@ -329,29 +275,38 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                       alignment: Alignment.bottomRight,
                       child: Container(
                         width: 100,
-                        child: buildElevatedButton('Close', () {
-                          if (isOrderConfirmed) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => HomePage(),
-                              ),
-                            );
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (isOrderConfirmed) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => HomePage(),
+                                ),
+                              );
+                            } else {
+                              // Order is not confirmed, show a toast message
+                              Fluttertoast.showToast(
+                                msg: "Please confirm the order before Closing.",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                            }
+                          },
+                          child: Text('Close'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red, // Set the background color of the button
+                            foregroundColor: Colors.white,
 
-                          } else {
-                            // Order is not confirmed, show a toast message
-                            Fluttertoast.showToast(
-                              msg: "Please confirm the order before Closing.",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-                          }
-                        }
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8), // Optional: Set border radius
+                            ),
+                          ),
                         ),
-
                       ),
                     ),
+
                   ]
                   ),
                 ],
@@ -360,44 +315,6 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
           ),
         ));
   }
-
-  // String currentMonth = DateFormat('MMM').format(DateTime.now());
-  // You can maintain this as a global variable or retrieve it from somewhere
-  // _loadCounter() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   setState(() {
-  //     serialCounter = prefs.getInt('serialCounter') ?? 1;
-  //     currentMonth = prefs.getString('currentMonth') ?? currentMonth;
-  //     currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
-  //   });
-  // }
-  //
-  // _saveCounter() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setInt('serialCounter', serialCounter);
-  //   await prefs.setString('currentMonth', currentMonth);
-  //   await prefs.setString('currentUserId', currentUserId); // Add this line
-  // }
-  //
-  // String generateNewOrderId( String userId, String currentMonth) {
-  //   if (this.currentUserId != userId) {
-  //     // Reset serial counter when the userId changes
-  //     serialCounter = 1;
-  //     this.currentUserId = userId;
-  //   }
-  //
-  //   if (this.currentMonth != currentMonth) {
-  //     // Reset serial counter when the month changes
-  //     serialCounter = 1;
-  //     this.currentMonth = currentMonth;
-  //   }
-  //
-  //   String orderId =
-  //       "$userId-$currentMonth-${serialCounter.toString().padLeft(3, '0')}";
-  //   serialCounter++;
-  //   _saveCounter(); // Save the updated counter value, current month, and userId
-  //   return orderId;
-  // }
 
 
   // New method to save rowDataDetails to the order details database
@@ -719,11 +636,233 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     await Share.shareFiles([output.path], text: 'PDFDocument');
   }
 
+
+  Future<String> generateAndSavePDF(dynamic OrderMasterid, dynamic user_name, dynamic shopName,
+      dynamic order_date, List<dynamic> selectedItems, List<dynamic> quantities,List<dynamic> rates,
+      List<dynamic> totalAmounts, dynamic totalAmount, dynamic creditLimit,
+      dynamic requiredDelivery) async {
+    final pdf = pw.Document();
+    final image = pw.Image(pw.MemoryImage(Uint8List.fromList((await rootBundle.load('assets/images/p1.png')).buffer.asUint8List())));
+    final totalQuantity = quantities.cast<int>().reduce((a, b) => a + b);
+
+    // Add content to the PDF document
+    pdf.addPage(pw.Page(
+      pageFormat: pw.PdfPageFormat.a4,
+      build: (pw.Context context){
+        return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header
+              pw.Container(
+                margin: const pw.EdgeInsets.only(top: -60), // Adjust margin here
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Row (
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Add your logo image from assets
+                        pw.Container(
+                          child: image,
+                          height: 150,
+                          width: 150,
+                        ),
+                        pw.Text('Courage ERP', style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold, color: PdfColors.green)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Page Content
+              pw.SizedBox(height: 20),
+              // Order# , Date, Booker
+              pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        mainAxisAlignment: pw.MainAxisAlignment.start,
+                        children: [
+                          pw.Text('Order#: $OrderMasterid', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Booker Name: $user_name', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Shop Name: $shopName', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        ]
+                    ),
+                    pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                        mainAxisAlignment: pw.MainAxisAlignment.end,
+                        children: [
+                          pw.Text('Date: $order_date', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Req. Delivery: $requiredDelivery', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Credit Limit: $creditLimit', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        ]
+                    ),
+                  ]
+              ),
+              pw.Column(
+                children: [
+                  pw.SizedBox(height: 30),
+                  // Invoice Heading
+                  pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      mainAxisAlignment: pw.MainAxisAlignment.start,
+                      children: [
+                        pw.Text('Invoice', style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                      ]
+                  ),
+                  pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      mainAxisAlignment: pw.MainAxisAlignment.start,
+                      children: [
+
+                        // Order Summary
+                        pw.Text('Order Summary..', style: pw.TextStyle(fontSize: 15)),
+                        pw.SizedBox(height: 20),
+                      ]
+                  ),
+                  pw.SizedBox(height: 30),
+
+                  // Table
+                  pw.Table(
+
+                    border: pw.TableBorder.all(),
+                    columnWidths: {
+                      0: pw.FlexColumnWidth(1),
+                      1: pw.FlexColumnWidth(4),
+                      2: pw.FlexColumnWidth(1),
+                      3: pw.FlexColumnWidth(1),
+                      4: pw.FlexColumnWidth(2),
+                      5: pw.FlexColumnWidth(2),
+                    },
+
+                    children: [
+                      pw.TableRow(
+
+                        children: [
+                          pw.Text('S.N.', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Descr. of Goods', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Qty.', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Unit', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Price', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Amount(Rs.)', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+
+                        ],
+
+                      ),
+
+                      for (var i = 0; i < selectedItems.length; i++)
+                        pw.TableRow(
+
+                          children: [
+                            pw.Text((i + 1).toString()),
+                            pw.Text(selectedItems[i]),
+                            pw.Text(quantities[i].toString()),
+                            pw.Text(('PCS').toString()),
+                            pw.Text(rates[i].toString()),
+                            //pw.Text(order_date.toString()),
+                            pw.Text(totalAmounts[i].toString()),
+                          ],
+                        ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 20),
+                  // Total
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    mainAxisAlignment: pw.MainAxisAlignment.end,
+                    children: [
+
+                      pw.Text('Total: $totalAmount', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+
+                      pw.SizedBox(height: 5),
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.end,
+                        children: [
+                          // pw.Text('Discount: ', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          // pw.Text(discount.toString(), style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
+                      pw.SizedBox(height: 10),
+                      pw.Container(
+                        height: 1,
+                        color: PdfColors.grey,
+                        margin: const pw.EdgeInsets.symmetric(vertical: 5),
+                      ),
+                      pw.SizedBox(height: 20),
+                      // Total Quantity
+                      pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text('Grand Total: ${totalQuantity.toString()} PCS', style: pw.TextStyle(fontSize: 15)),
+                          // pw.Text('Net Amount: ${subTotal.toString()}', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
+
+
+                      pw.SizedBox(height: 10),
+                      pw.Container(
+                        height: 1,
+                        color: PdfColors.grey,
+                        margin: const pw.EdgeInsets.symmetric(vertical: 5),
+                      ),
+                      pw.SizedBox(height: 10),
+                      // pw.Row(
+                      //   mainAxisAlignment: pw.MainAxisAlignment.end,
+                      //   children: [
+                      //     pw.Text('Credit Limit: ', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                      //     pw.Text(creditLimit.toString(), style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                      //   ],
+                      // ),
+                    ],
+                  ),
+                  // Footer
+                  pw.Container(
+                    margin: const pw.EdgeInsets.only(top: 30),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.center,
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text('Developed by MetaXperts', style: pw.TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              )]);
+      },
+    ));
+
+    // Get the directory for storing PDFs
+    final directory = await getExternalStorageDirectory();
+    final folderPath = '${directory?.path}/PDFs';
+    await Directory(folderPath).create(recursive: true); // Create PDFs folder if not exist
+
+    final filePath = '$folderPath/$OrderMasterid.pdf';
+
+    // Save the PDF to the device's storage
+    final file = File(filePath);
+    await file.writeAsBytes(await pdf.save());
+    // Show toast message indicating PDF saved successfully
+    Fluttertoast.showToast(
+      msg: "PDF saved successfully at $filePath",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
+    print('PDF saved successfully at $filePath');
+    // Return the file path
+    return filePath;
+  }
+
   Widget buildElevatedButton(String txt, [Function()? onPressed]) {
     return ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, backgroundColor: Colors.green,
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
           elevation: 10,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),

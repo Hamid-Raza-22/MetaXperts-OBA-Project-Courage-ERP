@@ -1,10 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -42,26 +38,43 @@ class DBHelper {
     return db;
   }
 _onCreate(Database db, int version) async {
-    await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT)");
-    await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT)");
-    await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
+    await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0)");
+    await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,posted INTEGER DEFAULT 0)");
+    await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,posted INTEGER DEFAULT 0,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
     await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT)");
     await db.execute("CREATE TABLE products(id NUMBER, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT)");
     await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
-    await db.execute("CREATE TABLE orderDetailsData(order_no TEXT, product_name TEXT, quantity_booked INTEGER)");
+    await db.execute("CREATE TABLE orderDetailsData(order_no TEXT, product_name TEXT, quantity_booked INTEGER, price INTEGER)");
     await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
     await db.execute("CREATE TABLE accounts(account_id INTEGER, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT)");
     await db.execute("CREATE TABLE productCategory(brand TEXT)");
     await db.execute("CREATE TABLE attendance(id INTEGER PRIMARY KEY , date TEXT, timeIn TEXT, userId TEXT, latIn TEXT, lngIn TEXT, bookerName TEXT)");
-    await db.execute("CREATE TABLE attendanceOut(id INTEGER PRIMARY KEY , date TEXT, timeOut TEXT, totalTime TEXT, userId TEXT,latOut TEXT, lngOut TEXT)");
+    await db.execute("CREATE TABLE attendanceOut(id INTEGER PRIMARY KEY , date TEXT, timeOut TEXT, totalTime TEXT, userId TEXT,latOut TEXT, lngOut TEXT, posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE recoveryForm (recoveryId TEXT, date TEXT, shopName TEXT, cashRecovery REAL, netBalance REAL, userId TEXT ,bookerName TEXT)");
-    await db.execute("CREATE TABLE returnForm (returnId INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, shopName TEXT)");
-    await db.execute("CREATE TABLE return_form_details(id INTEGER PRIMARY KEY AUTOINCREMENT,returnFormId TEXT,productName TEXT,quantity TEXT,reason TEXT,FOREIGN KEY (returnFormId) REFERENCES returnForm(returnId))");
+    await db.execute("CREATE TABLE returnForm (returnId INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, shopName TEXT, returnAmount INTEGER, bookerId TEXT, bookerName TEXT)");
+    await db.execute("CREATE TABLE return_form_details(id INTEGER PRIMARY KEY AUTOINCREMENT,returnFormId TEXT,productName TEXT,quantity TEXT,reason TEXT,bookerId TEXT,FOREIGN KEY (returnFormId) REFERENCES returnForm(returnId))");
     await db.execute("CREATE TABLE shopVisit (id TEXT PRIMARY KEY,date TEXT,shopName TEXT,userId TEXT,bookerName TEXT,brand TEXT,walkthrough TEXT,planogram TEXT,signage TEXT,productReviewed TEXT,feedback TEXT,latitude TEXT,longitude TEXT,address TEXT,body BLOB)");
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
     await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT)");
 }
+  Future<void> insertShop(ShopModel shop) async {
+    final Database db = await initDatabase();
+
+    // Insert the shop into the 'shop' table
+    await db.insert(
+      'shop',
+      shop.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    // Insert the relevant data into the 'ownerData' table
+    await db.rawInsert(
+      'INSERT INTO ownerData(id, shop_name, owner_name, phone_no, city) VALUES(?, ?, ?, ?, ?)',
+      [shop.id, shop.shopName, shop.ownerName, shop.phoneNo, shop.city],
+    );
+  }
+
   Future<List<Map<String, dynamic>>?> getOrderMasterdataDB() async {
     final Database db = await initDatabase();
     try {
@@ -136,6 +149,30 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
+
+
+  Future<String?> fetchPriceForProduct(String productName) async {
+    try {
+      final Database db = await initDatabase();
+      final List<Map<String, dynamic>> result = await db.query(
+        'orderDetailsData',
+        columns: ['price'],
+        where: 'product_name = ?',
+        whereArgs: [productName],
+      );
+
+      if (result.isNotEmpty) {
+        return result[0]['price'].toString();
+      } else {
+        return null; // Handle the case where quantity is not found
+      }
+    } catch (e) {
+      print("Error fetching price for product: $e");
+      return null;
+    }
+  }
+
+
   Future<List<String>> getOrderMasterOrderNo() async {
     final Database db = await initDatabase();
     try {
@@ -146,7 +183,6 @@ _onCreate(Database db, int version) async {
       return [];
     }
   }
-
   Future<List<String>> getOrderMasterShopNames() async {
     final Database db = await initDatabase();
     try {
@@ -159,7 +195,6 @@ _onCreate(Database db, int version) async {
       return [];
     }
   }
-
   Future<List<String>> getOrderMasterShopNames2() async {
     final Database db = await initDatabase();
     try {
@@ -188,13 +223,17 @@ _onCreate(Database db, int version) async {
     final ApiServices api = ApiServices();
 
     try {
-      final products = await db.rawQuery('select * from shop');
-      var count = 0;
-      if (products.isNotEmpty || products != null) {  // Check if the table is not empty
+      final List<Map<String, dynamic>> records = await db.query('shop');
 
-      for (var i in products) {
-
-        print("FIRST ${i.toString()}");
+      // Print each record
+      for (var record in records) {
+        print(record.toString());
+      }
+      // Select only the records that have not been posted yet
+      final products = await db.rawQuery('SELECT * FROM shop WHERE posted = 0');
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (var i in products) {
+          print("FIRST ${i.toString()}");
 
 
         ShopModel v = ShopModel(
@@ -215,14 +254,17 @@ _onCreate(Database db, int version) async {
 
         var result = await api.masterPost(
           v.toMap(),
-          'https://apex.oracle.com/pls/apex/metaxperts/addshop/post/',
+          'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/',
         );
 
         if (result == true) {
-          db.rawQuery("DELETE FROM shop WHERE id = '${i['id']}'");
+         // await db.rawQuery("UPDATE attendanceOut SET posted = 1 WHERE id = '${i['id']}'");
+
+          await db.rawUpdate("UPDATE shop SET posted = 1 WHERE id = ?", [i['id']]);
         }
       }
-    } }catch (e) {
+    }
+    }catch (e) {
       print("ErrorRRRRRRRRR: $e");
       return null;
     }
@@ -332,13 +374,17 @@ _onCreate(Database db, int version) async {
     final ApiServices api = ApiServices();
 
     try {
-      final products = await db.rawQuery('select * from orderMaster');
-      var count = 0;
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+      final List<Map<String, dynamic>> records = await db.query('orderMaster');
 
-      for (var i in products) {
-        print("FIRST ${i.toString()}");
-
+      // Print each record
+      for (var record in records) {
+        print(record.toString());
+      }
+      // Select only the records that have not been posted yet
+      final products = await db.rawQuery('SELECT * FROM orderMaster WHERE posted = 0');
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (var i in products) {
+          print("FIRST ${i.toString()}");
 
         OrderMasterModel v = OrderMasterModel(
             orderId: i['orderId'].toString(),
@@ -360,11 +406,11 @@ _onCreate(Database db, int version) async {
 
         var result = await api.masterPost(
           v.toMap(),
-          'https://apex.oracle.com/pls/apex/metaxperts/ordermaster/post/',
+          'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/ordermaster/post/',
         );
 
         if (result == true) {
-          db.rawQuery("DELETE FROM orderMaster WHERE orderId = '${i['orderId']}'");
+          await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
 
         }
       }
@@ -379,13 +425,18 @@ _onCreate(Database db, int version) async {
     final ApiServices api = ApiServices();
     try {
 
-        final products = await db.rawQuery('select * from order_details');
-      var count = 0;
-        if (products.isNotEmpty || products != null) {  // Check if the table is not empty
+      final List<Map<String, dynamic>> records = await db.query('order_details');
 
-          for(var i in products){
-        print(i.toString());
-        count++;
+      // Print each record
+      for (var record in records) {
+        print(record.toString());
+      }
+      // Select only the records that have not been posted yet
+      final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (var i in products) {
+          print("FIRST ${i.toString()}");
+
         OrderDetailsModel v = OrderDetailsModel(
             id: i['id'].toString(),
             orderMasterId: i['order_master_id'].toString(),
@@ -394,9 +445,9 @@ _onCreate(Database db, int version) async {
             quantity: i['quantity'].toString(),
             amount: i['amount'].toString()
         );
-        var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxperts/orderdetail/post/');
+        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
         if(result == true){
-          db.rawQuery("DELETE FROM order_details WHERE id = '${i['id']}'");
+          await db.rawQuery("UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
         }
       }}
 
@@ -405,6 +456,7 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
+
   Future<List<String>> getShopNames() async {
     final Database db = await initDatabase();
     try {
@@ -441,6 +493,9 @@ _onCreate(Database db, int version) async {
       return [];
     }
   }
+
+
+
   Future<bool> insertOwnerData(List<dynamic> dataList) async {
     final Database db = await initDatabase();
     try {
@@ -606,7 +661,6 @@ _onCreate(Database db, int version) async {
     }
   }
 
-
   Future<Map<String, double>> getDebitsMinusCreditsPerShop() async {
     try {
       final List<Map<String, dynamic>>? netBalanceData = await getNetBalanceDB();
@@ -683,6 +737,7 @@ _onCreate(Database db, int version) async {
     try {
       final List<Map<String, dynamic>> ordermaster = await db.query('orderMasterData');
       return ordermaster;
+
     } catch (e) {
       print("Error retrieving products: $e");
       return null;
@@ -724,7 +779,7 @@ _onCreate(Database db, int version) async {
 
           var result = await api.masterPost(
             v.toMap(),
-            'https://apex.oracle.com/pls/apex/metaxperts/attendance/post/',
+            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
           );
           print("API Call");
 
@@ -750,37 +805,36 @@ _onCreate(Database db, int version) async {
     final ApiServices api = ApiServices();
     try {
       final products = await db.rawQuery('select * from attendanceOut');
-      var count = 0;
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
 
-      for (var i in products) {
-        print("FIRST ${i.toString()}");
+      if (products.isNotEmpty || products != null) {  // Check if the table is not empty
+        for (var i in products) {
+          print("FIRST ${i.toString()}");
 
-        AttendanceOutModel v = AttendanceOutModel(
-          id: i['id'].toString(),
-          date: i['date'].toString(),
-          userId: i['userId'].toString(),
-          timeOut: i['timeOut'].toString(),
-          totalTime: i['totalTime'].toString(),
-          latOut: i['latOut'].toString(),
-          lngOut: i['lngOut'].toString(),
-        );
-        var result = await api.masterPost(
-          v.toMap(),
-          'https://apex.oracle.com/pls/apex/metaxperts/attendanceout/post/',
-        );
+          AttendanceOutModel v = AttendanceOutModel(
+            id: i['id'].toString(),
+            date: i['date'].toString(),
+            userId: i['userId'].toString(),
+            timeOut: i['timeOut'].toString(),
+            totalTime: i['totalTime'].toString(),
+            latOut: i['latOut'].toString(),
+            lngOut: i['lngOut'].toString(),
+          );
+          var result = await api.masterPost(
+            v.toMap(),
+            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendanceout/post/',
+          );
 
-        if (result == true) {
-          db.rawQuery("DELETE FROM attendanceOut WHERE id = '${i['id']}'");
-
+          if (result == true) {
+            print('successfully post');
+            await db.rawDelete("DELETE FROM attendanceOut WHERE id = ?", [i['id']]);
+          }
         }
       }
-    } }catch (e) {
+    } catch (e) {
       print("ErrorRRRRRRRRR: $e");
       return null;
     }
   }
-
 
 
   Future<bool> insertProductCategory(List<dynamic> dataList) async {
@@ -878,7 +932,7 @@ _onCreate(Database db, int version) async {
 
           var result = await api.masterPost(
             v.toMap(),
-            'https://apex.oracle.com/pls/apex/metaxperts/recoveryform/post/',
+            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recoveryform/post/',
           );
 
           if (result == true) {
@@ -935,12 +989,14 @@ _onCreate(Database db, int version) async {
           returnId: i['returnId'].toString(),
           shopName: i['shopName'].toString(),
           date: i['date'].toString(),
-
+          returnAmount: i['returnAmount'].toString(),
+          bookerId: i['bookerId'].toString(),
+          bookerName: i['bookerName'].toString()
         );
 
         var result = await api.masterPost(
           v.toMap(),
-          'https://apex.oracle.com/pls/apex/metaxperts/returnform/post/',
+          'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnform/post/',
         );
 
         if (result == true) {
@@ -971,9 +1027,9 @@ _onCreate(Database db, int version) async {
           productName: i['productName'].toString(),
           reason: i['reason'].toString(),
           quantity: i['quantity'].toString(),
-
+          bookerId: i['bookerId'].toString()
         );
-        var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxperts/returnformdetail/post');
+        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');
         if(result == true){
           db.rawQuery('DELETE FROM return_form_details WHERE id = ${i['id']}');
         }
@@ -983,50 +1039,6 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
-//
-// Future<void> addOrderMaster(OrderMasterModel orderMaster) async {
-//   final db = await _db;
-//
-//   // Get user ID and current month
-//   String userId = orderMaster.userId;
-//   String currentMonth = DateFormat('MMM').format(DateTime.now());
-//
-//   // Concatenate "userId+month+counter" to form the new orderId
-//   int counter = await getNextOrderIdCounter(db);
-//   String newOrderId = "$userId-${currentMonth}-${counter.toString().padLeft(3, '0')}";
-//
-//   orderMaster.orderId = newOrderId;
-//
-//   await db?.insert('orderMaster', orderMaster.toMap());
-// }
-//
-// Future<int> getNextOrderIdCounter(Database? db) async {
-//   if (db != null) {
-//     // Get current month
-//     String currentMonth = DateFormat('MMM').format(DateTime.now());
-//     try {
-//       // Get the maximum counter value for the current month
-//       List<Map<String, dynamic>> result = await db.rawQuery(
-//           "SELECT MAX(CAST(SUBSTR(orderId, -3) AS INTEGER)) as maxCounter FROM orderMaster WHERE orderId LIKE '%$currentMonth%'");
-//
-//       int maxCounter = (result[0]['maxCounter'] ?? 0) + 1;
-//
-//       return maxCounter;
-//     } catch (e) {
-//       print("Error getting max counter: $e");
-//       return 1; // If an error occurs, default to 1
-//     }
-//   } else {
-//     return 1; // If the database is null, default to 1
-//   }
-// }
-
-// Future<void> addOrderDetails(List<OrderDetailsModel> orderDetailsList) async {
-//   final db = await _db;
-//   for (var orderDetails in orderDetailsList) {
-//     await db?.insert('order_details', orderDetails.toMap());
-//   }
-// }
 
   Future<void> addStockCheckItems(List<StockCheckItemsModel> stockCheckItemsList) async {
     final db = await _db;
@@ -1192,10 +1204,6 @@ _onCreate(Database db, int version) async {
 
         );
 
-        // // Fetch the body data separately
-        // final Uint8List body = await fetchBodyData(v.id);
-        // v.body = body;
-
         // Print image path before trying to create the file
         print("Image Path from Database: ${i['body']}");
         print("lat:${i['latitude']}");
@@ -1215,39 +1223,28 @@ _onCreate(Database db, int version) async {
         }
 
 
-// Rest of your code...
-
         // Print information before making the API request
         print("Making API request for shop visit ID: ${v.id}");
 
 
         var result = await api.masterPostWithImage(
           v.toMap(),
-          'https://apex.oracle.com/pls/apex/metaxperts/report/post/',
+          'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/report/post/',
           imageBytes,
         );
         if (result == true) {
-          await db.rawQuery('DELETE FROM shopVisit');
+          await db.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
           print("Successfully posted data for shop visit ID: ${v.id}");
-          Fluttertoast.showToast(
-            msg: 'Data Post successfully',
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-          );
-        } else {
+
+         }
+        else {
           print("Failed to post data for shop visit ID: ${v.id}");
-          Fluttertoast.showToast(
-            msg: 'Data Failed To Post',
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-          );
-        }
+
       }
-    }} catch (e) {
+      }
+
+    }
+      } catch (e) {
       print("Error processing shop visit data: $e");
       return null;
     }
@@ -1270,7 +1267,7 @@ _onCreate(Database db, int version) async {
           itemDesc: i['itemDesc'].toString(),
           qty: i['qty'].toString(),
         );
-        var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxperts/shopvisit/post/');
+        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/shopvisit/post/');
         if(result == true){
           db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
         }

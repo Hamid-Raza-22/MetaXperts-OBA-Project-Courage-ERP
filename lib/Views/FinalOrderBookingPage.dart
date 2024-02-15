@@ -28,6 +28,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
   int? ordermasterId;
   int? orderdetailsId;
+  final Productss productsController = Get.put(Productss());
 
   TextEditingController _ShopNameController = TextEditingController();
   TextEditingController _ownerNameController = TextEditingController();
@@ -39,6 +40,8 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   TextEditingController _subTotalController = TextEditingController();
   TextEditingController _paymentController = TextEditingController();
   TextEditingController _balanceController = TextEditingController();
+  TextEditingController _searchController = TextEditingController();
+
   TextEditingController _requiredDeliveryController = TextEditingController();
   final productsViewModel = Get.put(ProductsViewModel());
   String selectedBrand = '';
@@ -52,6 +55,28 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   // Define your credit limit options
   List<String> creditLimitOptions = [];
   String selectedCreditLimit = ''; // Set a default value
+  List<DataRow> rows = [];
+  List<DataRow> filteredRows = [];
+  void filterData(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredRows = [];
+      });
+    } else {
+      List<DataRow> tempList = [];
+      for (DataRow row in productsController.rows) {
+        for (DataCell cell in row.cells) {
+          if (cell.child is Text && (cell.child as Text).data!.contains(query)) {
+            tempList.add(row);
+            break;
+          }
+        }
+      }
+      setState(() {
+        filteredRows = tempList;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -62,19 +87,9 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     addNewRow();
     onCreatee();
     _loadCounter();
+     productsController.fetchProducts();
 
-    // Call generateNewOrderId to set the initial order ID
-    // newOrderId = generateNewOrderId(userId.toString(), currentMonth);
-    // print('Initial Order ID: $newOrderId');
-    //orderMasterid=newOrderId;
-    // Increment serialCounter for the next order
-    // serialCounter++;
-    // // Save the updated counter value, current month, and userId
-    // _saveCounter();
-    // _calculateTotal();
-    //  _calculateSubTotal();
-    //  _calculateBalance();
-    // Add listeners to controllers for relevant fields
+
     addListenerToController(_totalController, _calculateSubTotal);
     addListenerToController(_discountController, _calculateSubTotal);
     addListenerToController(_paymentController, _calculateBalance);
@@ -96,6 +111,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     _paymentController.dispose();
     _balanceController.dispose();
     _requiredDeliveryController.dispose();
+
     // Dispose of controllers in rowDataList
     for (var rowData in rowDataList) {
       rowData.qtyController.dispose();
@@ -144,15 +160,10 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
             MaterialPageRoute(
               builder: (context) => HomePage(),
             ),
-          );
-
-          // Always return false to prevent going back
+          ); // Always return false to prevent going back
           return false;
         },
         // You can use any widget here as a placeholder
-
-
-
         child: Scaffold(
           appBar: AppBar(
             title: Text('Order Booking'),
@@ -176,6 +187,77 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                     SizedBox(height: 10),
                     for (var i = 0; i < rowDataList.length; i++) buildRow(rowDataList[i], i + 1),
                     SizedBox(height: 20),
+                    SizedBox(height: 25),
+                    Column(
+                      children: [
+
+                        SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(5.0),
+                                child: Container(
+                                  height: 500, // Set the desired height
+                                  width: 300, // Set the desired width
+                                  child:Card(
+                                    elevation: 5,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
+                                      side: BorderSide(
+                                        color: Colors.black, // Change the color as needed
+                                        width: 1.0, // Change the width as needed
+                                      ),
+                                    ),
+                                    child: SingleChildScrollView( // Add a vertical ScrollView
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextField(
+                                              controller: _searchController,
+                                              onChanged: (query) {
+                                                filterData(query);
+                                              },
+                                              decoration: InputDecoration(
+                                                labelText: 'Search',
+                                                hintText: 'Type to search...',
+                                                prefixIcon: Icon(Icons.search),
+                                              ),
+                                            ),
+                                          ),
+                                          SingleChildScrollView(
+                                            scrollDirection: Axis.vertical, // Add vertical scroll direction
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: GetBuilder<Productss>(
+                                                init: Productss(),
+                                                builder: (controller) {
+                                                  return DataTable(
+                                                    columns: [
+                                                      DataColumn(label: Text('Product')),
+                                                      DataColumn(label: Text('In Stock')),
+                                                      DataColumn(label: Text('Quantity')),
+                                                      DataColumn(label: Text('Rate')),
+                                                      DataColumn(label: Text('Amount')),
+                                                    ],
+                                                    rows: filteredRows.isNotEmpty ? filteredRows : controller.rows,
+                                                  );
+                                                },
+                                              )
+
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],),
+                        ),
+
+                      ],
+                    ),
                     Align(
                       alignment: Alignment.center,
                       child: ElevatedButton(
@@ -183,7 +265,8 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                           addNewRow();
                         },
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white, backgroundColor: Colors.green,
+                          backgroundColor: Colors.deepOrange,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
@@ -286,6 +369,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white, backgroundColor: Colors.green,
+
                           elevation: 10,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
@@ -381,7 +465,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
 
 // Define dropdownItems as a list of valid items
-  List<String> dropdownItems = ['15 Days', '30 Days', 'On Cash'];
+  List<String> dropdownItems = ['7 Days','15 Days', '30 Days', 'On Cash'];
 
 // Define shopOwners as a list of maps
   List<Map<String, dynamic>> shopOwners = [
@@ -930,5 +1014,89 @@ class RowData {
   required this.amountController,
   required this.itemsDropdownValue,
   required this.selectedProduct,
+  });
+}
+
+class Productss extends GetxController {
+  final productsViewModel = ProductsViewModel();
+
+  List<Product> products = [];
+  RxList<DataRow> rows = <DataRow>[].obs;
+  List<TextEditingController> controllers = [];
+  List<String> amounts = []; // Store the amounts here
+
+  Future<void> fetchProducts() async {
+    await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+    var products = productsViewModel.allProducts;
+
+    // Clear existing rows and controllers before adding new ones
+    rows.clear();
+    controllers.clear();
+    amounts.clear();
+
+    for (var product in products) {
+      var controller = TextEditingController(
+          text: '0'); // Set default value here
+      controllers.add(controller);
+
+      // Initialize the amount for this product
+      amounts.add((int.parse(controller.text) * int.parse(product.price ?? '5'))
+          .toString());
+
+      // Add a listener that updates the amount when the value changes
+      controller.addListener(() {
+        updateAmount(controllers.indexOf(controller), controller.text);
+      });
+
+      rows.add(DataRow(cells: [
+        DataCell(Text(product.product_name ?? '')),
+        DataCell(Text(product.quantity ?? '')),
+        DataCell(TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+
+        )),
+        DataCell(Text(product.price ?? '')),
+        DataCell(Text(amounts[controllers.indexOf(controller)])),
+        // Display the amount here
+      ]));
+    }
+  }
+
+  void updateAmount(int index, String value) {
+    int quantity = int.parse(value);
+    int price = int.parse(products[index].price ?? '0');
+    amounts[index] = (quantity * price).toString();
+
+    // Update the specific row that has changed
+    rows[index] = DataRow(cells: [
+      DataCell(Text(products[index].name ?? '')),
+      DataCell(Text(products[index].quantity ?? '')),
+      DataCell(TextField(
+        controller: controllers[index],
+        keyboardType: TextInputType.number,
+        onChanged: (value) {
+          updateAmount(index, value); // Call updateAmount when the text changes
+        },
+      )),
+      DataCell(Text(products[index].price ?? '')),
+      DataCell(Text(amounts[index])),
+    ]);
+
+    update(); // Call update to refresh the UI
+  }
+}
+
+class Product {
+  final String id;
+  final String name;
+  final String price;
+  final String quantity;
+
+  Product({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.quantity,
   });
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 String userNames = "";
 String username= "";
@@ -25,6 +25,5 @@ String shopName="";
 String OrderMasterid= "";
 String address = "";
 bool locationbool = true;
-String? userIdForLocation;
-User? userInfo = FirebaseAuth.instance.currentUser;
+String globalcurrentMonth= DateFormat('MMM').format(DateTime.now());
 

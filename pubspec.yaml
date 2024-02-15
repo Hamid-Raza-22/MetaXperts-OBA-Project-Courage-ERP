@@ -95,6 +95,7 @@ dependencies:
   oauth2: ^2.0.0
   background_locator_2: ^2.0.6
   carp_background_location: ^4.0.0
+  url_launcher: ^6.2.4
   location00:
     git:
       url: https://github.com/abd143685/location3.git

@@ -16,8 +16,6 @@ class StockCheckItemsViewModel extends GetxController{
   }
 
 
-
-
   fetchAllOStockCheckItems() async{
     var stockcheckitems = await stockcheckitemsRepository.getStockCheckItems();
     allStockCheckItems.value = stockcheckitems;

@@ -9,7 +9,7 @@ class ReturnFormRepository{
 
   Future<List<ReturnFormModel>> getReturnForm() async{
     var dbClient = await dbHelperReturnForm.db;
-    List<Map> maps = await dbClient!.query('returnForm',columns: ['returnId','date','shopName']);
+    List<Map> maps = await dbClient!.query('returnForm',columns: ['returnId','date','shopName', 'returnAmount','bookerId', 'bookerName']);
     List<ReturnFormModel> returnform = [];
     for(int i = 0; i<maps.length; i++)
     {

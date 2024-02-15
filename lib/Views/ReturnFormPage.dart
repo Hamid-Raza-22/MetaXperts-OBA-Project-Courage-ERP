@@ -48,6 +48,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   List<Widget> dynamicRows = [];
   List<TypeAheadController> firstTypeAheadControllers = [];
   List<TextEditingController> qtyControllers = [];
+  List<TextEditingController> priceControllers = [];
   List<TextEditingController> secondTypeAheadControllers = [];
   int? returnformid;
   int? returnformdetailsid;
@@ -56,9 +57,10 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   List<String> dropdownItems2 = [];
   List<Map<String, dynamic>> productOwners = [];
   DBHelper dbHelper = DBHelper();
+  TextEditingController amountController = TextEditingController();
 
   final ProductController productController = Get.put(ProductController());
-
+  final ProductController productController1 = Get.put(ProductController());
   bool isValidQuantity(String quantity) {
     try {
       int parsedQuantity = int.parse(quantity);
@@ -80,6 +82,29 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     fetchProductDataForSelectedShop(_selectedShopController.text);
   }
 
+
+  double calculateTotalAmount() {
+    double totalAmount = 0.0;
+
+    for (int index = 0; index < qtyControllers.length; index++) {
+      try {
+        int qty = int.parse(qtyControllers[index].text);
+        double price = double.parse(priceControllers[index].text);
+
+        double amount = qty * price;  // Calculate amount
+        totalAmount += amount;  // Accumulate the total amount
+
+      } catch (e) {
+        amountController.text = "Invalid input";  // Set a default value or handle the error
+        return 0.0; // Handle the case where either qty or price is not a valid number
+      }
+    }
+
+    amountController.text = totalAmount.toString();  // Set the total amount to the controller
+    return totalAmount;
+  }
+
+
   Future<void> updateQuantityField(String selectedProductName,
       int index) async {
     String? quantity = await fetchQuantityForProduct(selectedProductName);
@@ -89,6 +114,16 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       });
     }
   }
+  Future<void> updatePriceField(String selectedProductName,
+      int index) async {
+    String? price = await fetchPriceForProduct(selectedProductName);
+    if (price != null) {
+      setState(() {
+        priceControllers[index].text = price;
+      });
+    }
+  }
+
 
   void fetchProductDataForSelectedShop(String selectedShopName) async {
     await productController.fetchProductData(selectedShopName);
@@ -119,6 +154,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     DatabaseOutputs db = DatabaseOutputs();
     await db.showReturnForm();
     await db.showReturnFormDetails();
+    await db.showOrderDetailsData();
+    await db.showOrderMasterData();
   }
 
   @override
@@ -168,7 +205,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           SizedBox(
             width: 70,
             child: Text(
-              ' QTy',
+              '      Qty',
               style: TextStyle(
                 fontSize: 15,
               ),
@@ -177,7 +214,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           SizedBox(
             width: 150,
             child: Text(
-              'Reason                                                  ',
+              '     Reason                                                  ',
               style: TextStyle(
                 fontSize: 15,
               ),
@@ -224,7 +261,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                   setState(() {
                     _selectedShopController.text = suggestion;
                     selectedorderno = getOrderNoForSelectedShop();
-                    print('order no:$selectedorderno');
+                    print('order no: $selectedorderno');
                     fetchProductDataForSelectedShop(suggestion);
                   });
                 },
@@ -265,12 +302,14 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   Widget buildTypeAheadRow(int index) {
     if (index >= firstTypeAheadControllers.length ||
         index >= qtyControllers.length ||
+        index >= priceControllers.length ||
         index >= secondTypeAheadControllers.length) {
       addNewRowControllers();
     }
 
     TypeAheadController firstController = firstTypeAheadControllers[index];
     TextEditingController qtyController = qtyControllers[index];
+    TextEditingController priceController = priceControllers[index];
     TextEditingController secondController = secondTypeAheadControllers[index];
 
     return Padding(
@@ -327,6 +366,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         firstController.isSelectionFromSuggestion = true;
                       });
                       await updateQuantityField(suggestion, index);
+                      await updatePriceField(suggestion, index);
+                      await calculateTotalAmount();
                     },
                     textFieldConfiguration: TextFieldConfiguration(
                       decoration: InputDecoration(
@@ -375,10 +416,11 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                   style: TextStyle(fontSize: 12),
                 ),
               ),
+
               SizedBox(width: 5),
               Container(
                 height: 50,
-                width: 115,
+                width: 100,
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Colors.black,
@@ -430,6 +472,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                       dynamicRows.removeAt(index);
                       firstTypeAheadControllers.removeAt(index);
                       qtyControllers.removeAt(index);
+                      priceControllers.removeAt(index);
                       secondTypeAheadControllers.removeAt(index);
 
                       for (int i = index; i < dynamicRows.length; i++) {
@@ -456,7 +499,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           });
         },
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, backgroundColor: Colors.green,
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -477,12 +521,16 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       child: ElevatedButton(
         onPressed: () async {
           if (isFormValid()) {
+            await calculateTotalAmount();
             // Your existing code for submission
             var id = await customAlphabet('1234567890', 5);
             returnformViewModel.addReturnForm(ReturnFormModel(
               returnId: int.parse(id),
               shopName: _selectedShopController.text,
               date: _getCurrentDate(),
+              returnAmount: amountController.text,
+              bookerId: userId,
+              bookerName: userNames
             ));
 
             String visitid = await returnformViewModel.fetchLastReturnFormId();
@@ -497,13 +545,15 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                   productName: firstTypeAheadControllers[i].text,
                   reason: secondTypeAheadControllers[i].text,
                   quantity: qtyControllers[i].text,
+                 bookerId: userId
+                 // returnAmount: amountController.text,
                 ),
               );
             }
 
             DBHelper dbreturnform = DBHelper();
-            await dbreturnform.postReturnFormTable();
-            await dbreturnform.postReturnFormDetails();
+             dbreturnform.postReturnFormTable();
+             dbreturnform.postReturnFormDetails();
 
             onCreatee();
 
@@ -518,7 +568,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           }
         },
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, backgroundColor: Colors.green,
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -541,6 +592,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     bool isQtyValid = qtyControllers.every(
           (controller) => isValidQuantity(controller.text),
     );
+    // bool isPriceValid = priceControllers.every(
+    //       (controller) => isValidPrice(controller.text),
+    // );
 
     return _selectedShopController.text.isNotEmpty &&
         isDropdownValid &&
@@ -558,6 +612,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   void addNewRowControllers() {
     firstTypeAheadControllers.add(TypeAheadController());
     qtyControllers.add(TextEditingController());
+    priceControllers.add(TextEditingController());
     secondTypeAheadControllers.add(TextEditingController());
   }
 
@@ -583,6 +638,32 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       }
     } catch (e) {
       print("Error fetching quantity for product: $e");
+      return null;
+    }
+  }
+
+  Future<String?> fetchPriceForProduct(String productName) async {
+    try {
+      final Database? db = await productController.dbHelper.db;
+
+      if (db != null) {
+        final List<Map<String, dynamic>> result = await db.query(
+          'orderDetailsData',
+          columns: ['price'],
+          where: 'product_name = ?',
+          whereArgs: [productName],
+        );
+
+        if (result.isNotEmpty) {
+          return result[0]['price'].toString();
+        } else {
+          return null; // Handle the case where quantity is not found
+        }
+      } else {
+        return null; // Handle the case where the database is null
+      }
+    } catch (e) {
+      print("Error fetching price for product: $e");
       return null;
     }
   }

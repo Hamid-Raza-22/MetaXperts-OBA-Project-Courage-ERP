@@ -21,6 +21,7 @@ class ShopViewModel extends GetxController{
     var shop = await shopRepository.getShop();
     allShop.value= shop;
 
+
   }
 
   Future<String> fetchLastShopId() async{
@@ -28,12 +29,20 @@ class ShopViewModel extends GetxController{
     return shopvisit;
   }
 
-  addShop(ShopModel shopModel){
-    shopRepository.add(shopModel);
-    fetchAllShop();
-    //var dummy=fetchAllShop();
-   // print (dummy);
+  Future<void> addShop(ShopModel shopModel) async {
+    await shopRepository.add(shopModel);
 
+    // Implementing logic to insert data into 'ownerData' table
+    var dbClient = await shopRepository.dbHelper.db;
+    await dbClient!.insert('ownerData', {
+      'id': shopModel.id,
+      'shop_name': shopModel.shopName,
+      'owner_name': shopModel.ownerName,
+      'phone_no': shopModel.phoneNo,
+      'city': shopModel.city,
+    });
+
+    await fetchAllShop();
   }
 
   updateShop(ShopModel shopModel){

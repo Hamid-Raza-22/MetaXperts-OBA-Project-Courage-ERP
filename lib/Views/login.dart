@@ -90,7 +90,6 @@ class _LoginFormState extends State<LoginForm> {
   }
   Future<bool> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     String? userId = prefs.getString('userId');
     String? userNames = prefs.getString('userNames');
     String? userCitys = prefs.getString('userCitys');
@@ -243,7 +242,8 @@ class _LoginFormState extends State<LoginForm> {
                       // outputs.checkFirstRun();
                     },
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black, backgroundColor: Colors.green,
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.black,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14.0),
                       ),

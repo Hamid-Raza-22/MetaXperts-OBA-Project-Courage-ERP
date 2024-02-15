@@ -18,6 +18,12 @@ class StockCheckItemsRepository {
     }
     return stockcheckitems;
   }
+  // Future<void> addStockCheckItems(StockCheckItemsModel stockCheckItemsList) async {
+  //   final db = await dbHelperStockCheckItems.db;
+  //   for (var stockCheckItems in stockCheckItemsList) {
+  //     await db?.insert('Stock_Check_Items',stockCheckItems.toMap());
+  //   }
+  // }
 
   Future<int> add(StockCheckItemsModel stockcheckitemsModel) async {
     var dbClient = await dbHelperStockCheckItems.db;

@@ -59,10 +59,10 @@ class RecoveryForm_2ndPage extends StatelessWidget {
                               recoveryId, date, shopName, cashRecovery, netBalance);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Colors.orange,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5.0),
-                            side: BorderSide(color: Colors.green),
+                            side: BorderSide(color: Colors.orange),
                           ),
                           elevation: 8.0,
                         ),
@@ -86,10 +86,10 @@ class RecoveryForm_2ndPage extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Colors.red,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5.0),
-                            side: BorderSide(color: Colors.green),
+                            side: BorderSide(color: Colors.red),
                           ),
                           elevation: 8.0,
                         ),

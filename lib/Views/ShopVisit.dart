@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -15,6 +14,7 @@ import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/View_Models/StockCheckItems.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
@@ -24,6 +24,8 @@ import '../Models/StockCheckItems.dart';
 import '../View_Models/OrderViewModels/ProductsViewModel.dart';
 import '../View_Models/ShopVisitViewModel.dart';
 import 'FinalOrderBookingPage.dart';
+
+
 
 void main() {
   runApp( MaterialApp(
@@ -48,12 +50,35 @@ class ShopVisit extends StatefulWidget {
 }
 
 class _ShopVisitState extends State<ShopVisit> {
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   //final productsViewModel = Get.put(ProductsViewModel());
   TextEditingController ShopNameController = TextEditingController();
   TextEditingController _brandDropDownController = TextEditingController();
   TextEditingController BookerNameController = TextEditingController();
 
+  TextEditingController _searchController = TextEditingController();
+  List<DataRow> filteredRows = [];
+  void filterData(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredRows = [];
+      });
+    } else {
+      List<DataRow> tempList = [];
+      for (DataRow row in productsController.rows) {
+        for (DataCell cell in row.cells) {
+          if (cell.child is Text && (cell.child as Text).data!.contains(query)) {
+            tempList.add(row);
+            break;
+          }
+        }
+      }
+      setState(() {
+        filteredRows = tempList;
+      });
+    }
+  }
   final shopisitViewModel = Get.put(ShopVisitViewModel());
   final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
   int? shopVisitId;
@@ -62,6 +87,7 @@ class _ShopVisitState extends State<ShopVisit> {
   String selectedOwnerContact= '';
   String selectedShopOrderNo = '';
   List<Map<String, dynamic>> shopOwners = [];
+  final Products productsController = Get.put(Products());
 
 
   DBHelper dbHelper = DBHelper();
@@ -87,9 +113,10 @@ class _ShopVisitState extends State<ShopVisit> {
       selectedItem = selectedBrandName;
     });
   }
-  List<StockCheckItem> stockCheckItems = [StockCheckItem()];
+  // List<StockCheckItem> stockCheckItems = [StockCheckItem()];
   int serialNo = 1;
   final shopVisitViewModel = Get.put(ShopVisitViewModel());
+  //final stockcheckitemsViewModel =Get.put(StockCheckItemsViewModel());
   ImagePicker _imagePicker = ImagePicker();
   File? _imageFile;
   bool checkboxValue1 = false;
@@ -101,6 +128,7 @@ class _ShopVisitState extends State<ShopVisit> {
   dynamic longitude ='';
   bool isButtonPressed = false;
   bool isButtonPressed2 = false;
+  List<DataRow> rows = [];
 
   // Uint8List? _imageBytes;
 
@@ -115,22 +143,58 @@ class _ShopVisitState extends State<ShopVisit> {
     fetchShopNames();
     onCreatee();
     _loadCounter();
-  //  _saveCounter();
+    //  _saveCounter();
     fetchProductsNamesByBrand();
+    saveCurrentLocation();
+    _checkUserIdAndFetchShopNames();
+
+  }
+
+  Future<void> _checkUserIdAndFetchShopNames() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+
+    if (userId == 'B0001' || userId == 'B0006' || userId == 'B0004') {
+      await fetchShopNames1();
+    } else {
+      await fetchShopNames();
+    }
+  }
+
+  Future<void> fetchShopNames() async {
+    String userCity = userCitys;
+    List<dynamic> shopNames = await dbHelper.getShopNamesForCity(userCity);
+    shopOwners = (await dbHelper.getOwnersDB())!;
+    setState(() {
+      // Explicitly cast each element to String
+
+      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
+    });
   }
 
 
+  Future<void> fetchShopNames1() async {
+
+    List<dynamic> shopNames = await dbHelper.getShopNames();
+    shopOwners = (await dbHelper.getOwnersDB())!;
+    setState(() {
+      // Explicitly cast each element to String
+
+      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
+    });
+  }
+
   Future<void> saveCurrentLocation() async {
+    PermissionStatus permission = await Permission.location.request();
+
+    if (permission.isGranted) {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-         latitude  = position.latitude ;
-       longitude = position.longitude ;
+      latitude  = position.latitude ;
+      longitude = position.longitude ;
 
-
-      // double latitude = position.latitude;
-      // double longitude = position.longitude;
 
       print('Latitude: $latitude, Longitude: $longitude');
 
@@ -145,62 +209,56 @@ class _ShopVisitState extends State<ShopVisit> {
     } catch (e) {
       print('Error getting location:$e');
     }
+    } else {
+      print('Location permission is not granted');
     }
+  }
 
   _loadCounter() async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      setState(() {
-        serialCounter = prefs.getInt('serialCounter') ?? 1;
-        currentMonth = prefs.getString('currentMonth') ?? currentMonth;
-        currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
-      });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      serialCounter = prefs.getInt('serialCounter') ?? 1;
+      currentMonth = prefs.getString('currentMonth') ?? currentMonth;
+      currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
+    });
+  }
+
+  _saveCounter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('serialCounter', serialCounter);
+    await prefs.setString('currentMonth', currentMonth);
+    await prefs.setString('currentUserId', currentUserId); // Add this line
+  }
+
+  String generateNewOrderId( String userId, String currentMonth) {
+    if (this.currentUserId != userId) {
+      // Reset serial counter when the userId changes
+      serialCounter = 1;
+      this.currentUserId = userId;
     }
 
-    _saveCounter() async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('serialCounter', serialCounter);
-      await prefs.setString('currentMonth', currentMonth);
-      await prefs.setString('currentUserId', currentUserId); // Add this line
+    if (this.currentMonth != currentMonth) {
+      // Reset serial counter when the month changes
+      serialCounter = 1;
+      this.currentMonth = currentMonth;
     }
-
-    String generateNewOrderId( String userId, String currentMonth) {
-      if (this.currentUserId != userId) {
-        // Reset serial counter when the userId changes
-        serialCounter = 1;
-        this.currentUserId = userId;
-      }
-
-      if (this.currentMonth != currentMonth) {
-        // Reset serial counter when the month changes
-        serialCounter = 1;
-        this.currentMonth = currentMonth;
-      }
-
-      String orderId =
-          "$userId-$currentMonth-${serialCounter.toString().padLeft(3, '0')}";
-      serialCounter++;
-      _saveCounter(); // Save the updated counter value, current month, and userId
-      return orderId;
-    }
+//set state
+    String orderId =
+        "$userId-$currentMonth-${serialCounter.toString().padLeft(3, '0')}";
+    serialCounter++;
+    _saveCounter(); // Save the updated counter value, current month, and userId
+    return orderId;
+  }
 
 
-    Future<void> onCreatee() async {
+  Future<void> onCreatee() async {
     DatabaseOutputs db = DatabaseOutputs();
     await db.showShopVisit();
     await db.showStockCheckItems();
     // DatabaseOutputs outputs = DatabaseOutputs();
     //  outputs.checkFirstRun();
   }
-  Future<void> fetchShopNames() async {
-    String userCity = userCitys;
-    List<dynamic> shopNames = await dbHelper.getShopNamesForCity(userCity);
-    shopOwners = (await dbHelper.getOwnersDB())!;
-    setState(() {
-      // Explicitly cast each element to String
 
-      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
-    });
-  }
 
   // Method to fetch brand items from the database.
   void _fetchBrandItemsFromDatabase() async {
@@ -237,62 +295,10 @@ class _ShopVisitState extends State<ShopVisit> {
     }
   }
 
-  // Future<void> postImage() async {
-  //   try {
-  //     final directory = await getApplicationDocumentsDirectory();
-  //     final filePath = File('${directory.path}/captured_image.jpg');
-  //
-  //     if (filePath.existsSync()) {
-  //       var request = http.MultipartRequest(
-  //         "POST",
-  //         Uri.parse("https://apex.oracle.com/pls/apex/muhammad_usman/neew/post/"),
-  //       );
-  //
-  //       var imageFile = await http.MultipartFile.fromPath('file', filePath.path);
-  //       request.files.add(imageFile);
-  //
-  //       // You can add additional fields if required
-  //        request.fields['userId'] = userId;
-  //      // request.fields['id'] = userid;
-  //
-  //       var response = await request.send();
-  //
-  //       if (response.statusCode == 200) {
-  //         var responseData = await response.stream.toBytes();
-  //         var result = String.fromCharCodes(responseData);
-  //         print('Image uploaded successfully. Response: $result');
-  //       } else {
-  //         print('Failed to upload image. Status code: ${response.statusCode}');
-  //       }
-  //     } else {
-  //       print('Image file does not exist in the documents directory.');
-  //     }
-  //   } catch (error) {
-  //     print('Error uploading image: $error');
-  //   }
-  // }
-
-
 
   @override
   Widget build(BuildContext context) {
-    // final shopData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-    //
-    // if (shopData != null) {
-    //   // Your code handling shopData when it's not null
-    // } else {
-    //   // Handle the case when shopData is null
-    // }
 
-    // final passedShopName = shopData['shopName']?? 'Defult shop';
-    // final passedOwnerName = shopData['ownerName']??' default owner';
-    // final userName = shopData['user_name']??'fgghf';
-    // final passedOwnerContact =shopData ['ownerContact']?? 'default';
-    // print('Selected Shop Name: $passedShopName');
-    // print('Selected Shop Owner: $passedOwnerName');
-    // print('Selected Owner Contact : $passedOwnerContact');
-    // print(userName);
-    //
     ShopNameController.text= selectedItem;
     BookerNameController.text= userNames;
 
@@ -335,7 +341,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             ),
-                            contentPadding: EdgeInsets.symmetric(vertical: 8.0), // Adjust the vertical padding as needed
+                            contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
                           ),
                         ),
                         suggestionsCallback: (pattern) {
@@ -383,7 +389,7 @@ class _ShopVisitState extends State<ShopVisit> {
                       child: TextFormField(enabled: false,
                         controller: BookerNameController,
 
-                        decoration: InputDecoration(
+                        decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(5.0),
                           ),
@@ -412,7 +418,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             height: 30,
                             child: TypeAheadFormField<String>(
                               textFieldConfiguration: TextFieldConfiguration(
-                                decoration: InputDecoration(
+                                decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
                                   enabled: false,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(5.0),
@@ -430,7 +436,7 @@ class _ShopVisitState extends State<ShopVisit> {
                                   title: Text(itemData),
                                 );
                               },
-                              onSuggestionSelected: (itemData) {
+                              onSuggestionSelected: (itemData) async {
                                 // Validate that the selected item is from the list
                                 if (brandDropdownItems.contains(itemData)) {
                                   setState(() {
@@ -441,6 +447,7 @@ class _ShopVisitState extends State<ShopVisit> {
                                   widget.onBrandItemsSelected(itemData);
                                   print('Selected Brand: $itemData');
                                   print(globalselectedbrand);
+                                  await productsController.fetchProducts();
                                 }
                               },
                             ),
@@ -468,113 +475,98 @@ class _ShopVisitState extends State<ShopVisit> {
                     SizedBox(height: 25),
                     Column(
                       children: [
-                        Row(
-                          children: [
-                            SizedBox(height: 10),
-                            Text(
-                              'Sr',
-                              style: TextStyle(fontSize: 16, color: Colors.black),
-                            ),
-                            SizedBox(width: 20),
-                            Text(
-                              'Item Description',
-                              style: TextStyle(fontSize: 16, color: Colors.black),
-                            ),
-                            SizedBox(width: 20),
-                            Text(
-                              '            Qty',
-                              style: TextStyle(fontSize: 16, color: Colors.black),
-                            ),
 
-
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        for (int index = 0; index < stockCheckItems.length; index++)
-                          StockCheckItemRow(
-                            stockCheckItem: stockCheckItems[index],
-                            serialNo: index + 1,
-                            onDelete: () {
-                              deleteStockCheckItem(index);
-                            },
-                            dropdownItems: dropdownItems,
-                            selectedProductNames: selectedProductNames,
-                          ),
-                        SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Check if all previous rows are filled before adding a new row
-                            bool allRowsFilled = true;
-                            for (int index = 0; index < stockCheckItems.length; index++) {
-                              StockCheckItem item = stockCheckItems[index];
-                              if (item.itemDescriptionController.text.isEmpty || item.qtyController.text.isEmpty) {
-                                allRowsFilled = false;
-                                break;
-                              }
-                            }
-
-                            // If all previous rows are filled, add a new row
-                            if (allRowsFilled) {
-                              addStockCheckItem();
-                            } else {
-                              // Show an error message or take appropriate action
-                              // For example, you can display a snackbar or toast indicating that all previous rows must be filled.
-                              print('Please fill all previous rows before adding a new row.');
-                            }
-
-                            // Then, check form validation
-                            if (_formKey.currentState!.validate()) {
-                              // Validation successful, proceed to the next page or save data
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                          child: Text(
-                            'Add Item',
-                            style: TextStyle(
-                              fontSize: 13,
-                            ),
-                          ),
+                        SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(5.0),
+                                child: Container(
+                                  height: 500, // Set the desired height
+                                  width: 300, // Set the desired width
+                                  child:Card(
+                                    elevation: 5,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
+                                      side: BorderSide(
+                                        color: Colors.black, // Change the color as needed
+                                        width: 1.0, // Change the width as needed
+                                      ),
+                                    ),
+                                    child: SingleChildScrollView( // Add a vertical ScrollView
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextField(
+                                              controller: _searchController,
+                                              onChanged: (query) {
+                                                filterData(query);
+                                              },
+                                              decoration: InputDecoration(
+                                                labelText: 'Search',
+                                                hintText: 'Type to search...',
+                                                prefixIcon: Icon(Icons.search),
+                                              ),
+                                            ),
+                                          ),
+                                          SingleChildScrollView(
+                                            scrollDirection: Axis.vertical, // Add vertical scroll direction
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: DataTable(
+                                                columns: [
+                                                  DataColumn(label: Text('Product')),
+                                                  DataColumn(label: Text('Quantity')),
+                                                ],
+                                                rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],),
                         ),
 
                       ],
                     ),
+
                     SizedBox(height: 20),
                     Column(
                       children: [
-                        buildRow('2-Performed Store Walkthrough', checkboxValue1, (bool? value) {
+                        buildRow('1-Performed Store Walkthrough', checkboxValue1, (bool? value) {
                           if (value != null) {
                             setState(() {
                               checkboxValue1 = value;
-                             // checkbox= checkboxValue1;
+                              // checkbox= checkboxValue1;
                             });
                           }
                         }),
-                        buildRow('3-Update Store Planogram', checkboxValue2, (bool? value) {
+                        buildRow('2-Update Store Planogram', checkboxValue2, (bool? value) {
                           if (value != null) {
                             setState(() {
                               checkboxValue2 = value;
-                             // checkbox2= checkboxValue2;
+                              // checkbox2= checkboxValue2;
                             });
                           }
                         }),
-                        buildRow('4-Shelf tags and price signage check', checkboxValue3, (bool? value) {
+                        buildRow('3-Shelf tags and price signage check', checkboxValue3, (bool? value) {
                           if (value != null) {
                             setState(() {
                               checkboxValue3 = value;
-                          //    checkbox3= checkboxValue3;
+                              //    checkbox3= checkboxValue3;
                             });
                           }
                         }),
-                        buildRow('5-Expiry date on product reviewed', checkboxValue4, (bool? value) {
+                        buildRow('4-Expiry date on product reviewed', checkboxValue4, (bool? value) {
                           if (value != null) {
                             setState(() {
                               checkboxValue4 = value;
-                             // checkbox4= checkboxValue4;
+                              // checkbox4= checkboxValue4;
                             });
                           }
                         }),
@@ -600,13 +592,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
                                 // Save only the image
                                 await saveImage();
-                              //  await postImage();
 
-
-
-                                // Fluttertoast.showToast(
-                                //   msg: 'Image captured successfully',
-                                // );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                   content: Text('No image selected.'),
@@ -617,7 +603,8 @@ class _ShopVisitState extends State<ShopVisit> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.green,
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
                             ),
@@ -670,77 +657,88 @@ class _ShopVisitState extends State<ShopVisit> {
                           ),
                         ),
                         SizedBox(height: 20),
+
                         ElevatedButton(
                           onPressed: isButtonPressed
-                              ? null // Disable the button if it has been pressed
+                              ? null
                               : () async {
                             setState(() {
-                              isButtonPressed = true; // Set the flag to true to disable the button
+                              isButtonPressed = true;
                             });
 
-                            bool allRowsFilled = stockCheckItems.every((item) =>
-                          item.itemDescriptionController.text.isNotEmpty &&
-                              item.qtyController.text.isNotEmpty);
+                            // bool allRowsFilled = stockCheckItems.every((item) =>
+                            // item.itemDescriptionController.text.isNotEmpty &&
+                            //     item.qtyController.text.isNotEmpty);
 
-                          if (!allRowsFilled) {
-                            Fluttertoast.showToast(
-                              msg: 'Please fill all stock check items before proceeding.',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-                            return;
-                          }
-                          if (!checkboxValue1 || !checkboxValue2 || !checkboxValue3 || !checkboxValue4 )  {
-                            Fluttertoast.showToast(
-                              msg: 'Please complete all tasks before proceeding.',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
+                            // if (!allRowsFilled) {
+                            //   Fluttertoast.showToast(
+                            //     msg: 'Please fill all stock check items before proceeding.',
+                            //     toastLength: Toast.LENGTH_SHORT,
+                            //     gravity: ToastGravity.BOTTOM,
+                            //     backgroundColor: Colors.red,
+                            //     textColor: Colors.white,
+                            //   );
+                            //   setState(() {
+                            //     isButtonPressed = false;
+                            //   });
+                            //   return;
+                            // }
 
-                            setState(() {
-                              checkboxValue1 = false;
-                              checkboxValue2 = false;
-                              checkboxValue3 = false;
-                              checkboxValue4 = false;
-                            });
+                            if (!checkboxValue1 ||
+                                !checkboxValue2 ||
+                                !checkboxValue3 ||
+                                !checkboxValue4) {
+                              Fluttertoast.showToast(
+                                msg: 'Please complete all tasks before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
 
-                            return;
-                          }  if (_imageFile == null ||
-                              ShopNameController.text.isEmpty ||
-                              BookerNameController.text.isEmpty ||
-                              _brandDropDownController.text.isEmpty) {
-                            Fluttertoast.showToast(
-                              msg: 'Please fulfill all requirements before proceeding.',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-                            return;
-                          }
+                              setState(() {
+                                checkboxValue1 = false;
+                                checkboxValue2 = false;
+                                checkboxValue3 = false;
+                                checkboxValue4 = false;
+                              });
 
-                          await saveCurrentLocation();
+                              setState(() {
+                                isButtonPressed = false;
+                              });
+                              return;
+                            }
 
+                            if (_imageFile == null ||
+                                ShopNameController.text.isEmpty ||
+                                BookerNameController.text.isEmpty ||
+                                _brandDropDownController.text.isEmpty) {
+                              Fluttertoast.showToast(
+                                msg: 'Please fulfill all requirements before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed = false;
+                              });
+                              return;
+                            }
 
-
-                          if (_imageFile != null || ShopNameController.text.isEmpty || BookerNameController.text.isNotEmpty || BookerNameController.text.isNotEmpty) {
                             String imagePath =  _imageFile!.path;
                             var id = await customAlphabet('1234567890', 10);
-                            // Read the image file as bytes
                             List<int> imageBytesList = await File(imagePath).readAsBytes();
                             Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
                             String NewOrderId = generateNewOrderId(userId.toString(), currentMonth);
                             OrderMasterid= NewOrderId;
                             print(OrderMasterid);
 
+
                             shopVisitViewModel.addShopVisit(ShopVisitModel(
                               id: int.parse(id),
                               shopName: ShopNameController.text,
-                                userId: userId,
+                              userId: userId,
                               bookerName: BookerNameController.text,
                               brand:_brandDropDownController.text,
                               date:_getFormattedDate(),
@@ -750,249 +748,257 @@ class _ShopVisitState extends State<ShopVisit> {
                               productReviewed: checkboxValue4,
                               address: address,
                               body: imageBytes,
-                             longitude: longitude,
+                              longitude: longitude,
                               latitude: latitude,
-
-
                             ));
 
-                            String visitid =
-                            await shopisitViewModel.fetchLastShopVisitId();
-                            shopVisitId = int.parse(visitid);
+                            String visitId =
+                            await shopVisitViewModel.fetchLastShopVisitId();
+                            shopVisitId = int.parse(visitId);
+                            // Extract data from DataTable rows
+                            // Extract data from DataTable rows with non-zero quantities
+                            List<StockCheckItemsModel> stockCheckItemsList = [];
+                            for (int i = 0; i < (filteredRows.isNotEmpty ? filteredRows : productsController.rows).length; i++) {
+                              DataRow row = (filteredRows.isNotEmpty ? filteredRows : productsController.rows)[i];
+                              String itemDesc = row.cells[0].child?.toString() ?? '';
+                              String qty = productsController.controllers[i].text; // Get the value from the controller
 
-                            List<Map<String, dynamic>> stockCheckItemsDetails = [];
-                            for (var stockCheckItem in stockCheckItems) {
-                              String selectedItem =
-                                  stockCheckItem.itemDescriptionController.text;
-                              int quantity =
-                                  int.tryParse(stockCheckItem.qtyController.text) ?? 0;
-
-                              stockCheckItemsDetails.add({
-                                'selectedItem': selectedItem,
-                                'quantity': quantity,
-                              });
+                              // Only add the item if qty is not null or empty
+                              if (int.parse(qty) != 0) {
+                                stockCheckItemsList.add(
+                                  StockCheckItemsModel(
+                                    shopvisitId: shopVisitId,
+                                    itemDesc: itemDesc,
+                                    qty: qty,
+                                  ),
+                                );
+                              }
                             }
 
 
-                            saveStockCheckItems();
 
-                            DBHelper dbshop = DBHelper();
+                            // }
 
-                            await dbshop.postShopVisitData();
-                            await dbshop.postStockCheckItems();
+                            // Check if there are any non-zero quantity items
+                            if (stockCheckItemsList.isEmpty) {
+                              Fluttertoast.showToast(
+                                msg: 'Please enter quantities greater than zero before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed = false;
+                              });
+                              return;
+                            }
+
+                            // Call the method to add stock check items to the database
+                            for (var stockCheckItems in stockCheckItemsList) {
+                              await stockcheckitemsViewModel.addStockCheckItems(stockCheckItems);
+                            }
 
 
+                            // Display success message
                             Fluttertoast.showToast(
-                              msg: 'Data saved successfully',
+                              msg: 'Stock check items saved successfully!',
                               toastLength: Toast.LENGTH_SHORT,
                               gravity: ToastGravity.BOTTOM,
                               backgroundColor: Colors.green,
                               textColor: Colors.white,
                             );
-                          } else {
+
+                            DBHelper dbShop = DBHelper();
+                            dbShop.postShopVisitData();
+                            dbShop.postStockCheckItems();
+
                             Fluttertoast.showToast(
-                              msg: 'Please fulfill all requirements before proceeding.',
+                              msg: 'Data saved successfully!',
                               toastLength: Toast.LENGTH_SHORT,
                               gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
+                              backgroundColor: Colors.green,
                               textColor: Colors.white,
                             );
-                            return;
-                          }
 
+                            // Navigate to the FinalOrderBookingPage only if all validations pass
+                            Map<String, dynamic> dataToPass = {
+                              'shopName': ShopNameController.text,
+                              'ownerName': selectedShopOwner.toString(),
+                              'selectedBrandName': _brandDropDownController.text,
+                              'userName': BookerNameController.text,
+                              'ownerContact': selectedOwnerContact.toString(),
+                            };
 
-                          Map<String, dynamic> dataToPass = {
-                            'shopName': ShopNameController.text ,
-                            'ownerName': selectedShopOwner.toString(), //'date': _getFormattedDate(),
-                            'selectedBrandName': _brandDropDownController.text,
-                            'userName': BookerNameController.text,
-                            'ownerContact': selectedOwnerContact.toString(),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FinalOrderBookingPage(),
+                                settings: RouteSettings(arguments: dataToPass),
+                              ),
+                            );
 
-                            // 'itemDescription':stockCheckItems[0].itemDescriptionController.text,
-                            // 'quantity':stockCheckItems[0].qtyController.text
-
-                          };
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => FinalOrderBookingPage(),settings: RouteSettings(arguments: dataToPass)),
-                          ); // Navigate to the FinalOrderBookingPage
-
-    setState(() {
-    isButtonPressed = false;
-    });
-  },
-
+                            setState(() {
+                              isButtonPressed = false;
+                            });
+                          },
                           style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white, backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                           ),
-                        ),
                           child: Text('+ Order Booking Form'),
                         ),
+
                         SizedBox(height: 20),
-
-
 
                         ElevatedButton(
                           onPressed: isButtonPressed2
-                              ? null // Disable the button if it has been pressed
+                              ? null
                               : () async {
                             setState(() {
-                              isButtonPressed2 = true; // Set the flag to true to disable the button
-                            });
-                            bool allRowsFilled = stockCheckItems.every((item) =>
-                          item.itemDescriptionController.text.isNotEmpty &&
-                              item.qtyController.text.isNotEmpty);
-
-
-                          if (!allRowsFilled) {
-                            Fluttertoast.showToast(
-                              msg: 'Please fill all stock check items before proceeding.',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-                            return;
-                          }
-                          if (!checkboxValue1 || !checkboxValue2 || !checkboxValue3 || !checkboxValue4 ) {
-                            Fluttertoast.showToast(
-                              msg: 'Please complete all tasks before proceeding.',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-
-                            setState(() {
-                              checkboxValue1 = false;
-                              checkboxValue2 = false;
-                              checkboxValue3 = false;
-                              checkboxValue4 = false;
+                              isButtonPressed2 = true;
                             });
 
-                            return;
-                          }  if (_imageFile == null ||
-                              ShopNameController.text.isEmpty ||
-                              BookerNameController.text.isEmpty ||
-                              _brandDropDownController.text.isEmpty) {
-                            Fluttertoast.showToast(
-                              msg: 'Please fulfill all requirements before proceeding.',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-                            return;
-                          }
+                            // bool allRowsFilled = stockCheckItems.every((item) =>
+                            // item.itemDescriptionController.text.isNotEmpty &&
+                            //     item.qtyController.text.isNotEmpty);
 
-                          await saveCurrentLocation();
+                            // if (!allRowsFilled) {
+                            //   Fluttertoast.showToast(
+                            //     msg: 'Please fill all stock check items before proceeding.',
+                            //     toastLength: Toast.LENGTH_SHORT,
+                            //     gravity: ToastGravity.BOTTOM,
+                            //     backgroundColor: Colors.red,
+                            //     textColor: Colors.white,
+                            //   );
+                            //   setState(() {
+                            //     isButtonPressed2 = false;
+                            //   });
+                            //   return;
+                            // }
 
+                            if (!checkboxValue1 ||
+                                !checkboxValue2 ||
+                                !checkboxValue3 ||
+                                !checkboxValue4) {
+                              Fluttertoast.showToast(
+                                msg: 'Please complete all tasks before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
 
+                              setState(() {
+                                checkboxValue1 = false;
+                                checkboxValue2 = false;
+                                checkboxValue3 = false;
+                                checkboxValue4 = false;
+                              });
 
-                          if (_imageFile != null || ShopNameController.text.isEmpty || BookerNameController.text.isNotEmpty || BookerNameController.text.isNotEmpty) {
-                            String imagePath =  _imageFile!.path;
+                              setState(() {
+                                isButtonPressed2 = false;
+                              });
+                              return;
+                            }
+
+                            if (_imageFile == null ||
+                                ShopNameController.text.isEmpty ||
+                                BookerNameController.text.isEmpty ||
+                                _brandDropDownController.text.isEmpty) {
+                              Fluttertoast.showToast(
+                                msg: 'Please fulfill all requirements before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed2 = false;
+                              });
+                              return;
+                            }
+
+                            String imagePath = _imageFile!.path;
                             var id = await customAlphabet('1234567890', 12);
                             List<int> imageBytesList = await File(imagePath).readAsBytes();
                             Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
+
                             shopVisitViewModel.addShopVisit(ShopVisitModel(
                               id: int.parse(id),
                               shopName: ShopNameController.text,
                               userId: userId,
                               bookerName: BookerNameController.text,
-                                brand:_brandDropDownController.text,
-                              date:_getFormattedDate(),
+                              brand: _brandDropDownController.text,
+                              date: _getFormattedDate(),
                               walkthrough: checkboxValue1,
                               planogram: checkboxValue2,
                               signage: checkboxValue3,
                               productReviewed: checkboxValue4,
-                                address: address,
-                                body: imageBytes,
+                              address: address,
+                              body: imageBytes,
                               latitude: latitude,
-                              longitude: longitude
-
+                              longitude: longitude,
                             ));
 
-                            String visitid =
+                            String visitId =
                             await shopisitViewModel.fetchLastShopVisitId();
-                            shopVisitId = int.parse(visitid);
+                            shopVisitId = int.parse(visitId);
 
-                            List<Map<String, dynamic>> stockCheckItemsDetails = [];
-                            for (var stockCheckItem in stockCheckItems) {
-                              String selectedItem =
-                                  stockCheckItem.itemDescriptionController.text;
-                              int quantity =
-                                  int.tryParse(stockCheckItem.qtyController.text) ?? 0;
-
-                              stockCheckItemsDetails.add({
-                                'selectedItem': selectedItem,
-                                'quantity': quantity,
-                              });
-                            }
-
-
-                            saveStockCheckItems();
+                            // List<Map<String, dynamic>> stockCheckItemsDetails = [];
+                            // for (var stockCheckItem in stockCheckItems) {
+                            //   String selectedItem =
+                            //       stockCheckItem.itemDescriptionController.text;
+                            //   int quantity =
+                            //       int.tryParse(stockCheckItem.qtyController.text) ?? 0;
+                            //
+                            //   stockCheckItemsDetails.add({
+                            //     'selectedItem': selectedItem,
+                            //     'quantity': quantity,
+                            //   });
+                            // }
+                            //
+                            // saveStockCheckItems();
 
                             DBHelper dbshop = DBHelper();
 
-                            await dbshop.postShopVisitData();
-                            await dbshop.postStockCheckItems();
+                            dbshop.postShopVisitData();
+                            dbshop.postStockCheckItems();
 
+                            // Additional validation that everything must be filled
+                            if (ShopNameController.text.isNotEmpty &&
+                                BookerNameController.text.isNotEmpty &&
+                                _brandDropDownController.text.isNotEmpty) {
+                              Navigator.pop(context);
+                              // Stop the timer on the home page
+                              HomePage();
+                            } else {
+                              Fluttertoast.showToast(
+                                msg: 'Please fill all fields before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                            }
 
-                            Fluttertoast.showToast(
-                              msg: 'Data saved successfully',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.green,
-                              textColor: Colors.white,
-                            );
-                          } else {
-                            Fluttertoast.showToast(
-                              msg: 'Please fulfill all requirements before proceeding.',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-                            return;
-                          }
-
-
-                          Map<String, dynamic> dataToPass = {
-                            'shopName': ShopNameController.text ,
-                            'ownerName': selectedShopOwner.toString(), //'date': _getFormattedDate(),
-                            'selectedBrandName': _brandDropDownController.text,
-                            'userName': BookerNameController.text,
-                            'ownerContact': selectedOwnerContact.toString(),
-
-                            // 'itemDescription':stockCheckItems[0].itemDescriptionController.text,
-                            // 'quantity':stockCheckItems[0].qtyController.text
-
-                          };
-
-
-                          DBHelper dbshop = DBHelper();
-
-                          await dbshop.postShopVisitData();
-                          await dbshop.postStockCheckItems();
-                          Navigator.pop(context);
-                          // Stop the timer on the home page
-                          HomePage();
-
-    setState(() {
-    isButtonPressed = false;
-    });
-  },
+                            setState(() {
+                              isButtonPressed2 = false;
+                            });
+                          },
                           style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white, backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                           ),
-                        ),
                           child: Text('No Order'),
                         ),
+
                         SizedBox(height: 50),
                       ],
                     ),
@@ -1007,20 +1013,20 @@ class _ShopVisitState extends State<ShopVisit> {
     );
   }
 
-  void saveStockCheckItems() async {
-    List<StockCheckItemsModel> stockCheckItemsList = [];
-
-    for (var stockCheckItem in stockCheckItems) {
-      final stockCheckItems = StockCheckItemsModel(
-        shopvisitId: shopVisitId ?? 0,
-        itemDesc: stockCheckItem.itemDescriptionController.text, // Access the text value
-        qty: int.tryParse(stockCheckItem.qtyController.text) ?? 0,
-      );
-      stockCheckItemsList.add(stockCheckItems);
-    }
-
-    await DBHelper().addStockCheckItems(stockCheckItemsList);
-  }
+  // void saveStockCheckItems() async {
+  //   List<StockCheckItemsModel> stockCheckItemsList = [];
+  //
+  //   for (var stockCheckItem in stockCheckItems) {
+  //     final stockCheckItems = StockCheckItemsModel(
+  //       shopvisitId: shopVisitId ?? 0,
+  //       itemDesc: stockCheckItem.itemDescriptionController.text, // Access the text value
+  //       qty: int.tryParse(stockCheckItem.qtyController.text) ?? 0,
+  //     );
+  //     stockCheckItemsList.add(stockCheckItems);
+  //   }
+  //
+  //   await DBHelper().addStockCheckItems(stockCheckItemsList);
+  // }
 
 
   Widget buildRow(String text, bool value, void Function(bool?) onChanged) {
@@ -1051,17 +1057,17 @@ class _ShopVisitState extends State<ShopVisit> {
     );
   }
 
-  void addStockCheckItem() {
-    setState(() {
-      stockCheckItems.add(StockCheckItem());
-    });
-  }
-
-  void deleteStockCheckItem(int index) {
-    setState(() {
-      stockCheckItems.removeAt(index);
-    });
-  }
+  // void addStockCheckItem() {
+  //   setState(() {
+  //     stockCheckItems.add(StockCheckItem());
+  //   });
+  // }
+  //
+  // void deleteStockCheckItem(int index) {
+  //   setState(() {
+  //     stockCheckItems.removeAt(index);
+  //   });
+  // }
 
   String _getFormattedDate() {
     final now = DateTime.now();
@@ -1086,9 +1092,6 @@ class _ShopVisitState extends State<ShopVisit> {
     });
   }
 
-
-
-
 }
 
 class StockCheckItem {
@@ -1097,117 +1100,148 @@ class StockCheckItem {
   String? selectedDropdownValue;
 }
 
-class StockCheckItemRow extends StatelessWidget {
-  final StockCheckItem stockCheckItem;
-  final int serialNo;
-  final VoidCallback onDelete;
-  final List<String> dropdownItems;
-  final List<String> selectedProductNames;
-  final productsViewModel = Get.put(ProductsViewModel());
-  StockCheckItemRow({
-    required this.stockCheckItem,
-    required this.serialNo,
-    required this.onDelete,
-    required this.dropdownItems,
-    required this.selectedProductNames,
+// class StockCheckItemRow extends StatelessWidget {
+//   final StockCheckItem stockCheckItem;
+//   final int serialNo;
+//   final VoidCallback onDelete;
+//   final List<String> dropdownItems;
+//   final List<String> selectedProductNames;
+//   final productsViewModel = Get.put(ProductsViewModel());
+//   StockCheckItemRow({
+//     required this.stockCheckItem,
+//     required this.serialNo,
+//     required this.onDelete,
+//     required this.dropdownItems,
+//     required this.selectedProductNames,
+//
+//   });
 
-  });
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Column(
+  //     children: [
+  //       Row(
+  //         children: [
+  //           Text(
+  //             '$serialNo',
+  //             style: TextStyle(fontSize: 16, color: Colors.black),
+  //           ),
+  //           SizedBox(width: 20),
+  //       //     Container(
+  //       //       width: 179.5,
+  //       //       height: 50,
+  //       //       margin: const EdgeInsets.all(0.5),
+  //       //       child: Padding(
+  //       //         padding: const EdgeInsets.symmetric(vertical: 0.50, horizontal: 0.10),
+  //       //         child: TypeAheadFormField<ProductsModel>(
+  //       //           textFieldConfiguration: TextFieldConfiguration(
+  //       //             decoration: InputDecoration(
+  //       //
+  //       //               border: OutlineInputBorder(
+  //       //                 borderRadius: BorderRadius.circular(5.0),
+  //       //               ),
+  //       //               contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 3.0),
+  //       //             ),
+  //       //             controller: stockCheckItem.itemDescriptionController,
+  //       //             style: TextStyle(fontSize: 12),
+  //       //             maxLines: null,
+  //       //           ),
+  //       //           suggestionsCallback: (pattern) async {
+  //       //             await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+  //       //
+  //       //             return productsViewModel.allProducts
+  //       //                 .where((product) =>
+  //       //             product.product_name?.toLowerCase().contains(pattern.toLowerCase()) ?? false)
+  //       //                 .toList();
+  //       //           },
+  //       //           itemBuilder: (context, itemData) {
+  //       //             return ListTile(
+  //       //               title: Text(itemData.product_name ?? ''),
+  //       //               tileColor: stockCheckItem.selectedDropdownValue == itemData.product_name
+  //       //                   ? Colors.grey
+  //       //                   : Colors.transparent,
+  //       //             );
+  //       //           },
+  //       //           onSuggestionSelected: (itemData) {
+  //       //             // Only set the state if the selected item is in the suggestions list
+  //       //             if (productsViewModel.allProducts.contains(itemData)) {
+  //       //               stockCheckItem.selectedDropdownValue = itemData.product_name;
+  //       //               stockCheckItem.itemDescriptionController.text = itemData.product_name ?? '';
+  //       //             }
+  //       //           },
+  //       //           suggestionsBoxDecoration: SuggestionsBoxDecoration(),
+  //       //         ),
+  //       //       ),
+  //       //     ),
+  //       //     SizedBox(width: 10),
+  //       //     Container(
+  //       //       width: 60,
+  //       //       height: 50,
+  //       //       child: TextFormField(
+  //       //         controller: stockCheckItem.qtyController,
+  //       //         decoration: InputDecoration(
+  //       //           border: OutlineInputBorder(
+  //       //             borderRadius: BorderRadius.circular(5.0),
+  //       //           ),
+  //       //         ),
+  //       //         style: TextStyle(fontSize: 11),
+  //       //         keyboardType: TextInputType.number,
+  //       //         inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^0{1,}'))], // Allow backspacing over initial zeros
+  //       //         validator: (value) {
+  //       //           if (value == null || value.isEmpty) {
+  //       //             return 'Please enter a quantity.';
+  //       //           } else {
+  //       //             int? qty = int.tryParse(value);
+  //       //             if (qty == null) {
+  //       //               return 'Please enter a valid number.';
+  //       //             } else if (qty <= 0) {
+  //       //               return 'Quantity must be greater than zero.';
+  //       //             }
+  //       //           }
+  //       //           return null;
+  //       //         },
+  //       //       ),
+  //       //     ),
+  //       //     SizedBox(width: 0),
+  //       //     IconButton(
+  //       //       icon: Icon(Icons.delete_outline, size: 20, color: Colors.red),
+  //       //       onPressed: onDelete,
+  //       //     ),
+  //         ],
+  //       ),
+  //       // Optionally, you can add a SizedBox for spacing between columns
+  //       SizedBox(height: 10),
+  //     ],
+  //   );
+  // }
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Text(
-              '$serialNo',
-              style: TextStyle(fontSize: 16, color: Colors.black),
-            ),
-            SizedBox(width: 20),
-            Container(
-              width: 179.5,
-              height: 50,
-              margin: const EdgeInsets.all(0.5),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 0.50, horizontal: 0.10),
-                child: TypeAheadFormField<ProductsModel>(
-                  textFieldConfiguration: TextFieldConfiguration(
-                    decoration: InputDecoration(
 
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                      ),
-                      contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 3.0),
-                    ),
-                    controller: stockCheckItem.itemDescriptionController,
-                    style: TextStyle(fontSize: 12),
-                    maxLines: null,
-                  ),
-                  suggestionsCallback: (pattern) async {
-                    await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+class Products extends GetxController {
+  final productsViewModel = ProductsViewModel();
+  RxList<DataRow> rows = <DataRow>[].obs;
+  List<TextEditingController> controllers = [];
 
-                    return productsViewModel.allProducts
-                        .where((product) =>
-                    product.product_name?.toLowerCase().contains(pattern.toLowerCase()) ?? false)
-                        .toList();
-                  },
-                  itemBuilder: (context, itemData) {
-                    return ListTile(
-                      title: Text(itemData.product_name ?? ''),
-                      tileColor: stockCheckItem.selectedDropdownValue == itemData.product_name
-                          ? Colors.grey
-                          : Colors.transparent,
-                    );
-                  },
-                  onSuggestionSelected: (itemData) {
-                    // Only set the state if the selected item is in the suggestions list
-                    if (productsViewModel.allProducts.contains(itemData)) {
-                      stockCheckItem.selectedDropdownValue = itemData.product_name;
-                      stockCheckItem.itemDescriptionController.text = itemData.product_name ?? '';
-                    }
-                  },
-                  suggestionsBoxDecoration: SuggestionsBoxDecoration(),
-                ),
-              ),
-            ),
-            SizedBox(width: 10),
-            Container(
-                width: 60,
-                height: 50,
-                child: TextFormField(
-                  controller: stockCheckItem.qtyController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  style: TextStyle(fontSize: 11),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^0{1,}'))], // Allow backspacing over initial zeros
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a quantity.';
-                    } else {
-                      int? qty = int.tryParse(value);
-                      if (qty == null) {
-                        return 'Please enter a valid number.';
-                      } else if (qty <= 0) {
-                        return 'Quantity must be greater than zero.';
-                      }
-                    }
-                    return null;
-                  },
-                ),
-                ),
-            SizedBox(width: 0),
-            IconButton(
-              icon: Icon(Icons.delete_outline, size: 20, color: Colors.red),
-              onPressed: onDelete,
-            ),
-          ],
-        ),
-        // Optionally, you can add a SizedBox for spacing between columns
-        SizedBox(height: 10),
-      ],
-    );
-  }}
+  Future<void> fetchProducts() async {
+    await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+    var products = productsViewModel.allProducts;
+
+    // Clear existing rows and controllers before adding new ones
+    rows.clear();
+    controllers.clear();
+
+    for (var product in products) {
+      var controller = TextEditingController(text: '0'); // Set default value here
+      controllers.add(controller);
+
+      rows.add(DataRow(cells: [
+        DataCell(Text(product.product_name ?? '')),
+        DataCell(TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+        ))
+      ]));
+    }
+  }
+}
+

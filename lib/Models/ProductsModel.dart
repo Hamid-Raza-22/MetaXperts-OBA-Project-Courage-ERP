@@ -5,6 +5,7 @@ class ProductsModel{
   String? uom;
   String? price;
   String? brand;
+  dynamic? quantity;
 
   ProductsModel({
     this.id,
@@ -12,7 +13,8 @@ class ProductsModel{
     this.product_name,
     this.uom,
     this.price,
-    this.brand
+    this.brand,
+    this.quantity
   });
 
   // Create a factory constructor to create a Product instance from a map
@@ -23,7 +25,8 @@ class ProductsModel{
       product_name: json['product_name'],
       uom: json['uom'],
       price: json['price'],
-      brand: json['brand']
+      brand: json['brand'],
+      quantity: json['quantity']
     );
   }
 
@@ -35,7 +38,8 @@ class ProductsModel{
       'product_name': product_name,
       'uom': uom,
       'price': price,
-      'brand': brand
+      'brand': brand,
+      'quantity':quantity
     };
   }
 }

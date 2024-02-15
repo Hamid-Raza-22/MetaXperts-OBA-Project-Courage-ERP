@@ -30,6 +30,8 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   String? selectedShopName;
 
   List<String> dropdownItems = [];
+  List<String> dropdownItems1 = [];
+
   String? selectedDropdownValue;
   List<Map<String, dynamic>> shopOwners = [];
   DBHelper dbHelper = DBHelper();
@@ -53,9 +55,10 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     _loadRecoveryFormCounter();
 
     //fetchShopNames();
-    fetchShopData();
+   // fetchShopData();
     fetchShopNamesAndTotals();
     fetchAccountsData();
+    fetchShopData1();
     // Add this line
 
   }
@@ -197,17 +200,32 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     });
   }
 
-  void fetchShopData() async {
+  // void fetchShopData() async {
+  //   List<String> shopNames = await dbHelper.getOrderMasterShopNames2();
+  //   shopOwners = (await dbHelper.getOrderMasterDB())!;
+  //
+  //   // Remove duplicates from the shopNames list
+  //   List<String> uniqueShopNames = shopNames.toSet().toList();
+  //
+  //   setState(() {
+  //     dropdownItems = uniqueShopNames;
+  //   });
+  // }
+  void fetchShopData1() async {
     List<String> shopNames = await dbHelper.getOrderMasterShopNames();
-    shopOwners = (await dbHelper.getOrderMasterDB())!;
-
-    // Remove duplicates from the shopNames list
-    List<String> uniqueShopNames = shopNames.toSet().toList();
-
+    shopOwners = (await dbHelper.getOrderMasterDataDB())!;
     setState(() {
-      dropdownItems = uniqueShopNames;
+      dropdownItems1 = shopNames.toSet().toList();
     });
   }
+
+  // void fetchShopData1() async {
+  //   List<Map<String, dynamic>> shopOwners = await dbHelper.getOrderMasterShopNames();
+  //   List<String> shopNames = shopOwners.map((map) => map['shop_name'] as String).toList();
+  //   setState(() {
+  //     dropdownItems1 = shopNames.toSet().toList();
+  //   });
+  // }
 
 
   // Future<void> fetchShopNames() async {
@@ -238,6 +256,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   }
   _loadRecoveryFormCounter() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    //prefs.remove('recoveryFormCurrentMonth')  ;
     setState(() {
       recoveryFormSerialCounter = prefs.getInt('recoveryFormSerialCounter') ?? 1;
       recoveryFormCurrentMonth = prefs.getString('recoveryFormCurrentMonth') ?? recoveryFormCurrentMonth;
@@ -332,7 +351,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                             ),
                           ),
                           suggestionsCallback: (pattern) {
-                            return dropdownItems
+                            return dropdownItems1
                                 .where((item) =>
                                 item.toLowerCase().contains(pattern.toLowerCase()))
                                 .toList();
@@ -536,7 +555,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                         SizedBox(height: 20),
 
                         ElevatedButton(
-                          onPressed: () async {
+                          onPressed: ()  {
                             if (!isButtonPressed && selectedDropdownValue!.isNotEmpty) {
                               // Check if both text fields are not empty
                               if (_cashRecoveryController.text.isNotEmpty && _netBalanceController.text.isNotEmpty) {
@@ -568,7 +587,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                       );
 
                                       DBHelper dbrecoveryform = DBHelper();
-                                      await dbrecoveryform.postRecoveryFormTable();
+                                      dbrecoveryform.postRecoveryFormTable();
 
                                       // Check if cash recovery is not null before moving to the next page
                                       if (_cashRecoveryController.text.isNotEmpty) {
@@ -632,7 +651,8 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.green,
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -644,7 +664,6 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                             ),
                           ),
                         ),
-
                       ],
                     ),
                   ),

@@ -2,6 +2,7 @@ class ReturnFormDetailsModel {
   dynamic? id;
   dynamic? returnformId;
   String? productName;
+ dynamic? bookerId;
 
   dynamic? reason;
   dynamic? quantity;
@@ -9,7 +10,7 @@ class ReturnFormDetailsModel {
     this.id,
     this.returnformId,
     this.productName,
-
+    this.bookerId,
     this.reason,
     this.quantity,
 
@@ -20,7 +21,7 @@ class ReturnFormDetailsModel {
       id: json['id'],
       returnformId: json['returnformId'],
       productName: json['productName'],
-
+      bookerId: json['bookerId'],
       reason: json['reason'],
       quantity: json['quantity'],
     );
@@ -31,7 +32,7 @@ class ReturnFormDetailsModel {
       'id': id,
       'returnformId':returnformId,
       'productName': productName,
-
+      'bookerId':bookerId,
       'reason': reason,
       'quantity': quantity,
     };

@@ -1,1203 +1,1285 @@
-// import 'dart:async';
-// import 'dart:isolate';
-// import 'dart:ui';
-// import 'package:device_info_plus/device_info_plus.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_background_service/flutter_background_service.dart';
-// import 'package:flutter_background_service_android/flutter_background_service_android.dart';
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:geolocator/geolocator.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
-// import 'package:get/get.dart';
-// import 'package:intl/intl.dart';
-// import 'package:nanoid/nanoid.dart';
-// import 'package:connectivity/connectivity.dart';
-// import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-// import 'package:move_to_background/move_to_background.dart';
-// import 'package:order_booking_shop/API/Globals.dart';
-// import 'package:order_booking_shop/Models/AttendanceModel.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:workmanager/workmanager.dart';
-// import '../API/DatabaseOutputs.dart';
-// import '../View_Models/AttendanceViewModel.dart';
-// import 'login.dart';
-// import 'OrderBookingStatus.dart';
-// import 'RecoveryFormPage.dart';
-// import 'ReturnFormPage.dart';
-// import 'ShopPage.dart';
-// import 'ShopVisit.dart';
-// import 'package:order_booking_shop/Databases/DBHelper.dart';
-//
-// //tracker
-// import 'dart:async';
-// import 'dart:convert';
-// import 'dart:io';
-// import 'package:archive/archive_io.dart';
-// import 'package:file_picker/file_picker.dart';
-// import 'package:flutter/services.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:intl/intl.dart';
-// import 'package:path_provider/path_provider.dart';
-// import 'package:path/path.dart' as path;
-// import 'package:archive/archive.dart';
-// // import 'dart:js';
-// import 'package:flutter_background/flutter_background.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:flutter/material.dart';
-// import 'package:location/location.dart' as loc;
-// import 'package:permission_handler/permission_handler.dart';
-// import 'package:gpx/gpx.dart';
-// import 'package:xml/xml.dart' as xml;
-// import 'package:http/http.dart' as http;
-// import 'package:xml/xml.dart';
-// import '../API/Globals.dart';
-// import 'package:workmanager/workmanager.dart';
-//
-// //tarcker
-// final FirebaseAuth auth = FirebaseAuth.instance;
-// final User? user = auth.currentUser;
-// final myUid = userId;
-// final name = userNames;
-//
-//
-// bool showButton = false;
-//
-//
-// class MyIcons {
-//   static const IconData addShop = IconData(0xf52a, fontFamily: 'MaterialIcons');
-//   static const IconData store = Icons.store;
-//   static const IconData returnForm = IconData(0xee93, fontFamily: 'MaterialIcons');
-//   static const IconData person = Icons.person;
-//   static const IconData orderBookingStatus = IconData(0xf52a, fontFamily: 'MaterialIcons');
-// }
-//
-// class HomePage extends StatefulWidget {
-//   const HomePage({Key? key}) : super(key: key);
-//
-//   @override
-//   _HomePageState createState() => _HomePageState();
-// }
-//
-// class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
-//   final attendanceViewModel = Get.put(AttendanceViewModel());
-//   late TimeOfDay _currentTime; // Add this line
-//   late DateTime _currentDate;
-//   List<String> shopList = [];
-//   String? selectedShop2;
-//   int? attendanceId;
-//   late Isolate _isolate;
-//   int? attendanceId1;
-//   double? globalLatitude1;
-//   double? globalLongitude1;
-//   DBHelper dbHelper = DBHelper();
-//
-//
-//   //tracker
-//   final loc.Location location = loc.Location();
-//   StreamSubscription<loc.LocationData>? _locationSubscription;
-//   // Add a method to save the clock-in status to SharedPreferences
-//   // void _saveClockInStatus(bool isClockedIn) async {
-//   //   SharedPreferences prefs = await SharedPreferences.getInstance();
-//   //   prefs.setBool('isClockedIn', isClockedIn);
-//   // }
-//
-//   Future<void> _logOut() async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     // Clear the user ID or any other relevant data from SharedPreferences
-//     prefs.remove('userId');
-//     prefs.remove('userCitys');
-//     prefs.remove('userNames');
-//     // Add any additional logout logic here
-//   }
-//
-//   Future<bool> _checkLocationPermission() async {
-//     LocationPermission permission = await Geolocator.checkPermission();
-//     return permission == LocationPermission.always ||
-//         permission == LocationPermission.whileInUse;
-//   }
-//
-//   Future<void> _requestLocationPermission() async {
-//     LocationPermission permission = await Geolocator.requestPermission();
-//
-//     if (permission != LocationPermission.always &&
-//         permission != LocationPermission.whileInUse) {
-//       // Handle the case when permission is denied
-//       Fluttertoast.showToast(
-//         msg: "Location permissions are required to clock in.",
-//         toastLength: Toast.LENGTH_SHORT,
-//         gravity: ToastGravity.BOTTOM,
-//         backgroundColor: Colors.red,
-//         textColor: Colors.white,
-//         fontSize: 16.0,
-//       );
-//     }
-//   }
-//   _retrieveSavedValues() async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     setState(() {
-//       userId = prefs.getString('userId') ?? '';
-//       userNames = prefs.getString('userNames') ?? '';
-//       userCitys = prefs.getString('userCitys') ?? '';
-//     });
-//   }
-//   Future<void> _toggleClockInOut() async {
-//     final service = FlutterBackgroundService();
-//     Completer<void> completer = Completer<void>();
-//
-//     showDialog(
-//       context: context,
-//       barrierDismissible: false, // Prevent users from dismissing the dialog
-//       builder: (BuildContext context) {
-//         return Center(
-//           child: CircularProgressIndicator(),
-//         );
-//       },
-//     );
-//
-//
-//     bool isLocationEnabled = await _isLocationEnabled();
-//
-//     if (!isLocationEnabled) {
-//       Fluttertoast.showToast(
-//         msg: "Please enable GPS or location services before clocking in.",
-//         toastLength: Toast.LENGTH_SHORT,
-//         gravity: ToastGravity.BOTTOM,
-//         backgroundColor: Colors.red,
-//         textColor: Colors.white,
-//         fontSize: 16.0,
-//       );
-//       completer.complete();
-//       return completer.future;
-//     }
-//
-//     bool isLocationPermissionGranted = await _checkLocationPermission();
-//     if (!isLocationPermissionGranted) {
-//       await _requestLocationPermission();
-//       completer.complete();
-//       return completer.future;
-//     }
-//
-//
-//
-//     var id = await customAlphabet('1234567890', 10);
-//     await _getCurrentLocation();
-//
-//     setState(() {
-//       isClockedIn = !isClockedIn;
-//
-//       if (isClockedIn) {
-//         service.startService();
-//
-//         attendanceViewModel.addAttendance(AttendanceModel(
-//             id: int.parse(id),
-//             timeIn: _getFormattedtime(),
-//             date: _getFormattedDate(),
-//             userId: userId.toString(),
-//             latIn: globalLatitude1,
-//             lngIn: globalLongitude1,
-//             bookerName: userNames
-//         ));
-//
-//         _startTimer();
-//         _saveCurrentTime();
-//         _saveClockStatus(true);
-//         _getLocation();
-//         _listenLocation();
-//
-//         isClockedIn = true;
-//
-//         DBHelper dbmaster = DBHelper();
-//         dbmaster.postAttendanceTable();
-//
-//       } else {
-//         service.invoke("stopService");
-//
-//         attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-//           id: int.parse(id),
-//           timeOut: _getFormattedtime(),
-//           totalTime: _stopTimer(),
-//           date: _getFormattedDate(),
-//           userId: userId.toString(),
-//           latOut: globalLatitude1,
-//           lngOut: globalLongitude1,
-//         ));
-//         isClockedIn = false;
-//         _saveClockStatus(false);
-//         DBHelper dbmaster = DBHelper();
-//         dbmaster.postAttendanceOutTable();
-//         _stopTimer();
-//         setState(() async {
-//           _stopListening();
-//           await saveGPXFile();
-//           await postFile();
-//         });
-//       }
-//     });
-//
-//     // Wait for 10 seconds
-//     await Future.delayed(Duration(seconds: 3));
-//
-//     Navigator.pop(context); // Close the loading indicator dialog
-//
-//     completer.complete();
-//     return completer.future;
-//   }
-//
-//
-//   Future<bool> _isLocationEnabled() async {
-//     // Add your logic to check if location services are enabled
-//     bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
-//     return isLocationEnabled;
-//   }
-//   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-//   FlutterLocalNotificationsPlugin();
-//
-//   Future<void> initializeNotifications() async {
-//     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-//       'clock_channel', // id
-//       'Clock Notifications', // title
-//       description: 'Notifications for clock events', // description
-//       importance: Importance.high, // importance must be at high or max level
-//     );
-//
-//     await flutterLocalNotificationsPlugin
-//         .resolvePlatformSpecificImplementation<
-//         AndroidFlutterLocalNotificationsPlugin>()
-//         ?.createNotificationChannel(channel);
-//   }
-//
-//   Future<void> showNotification(String title, String body) async {
-//     const AndroidNotificationDetails androidPlatformChannelSpecifics =
-//     AndroidNotificationDetails(
-//       'clock_channel', // channel_id
-//       'Clock Notifications', // channel_name
-//       //: 'Notifications for clock events',
-//       importance: Importance.high,
-//       priority: Priority.high,
-//     );
-//     const NotificationDetails platformChannelSpecifics =
-//     NotificationDetails(android: androidPlatformChannelSpecifics);
-//
-//     await flutterLocalNotificationsPlugin.show(
-//       0, // notification id
-//       title,
-//       body,
-//       platformChannelSpecifics,
-//     );
-//   }
-//
-//   String _getFormattedtime() {
-//     final now = DateTime.now();
-//     final formatter = DateFormat('HH:mm:ss a');
-//     return formatter.format(now);
-//   }
-//
-//   _loadClockStatus() async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     isClockedIn = prefs.getBool('isClockedIn') ?? false;
-//     print(isClockedIn.toString() + "RES B100");
-//     if (isClockedIn == true) {
-//       print("B100 CLOCKIN RUNN");
-//       _startTimerFromSavedTime();
-//       _clockRefresh();
-//     }else{
-//       print("B100 CLOCKIN NOTT RUNN");
-//       _clockRefresh();
-//     }
-//   }
-//
-//   _saveClockStatus(bool clockedIn) async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     prefs.setBool('isClockedIn', clockedIn);
-//     isClockedIn = clockedIn;
-//   }
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     WidgetsBinding.instance!.addObserver(this);
-//     _loadClockStatus();
-//     fetchShopList();
-//     _retrieveSavedValues();
-//
-//
-//     print("B100 IF RUNN ${isClockedIn.toString()}");
-//
-//
-//     _currentDate = DateTime.now();
-//     _currentTime = TimeOfDay.fromDateTime(_currentDate);
-//
-//     _requestPermission();
-//     location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
-//     location.enableBackgroundMode(enable: true);
-//
-//
-//
-//     _getFormattedDate();
-//   }
-//
-//   void _startTimerFromSavedTime() {
-//     SharedPreferences.getInstance().then((prefs) {
-//       String savedTime = prefs.getString('savedTime') ?? '00:00:00';
-//       List<String> timeComponents = savedTime.split(':');
-//       int hours = int.parse(timeComponents[0]);
-//       int minutes = int.parse(timeComponents[1]);
-//       int seconds = int.parse(timeComponents[2]);
-//
-//       // Calculate the total seconds of the saved time
-//       int totalSavedSeconds = hours * 3600 + minutes * 60 + seconds;
-//
-//       // Get the current time
-//       final now = DateTime.now();
-//       int totalCurrentSeconds = now.hour * 3600 + now.minute * 60 + now.second;
-//
-//       // Calculate the difference between the current time and the saved time
-//       secondsPassed = totalCurrentSeconds - totalSavedSeconds;
-//       if (secondsPassed < 0) {
-//         // This means the saved time is in the future compared to the current time
-//         // Handle this case appropriately
-//         secondsPassed = 0;
-//       }
-//
-//       print("Loaded Saved Time");
-//       _startTimer();
-//
-//     });
-//   }
-//
-//
-//   void _startTimer() {
-//     timer = Timer.periodic(Duration(seconds: 1), (timer) {
-//       setState(() {
-//         secondsPassed++;
-//       });
-//     });
-//   }
-//
-//   void _saveCurrentTime() async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     DateTime currentTime = DateTime.now();
-//     String formattedTime = _formatDateTime(currentTime);
-//     prefs.setString('savedTime', formattedTime);
-//     print("Save Current Time");
-//   }
-//
-//   String _formatDateTime(DateTime dateTime) {
-//     final formatter = DateFormat('HH:mm:ss');
-//     return formatter.format(dateTime);
-//   }
-//
-//   void _clockRefresh(){
-//     timer = Timer.periodic(Duration(seconds: 0), (timer) {
-//       setState(() {
-//
-//       });
-//     });
-//   }
-//
-//   String _stopTimer() {
-//     timer.cancel();
-//     String totalTime = _formatDuration(secondsPassed.toString());
-//     setState(() {
-//       secondsPassed = 0;
-//     });
-//     return totalTime;
-//   }
-//
-//   String _formatDuration(String secondsString) {
-//     int seconds = int.parse(secondsString);
-//     Duration duration = Duration(seconds: seconds);
-//     String twoDigits(int n) => n.toString().padLeft(2, '0');
-//     String hours = twoDigits(duration.inHours);
-//     String minutes = twoDigits(duration.inMinutes.remainder(60));
-//     String secondsFormatted = twoDigits(duration.inSeconds.remainder(60));
-//     return '$hours:$minutes:$secondsFormatted';
-//   }
-//
-//   @override
-//   void dispose() {
-//     timer.cancel();
-//     WidgetsBinding.instance!.removeObserver(this);
-//     super.dispose();
-//   }
-//
-//
-//   Future<void> _getCurrentLocation() async {
-//     try {
-//       Position position = await _determinePosition();
-//       // Save the location into the database (you need to implement this part)
-//       globalLatitude1 = position.latitude;
-//       globalLongitude1 = position.longitude;
-//       // Show a toast
-//       Fluttertoast.showToast(
-//         msg: 'Location captured!',
-//         toastLength: Toast.LENGTH_SHORT,
-//         gravity: ToastGravity.BOTTOM,
-//         timeInSecForIosWeb: 1,
-//         backgroundColor: Colors.blue,
-//         textColor: Colors.white,
-//         fontSize: 16.0,
-//       );
-//     } catch (e) {
-//       print('Error getting current location: $e');
-//     }
-//   }
-//
-//
-//   Future<Position> _determinePosition() async {
-//     bool serviceEnabled;
-//     LocationPermission permission;
-//
-//     // Test if location services are enabled.
-//     serviceEnabled = await Geolocator.isLocationServiceEnabled();
-//     if (!serviceEnabled) {
-//       // Location services are not enabled
-//       throw Exception('Location services are disabled.');
-//     }
-//
-//     // Check the location permission status.
-//     permission = await Geolocator.checkPermission();
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//       if (permission == LocationPermission.denied) {
-//         // Location permissions are denied
-//         throw Exception('Location permissions are denied.');
-//       }
-//     }
-//
-//     if (permission == LocationPermission.deniedForever) {
-//       // Location permissions are permanently denied
-//       throw Exception('Location permissions are permanently denied.');
-//     }
-//
-//     // Get the current position
-//     return await Geolocator.getCurrentPosition();
-//   }
-//
-//   Future<void> fetchShopList() async {
-//     List<String> fetchShopList = await fetchData();
-//     if (fetchShopList.isNotEmpty) {
-//       setState(() {
-//         shopList = fetchShopList;
-//         selectedShop2 = shopList.first;
-//       });
-//     }
-//   }
-//
-//   Future<List<String>> fetchData() async {
-//     return [];
-//   }
-//
-//   String _getFormattedDate() {
-//     final now = DateTime.now();
-//     final formatter = DateFormat('dd-MMM-yyyy');
-//     return formatter.format(now);
-//   }
-//
-//
-//   void handleShopChange(String? newShop) {
-//     setState(() {
-//       selectedShop2 = newShop;
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//
-//
-//     return WillPopScope(
-//       onWillPop: () async {
-//         // Return false to prevent going back
-//         return false;
-//       },
-//       child: Scaffold(
-//         appBar: AppBar(
-//           automaticallyImplyLeading: false,
-//           backgroundColor: Colors.green,
-//           toolbarHeight: 80.0,
-//           title: Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: [
-//               Column(
-//                 mainAxisAlignment: MainAxisAlignment.end,
-//                 children: [
-//                   Text(
-//                     'Timer: ${_formatDuration(secondsPassed.toString())}',
-//
-//                     style: TextStyle(
-//                       color: Colors.white,
-//                       fontSize: 16.0,
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//               PopupMenuButton<int>(
-//                 icon: Icon(Icons.more_vert),
-//                 color: Colors.white,
-//                 onSelected: (value) async {
-//                   switch (value) {
-//                     case 1:
-//                       await backgroundTask();
-//                       await postFile();
-//                       DatabaseOutputs outputs = DatabaseOutputs();
-//                       outputs.checkFirstRun();
-//                       // Show a loading indicator for 4 seconds
-//                       showLoadingIndicator(context);
-//                       await Future.delayed(Duration(seconds: 10));
-//
-//                       // After 4 seconds, hide the loading indicator and perform the refresh logic
-//                       Navigator.of(context, rootNavigator: true).pop();
-//                       // Pop the loading dialog
-//                       // Add your logic for refreshing here
-//                       break;
-//
-//                     case 2:
-//                     // Handle the action for the second menu item (Log Out)
-//                       if (isClockedIn) {
-//                         // Check if the user is clocked in
-//                         Fluttertoast.showToast(
-//                           msg: "Please clock out before logging out.",
-//                           toastLength: Toast.LENGTH_SHORT,
-//                           gravity: ToastGravity.BOTTOM,
-//                           backgroundColor: Colors.red,
-//                           textColor: Colors.white,
-//                           fontSize: 16.0,
-//                         );
-//                       } else {
-//                         await _logOut();
-//                         // exit(0);
-//                         // Call the function to log out
-//
-//                         // If the user is not clocked in, proceed with logging out
-//                         Navigator.pushReplacement(
-//                           // Replace the current page with the login page
-//                           context,
-//                           MaterialPageRoute(
-//                             builder: (context) => LoginForm(),
-//                           ),
-//                         );
-//                       }
-//                       break;
-//                   }
-//                 },
-//                 itemBuilder: (BuildContext context) {
-//                   return [
-//                     PopupMenuItem<int>(
-//                       value: 1,
-//                       child: Text('Refresh'),
-//                     ),
-//                     PopupMenuItem<int>(
-//                       value: 2,
-//                       child: Text('Log Out'),
-//                     ),
-//                   ];
-//                 },
-//               ),
-//             ],
+import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:nanoid/async.dart';
+import 'package:order_booking_shop/API/Globals.dart';
+import 'package:order_booking_shop/View_Models/StockCheckItems.dart';
+import 'package:order_booking_shop/Views/HomePage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../API/DatabaseOutputs.dart';
+import '../Databases/DBHelper.dart';
+import '../Models/ProductsModel.dart';
+import '../Models/ShopVisitModels.dart';
+import '../Models/StockCheckItems.dart';
+import '../View_Models/OrderViewModels/ProductsViewModel.dart';
+import '../View_Models/ShopVisitViewModel.dart';
+import 'FinalOrderBookingPage.dart';
+
+
+
+void main() {
+  runApp( MaterialApp(
+      home: ShopVisit( onBrandItemsSelected: (String ) {  })
+
+  ),
+  );
+}
+class Products extends GetxController {
+  final productsViewModel = ProductsViewModel(); // No need for .obs here
+  RxList<DataRow> rows = <DataRow>[].obs;
+
+  Future<void> fetchProducts() async {
+    await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+    var products = productsViewModel.allProducts;
+    rows.assignAll(products.map((product) {
+      return DataRow(cells: [
+        DataCell(Text(product.product_name ?? '')),
+        DataCell(EditableQuantityField(initialQuantity: 0)),
+      ]);
+    }).toList());
+  }
+}
+
+class ShopVisit extends StatefulWidget {
+  final Function(String) onBrandItemsSelected;
+// Add this line
+
+  const ShopVisit({
+    Key? key,
+    required this.onBrandItemsSelected,
+
+  }) : super(key: key);
+
+  @override
+  _ShopVisitState createState() => _ShopVisitState();
+}
+
+class _ShopVisitState extends State<ShopVisit> {
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  //final productsViewModel = Get.put(ProductsViewModel());
+  TextEditingController ShopNameController = TextEditingController();
+  TextEditingController _brandDropDownController = TextEditingController();
+  TextEditingController BookerNameController = TextEditingController();
+
+  TextEditingController _searchController = TextEditingController();
+  List<DataRow> filteredRows = [];
+  void filterData(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredRows = [];
+      });
+    } else {
+      List<DataRow> tempList = [];
+      for (DataRow row in productsController.rows) {
+        for (DataCell cell in row.cells) {
+          if (cell.child is Text && (cell.child as Text).data!.contains(query)) {
+            tempList.add(row);
+            break;
+          }
+        }
+      }
+      setState(() {
+        filteredRows = tempList;
+      });
+    }
+  }
+  final shopisitViewModel = Get.put(ShopVisitViewModel());
+  final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
+  int? shopVisitId;
+  int? stockcheckitemsId;
+  String selectedShopOwner = '';
+  String selectedOwnerContact= '';
+  String selectedShopOrderNo = '';
+  List<Map<String, dynamic>> shopOwners = [];
+  final Products productsController = Get.put(Products());
+
+
+  DBHelper dbHelper = DBHelper();
+  List<String> dropdownItems5 = [];
+  List<String> dropdownItems = [];
+  List<String> brandDropdownItems = [];
+  String selectedItem ='';
+  String? selectedDropdownValue;
+  String selectedBrand = '';
+  List<String> selectedProductNames = [];
+  // Add an instance of ProductsViewModel
+  ProductsViewModel productsViewModel = Get.put(ProductsViewModel());
+  int serialCounter = 1;
+  double currentBalance = 0.0;
+  String currentUserId = '';
+  String currentMonth = DateFormat('MMM').format(DateTime.now());
+
+  get shopData => null;
+
+  void navigateToNewOrderBookingPage(String selectedBrandName) async {
+    // Set the selected shop name without navigation
+    setState(() {
+      selectedItem = selectedBrandName;
+    });
+  }
+  List<StockCheckItem> stockCheckItems = [StockCheckItem()];
+  int serialNo = 1;
+  final shopVisitViewModel = Get.put(ShopVisitViewModel());
+  ImagePicker _imagePicker = ImagePicker();
+  File? _imageFile;
+  bool checkboxValue1 = false;
+  bool checkboxValue2 = false;
+  bool checkboxValue3 = false;
+  bool checkboxValue4 = false;
+  String feedbackController = '';
+  dynamic latitude = '';
+  dynamic longitude ='';
+  bool isButtonPressed = false;
+  bool isButtonPressed2 = false;
+  List<DataRow> rows = [];
+
+  // Uint8List? _imageBytes;
+
+
+  @override
+  void initState() {
+
+    super.initState();
+    //selectedDropdownValue = dropdownItems[0]; // Default value
+    _fetchBrandItemsFromDatabase();
+    //fetchShopData();
+    fetchShopNames();
+    onCreatee();
+    _loadCounter();
+    //  _saveCounter();
+    fetchProductsNamesByBrand();
+    saveCurrentLocation();
+    _checkUserIdAndFetchShopNames();
+
+  }
+
+  Future<void> _checkUserIdAndFetchShopNames() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+
+    if (userId == 'B0001' || userId == 'B0006' || userId == 'B0004') {
+      await fetchShopNames1();
+    } else {
+      await fetchShopNames();
+    }
+  }
+
+  Future<void> fetchShopNames() async {
+    String userCity = userCitys;
+    List<dynamic> shopNames = await dbHelper.getShopNamesForCity(userCity);
+    shopOwners = (await dbHelper.getOwnersDB())!;
+    setState(() {
+      // Explicitly cast each element to String
+
+      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
+    });
+  }
+
+
+  Future<void> fetchShopNames1() async {
+
+    List<dynamic> shopNames = await dbHelper.getShopNames();
+    shopOwners = (await dbHelper.getOwnersDB())!;
+    setState(() {
+      // Explicitly cast each element to String
+
+      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
+    });
+  }
+
+  Future<void> saveCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      latitude  = position.latitude ;
+      longitude = position.longitude ;
+
+
+      // double latitude = position.latitude;
+      // double longitude = position.longitude;
+
+      print('Latitude: $latitude, Longitude: $longitude');
+
+      // Using geocoding to convert latitude and longitude to an address
+      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+      Placemark currentPlace = placemarks[0];
+
+      String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
+      address = address1;
+
+      print('Address is: $address1');
+    } catch (e) {
+      print('Error getting location:$e');
+    }
+  }
+
+  _loadCounter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      serialCounter = prefs.getInt('serialCounter') ?? 1;
+      currentMonth = prefs.getString('currentMonth') ?? currentMonth;
+      currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
+    });
+  }
+
+  _saveCounter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('serialCounter', serialCounter);
+    await prefs.setString('currentMonth', currentMonth);
+    await prefs.setString('currentUserId', currentUserId); // Add this line
+  }
+
+  String generateNewOrderId( String userId, String currentMonth) {
+    if (this.currentUserId != userId) {
+      // Reset serial counter when the userId changes
+      serialCounter = 1;
+      this.currentUserId = userId;
+    }
+
+    if (this.currentMonth != currentMonth) {
+      // Reset serial counter when the month changes
+      serialCounter = 1;
+      this.currentMonth = currentMonth;
+    }
+//set state
+    String orderId =
+        "$userId-$currentMonth-${serialCounter.toString().padLeft(3, '0')}";
+    serialCounter++;
+    _saveCounter(); // Save the updated counter value, current month, and userId
+    return orderId;
+  }
+
+
+  Future<void> onCreatee() async {
+    DatabaseOutputs db = DatabaseOutputs();
+    await db.showShopVisit();
+    await db.showStockCheckItems();
+    // DatabaseOutputs outputs = DatabaseOutputs();
+    //  outputs.checkFirstRun();
+  }
+
+
+  // Method to fetch brand items from the database.
+  void _fetchBrandItemsFromDatabase() async {
+    DBHelper dbHelper = DBHelper();
+    List<String> brandItems = await dbHelper.getBrandItems();
+
+    // Remove duplicates from the shopNames list
+    List<String> uniqueBrandNames = brandItems.toSet().toList();
+
+    // Set the retrieved brand items in the state.
+    setState(() {
+      brandDropdownItems = uniqueBrandNames;
+    });
+  }
+  Future<void> saveImage()  async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/captured_image.jpg';
+
+      // Compress the image76
+      Uint8List? compressedImageBytes = await FlutterImageCompress.compressWithFile(
+        _imageFile!.path,
+        minWidth: 400,
+        minHeight: 600,
+        quality:40,
+      );
+
+      // Save the compressed image
+      await File(filePath).writeAsBytes(compressedImageBytes!);
+
+      print('Compressed image saved successfully at $filePath');
+    } catch (e) {
+      print('Error compressing and saving image: $e');
+    }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+
+    ShopNameController.text= selectedItem;
+    BookerNameController.text= userNames;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Shop Visit'),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Text(
+                        ' Date: ${_getFormattedDate()}',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'Shop Name',
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                    ),
+                    Container(
+                      height: 30,
+                      child: TypeAheadField<String>(
+                        textFieldConfiguration: TextFieldConfiguration(
+                          controller: TextEditingController(text: selectedItem),
+                          decoration: InputDecoration(
+                            enabled: false,
+                            hintText: '---Select Shop---',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                          ),
+                        ),
+                        suggestionsCallback: (pattern) {
+                          return dropdownItems
+                              .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
+                              .toList();
+                        },
+                        itemBuilder: (context, suggestion) {
+                          return ListTile(
+                            title: Text(suggestion),
+                          );
+                        },
+                        onSuggestionSelected: (suggestion) {
+                          // Validate that the selected item is from the list
+                          if (dropdownItems.contains(suggestion)) {
+                            setState(() {
+                              selectedItem = suggestion;
+                              shopName = selectedItem;
+                            });
+
+                            for (var owner in shopOwners) {
+                              if (owner['shop_name'] == selectedItem) {
+                                setState(() {
+                                  selectedShopOwner = owner['owner_name'];
+                                  selectedOwnerContact = owner['phone_no'];
+                                });
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ),
+
+
+                    SizedBox(height: 20.0),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Booker Name',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    Container(
+                      height: 30,
+                      child: TextFormField(enabled: false,
+                        controller: BookerNameController,
+
+                        decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                          ),
+                        ),
+
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Brand',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 30,
+                            child: TypeAheadFormField<String>(
+                              textFieldConfiguration: TextFieldConfiguration(
+                                decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                                  enabled: false,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                  ),
+                                ),
+                                controller: _brandDropDownController,
+                              ),
+                              suggestionsCallback: (pattern) {
+                                return brandDropdownItems
+                                    .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
+                                    .toList();
+                              },
+                              itemBuilder: (context, itemData) {
+                                return ListTile(
+                                  title: Text(itemData),
+                                );
+                              },
+                              onSuggestionSelected: (itemData) async {
+                                // Validate that the selected item is from the list
+                                if (brandDropdownItems.contains(itemData)) {
+                                  setState(() {
+                                    _brandDropDownController.text = itemData;
+                                    globalselectedbrand = itemData;
+                                  });
+                                  // Call the callback to pass the selected brand to FinalOrderBookingPage
+                                  widget.onBrandItemsSelected(itemData);
+                                  print('Selected Brand: $itemData');
+                                  print(globalselectedbrand);
+                                  await productsController.fetchProducts();
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Checklist',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '1-Stock Check (Current Balance)',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    SizedBox(height: 25),
+                    Column(
+                      children: [
+
+                        SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(5.0),
+                                child: Container(
+                                  height: 500, // Set the desired height
+                                  width: 300, // Set the desired width
+                                  child:Card(
+                                    elevation: 5,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
+                                      side: BorderSide(
+                                        color: Colors.black, // Change the color as needed
+                                        width: 1.0, // Change the width as needed
+                                      ),
+                                    ),
+                                    child: SingleChildScrollView( // Add a vertical ScrollView
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextField(
+                                              controller: _searchController,
+                                              onChanged: (query) {
+                                                filterData(query);
+                                              },
+                                              decoration: InputDecoration(
+                                                labelText: 'Search',
+                                                hintText: 'Type to search...',
+                                                prefixIcon: Icon(Icons.search),
+                                              ),
+                                            ),
+                                          ),
+                                          SingleChildScrollView(
+                                            scrollDirection: Axis.vertical, // Add vertical scroll direction
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: DataTable(
+                                                columns: [
+                                                  DataColumn(label: Text('Product')),
+                                                  DataColumn(label: Text('Quantity')),
+                                                ],
+                                                rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],),
+                        ),
+
+                        //     SizedBox(height: 5),
+                        // for (int index = 0; index < stockCheckItems.length; index++)
+                        //   StockCheckItemRow(
+                        //     stockCheckItem: stockCheckItems[index],
+                        //     serialNo: index + 1,
+                        //     onDelete: () {
+                        //       deleteStockCheckItem(index);
+                        //     },
+                        //     dropdownItems: dropdownItems,
+                        //     selectedProductNames: selectedProductNames,
+                        //   ),
+                        // SizedBox(height: 10),
+                        // ElevatedButton(
+                        //   onPressed: () {
+                        //     // Check if all previous rows are filled before adding a new row
+                        //     bool allRowsFilled = true;
+                        //     for (int index = 0; index < stockCheckItems.length; index++) {
+                        //       StockCheckItem item = stockCheckItems[index];
+                        //       if (item.itemDescriptionController.text.isEmpty || item.qtyController.text.isEmpty) {
+                        //         allRowsFilled = false;
+                        //         break;
+                        //       }
+                        //     }
+                        //
+                        //     // If all previous rows are filled, add a new row
+                        //     if (allRowsFilled) {
+                        //       addStockCheckItem();
+                        //     } else {
+                        //       // Show an error message or take appropriate action
+                        //       // For example, you can display a snackbar or toast indicating that all previous rows must be filled.
+                        //       print('Please fill all previous rows before adding a new row.');
+                        //     }
+                        //
+                        //     // Then, check form validation
+                        //     if (_formKey.currentState!.validate()) {
+                        //       // Validation successful, proceed to the next page or save data
+                        //     }
+                        //   },
+                        //   style: ElevatedButton.styleFrom(
+                        //     primary: Colors.green,
+                        //     onPrimary: Colors.white,
+                        //     shape: RoundedRectangleBorder(
+                        //       borderRadius: BorderRadius.circular(5),
+                        //     ),
+                        //   ),
+                        //   child: Text(
+                        //     'Add Item',
+                        //     style: TextStyle(
+                        //       fontSize: 13,
+                        //     ),
+                        //   ),
+                        // ),
+
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Column(
+                      children: [
+                        buildRow('1-Performed Store Walkthrough', checkboxValue1, (bool? value) {
+                          if (value != null) {
+                            setState(() {
+                              checkboxValue1 = value;
+                              // checkbox= checkboxValue1;
+                            });
+                          }
+                        }),
+                        buildRow('2-Update Store Planogram', checkboxValue2, (bool? value) {
+                          if (value != null) {
+                            setState(() {
+                              checkboxValue2 = value;
+                              // checkbox2= checkboxValue2;
+                            });
+                          }
+                        }),
+                        buildRow('3-Shelf tags and price signage check', checkboxValue3, (bool? value) {
+                          if (value != null) {
+                            setState(() {
+                              checkboxValue3 = value;
+                              //    checkbox3= checkboxValue3;
+                            });
+                          }
+                        }),
+                        buildRow('4-Expiry date on product reviewed', checkboxValue4, (bool? value) {
+                          if (value != null) {
+                            setState(() {
+                              checkboxValue4 = value;
+                              // checkbox4= checkboxValue4;
+                            });
+                          }
+                        }),
+                        SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              final image = await _imagePicker.getImage(
+                                source: ImageSource.camera,
+                                imageQuality: 40, // Adjust the quality (0 to 100)
+                              );
+
+                              if (image != null) {
+                                setState(() {
+                                  _imageFile = File(image.path);
+
+                                  shopData?['imagePath'] = _imageFile!.path;
+
+                                  // // Convert the image file to bytes and store it in _imageBytes
+                                  // List<int> imageBytesList = _imageFile!.readAsBytesSync();
+                                  // _imageBytes = Uint8List.fromList(imageBytesList);
+                                });
+
+                                // Save only the image
+                                await saveImage();
+
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                  content: Text('No image selected.'),
+                                ));
+                              }
+                            } catch (e) {
+                              print('Error capturing image: $e');
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          child: Text('+ Add Photo'),
+                        ),
+                        SizedBox(height: 10),
+                        // Add the Stack widget to overlay the warning icon on top of the image
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (_imageFile != null)
+                              Image.file(
+                                _imageFile!,
+                                height: 400,
+                                width: 600,
+                                fit: BoxFit.cover,
+                              ),
+                            if (_imageFile == null)
+                              Icon(
+                                Icons.warning,
+                                color: Colors.red,
+                                size: 48,
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                        Text('Feedback/ Special Note'),
+                        SizedBox(height: 20.0),
+                        // Feedback or Note Box
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(10.0),
+
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Feedback or Note',
+                              border: InputBorder.none,
+                            ),
+                            maxLines: 3,
+                            onChanged: (text) {
+                              setState(() {
+                                feedbackController = text;
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 20),
+
+                        ElevatedButton(
+                          onPressed: isButtonPressed
+                              ? null
+                              : () async {
+                            setState(() {
+                              isButtonPressed = true;
+                            });
+
+                            bool allRowsFilled = stockCheckItems.every((item) =>
+                            item.itemDescriptionController.text.isNotEmpty &&
+                                item.qtyController.text.isNotEmpty);
+
+                            if (!allRowsFilled) {
+                              Fluttertoast.showToast(
+                                msg: 'Please fill all stock check items before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed = false;
+                              });
+                              return;
+                            }
+
+                            if (!checkboxValue1 ||
+                                !checkboxValue2 ||
+                                !checkboxValue3 ||
+                                !checkboxValue4) {
+                              Fluttertoast.showToast(
+                                msg: 'Please complete all tasks before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+
+                              setState(() {
+                                checkboxValue1 = false;
+                                checkboxValue2 = false;
+                                checkboxValue3 = false;
+                                checkboxValue4 = false;
+                              });
+
+                              setState(() {
+                                isButtonPressed = false;
+                              });
+                              return;
+                            }
+
+                            if (_imageFile == null ||
+                                ShopNameController.text.isEmpty ||
+                                BookerNameController.text.isEmpty ||
+                                _brandDropDownController.text.isEmpty) {
+                              Fluttertoast.showToast(
+                                msg: 'Please fulfill all requirements before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed = false;
+                              });
+                              return;
+                            }
+
+                            String imagePath =  _imageFile!.path;
+                            var id = await customAlphabet('1234567890', 10);
+                            List<int> imageBytesList = await File(imagePath).readAsBytes();
+                            Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
+                            String NewOrderId = generateNewOrderId(userId.toString(), currentMonth);
+                            OrderMasterid= NewOrderId;
+                            print(OrderMasterid);
+
+
+                            shopVisitViewModel.addShopVisit(ShopVisitModel(
+                              id: int.parse(id),
+                              shopName: ShopNameController.text,
+                              userId: userId,
+                              bookerName: BookerNameController.text,
+                              brand:_brandDropDownController.text,
+                              date:_getFormattedDate(),
+                              walkthrough: checkboxValue1,
+                              planogram: checkboxValue2,
+                              signage: checkboxValue3,
+                              productReviewed: checkboxValue4,
+                              address: address,
+                              body: imageBytes,
+                              longitude: longitude,
+                              latitude: latitude,
+                            ));
+
+                            String visitId =
+                            await shopVisitViewModel.fetchLastShopVisitId();
+                            shopVisitId = int.parse(visitId);
+                            //
+                            // List<Map<String, dynamic>> stockCheckItemsDetails = [];
+                            // for (var stockCheckItem in stockCheckItems) {
+                            //   String selectedItem =
+                            //       stockCheckItem.itemDescriptionController.text;
+                            //   int quantity =
+                            //       int.tryParse(stockCheckItem.qtyController.text) ?? 0;
+                            //
+                            //   stockCheckItemsDetails.add({
+                            //     'selectedItem': selectedItem,
+                            //     'quantity': quantity,
+                            //   });
+                            // }
+
+                            // saveStockCheckItems();
+
+                            DBHelper dbShop = DBHelper();
+                            dbShop.postShopVisitData();
+                            dbShop.postStockCheckItems();
+
+                            Fluttertoast.showToast(
+                              msg: 'Data saved successfully!',
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.green,
+                              textColor: Colors.white,
+                            );
+
+                            // Navigate to the FinalOrderBookingPage only if all validations pass
+                            Map<String, dynamic> dataToPass = {
+                              'shopName': ShopNameController.text,
+                              'ownerName': selectedShopOwner.toString(),
+                              'selectedBrandName': _brandDropDownController.text,
+                              'userName': BookerNameController.text,
+                              'ownerContact': selectedOwnerContact.toString(),
+                            };
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FinalOrderBookingPage(),
+                                settings: RouteSettings(arguments: dataToPass),
+                              ),
+                            );
+
+                            setState(() {
+                              isButtonPressed = false;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          child: Text('+ Order Booking Form'),
+                        ),
+
+                        SizedBox(height: 20),
+
+                        ElevatedButton(
+                          onPressed: isButtonPressed2
+                              ? null
+                              : () async {
+                            setState(() {
+                              isButtonPressed2 = true;
+                            });
+
+                            bool allRowsFilled = stockCheckItems.every((item) =>
+                            item.itemDescriptionController.text.isNotEmpty &&
+                                item.qtyController.text.isNotEmpty);
+
+                            if (!allRowsFilled) {
+                              Fluttertoast.showToast(
+                                msg: 'Please fill all stock check items before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed2 = false;
+                              });
+                              return;
+                            }
+
+                            if (!checkboxValue1 ||
+                                !checkboxValue2 ||
+                                !checkboxValue3 ||
+                                !checkboxValue4) {
+                              Fluttertoast.showToast(
+                                msg: 'Please complete all tasks before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+
+                              setState(() {
+                                checkboxValue1 = false;
+                                checkboxValue2 = false;
+                                checkboxValue3 = false;
+                                checkboxValue4 = false;
+                              });
+
+                              setState(() {
+                                isButtonPressed2 = false;
+                              });
+                              return;
+                            }
+
+                            if (_imageFile == null ||
+                                ShopNameController.text.isEmpty ||
+                                BookerNameController.text.isEmpty ||
+                                _brandDropDownController.text.isEmpty) {
+                              Fluttertoast.showToast(
+                                msg: 'Please fulfill all requirements before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed2 = false;
+                              });
+                              return;
+                            }
+
+                            String imagePath = _imageFile!.path;
+                            var id = await customAlphabet('1234567890', 12);
+                            List<int> imageBytesList = await File(imagePath).readAsBytes();
+                            Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
+
+                            shopVisitViewModel.addShopVisit(ShopVisitModel(
+                              id: int.parse(id),
+                              shopName: ShopNameController.text,
+                              userId: userId,
+                              bookerName: BookerNameController.text,
+                              brand: _brandDropDownController.text,
+                              date: _getFormattedDate(),
+                              walkthrough: checkboxValue1,
+                              planogram: checkboxValue2,
+                              signage: checkboxValue3,
+                              productReviewed: checkboxValue4,
+                              address: address,
+                              body: imageBytes,
+                              latitude: latitude,
+                              longitude: longitude,
+                            ));
+
+                            String visitId =
+                            await shopisitViewModel.fetchLastShopVisitId();
+                            shopVisitId = int.parse(visitId);
+
+                            // List<Map<String, dynamic>> stockCheckItemsDetails = [];
+                            // for (var stockCheckItem in stockCheckItems) {
+                            //   String selectedItem =
+                            //       stockCheckItem.itemDescriptionController.text;
+                            //   int quantity =
+                            //       int.tryParse(stockCheckItem.qtyController.text) ?? 0;
+                            //
+                            //   stockCheckItemsDetails.add({
+                            //     'selectedItem': selectedItem,
+                            //     'quantity': quantity,
+                            //   });
+                            // }
+                            //
+                            // saveStockCheckItems();
+
+                            DBHelper dbshop = DBHelper();
+
+                            dbshop.postShopVisitData();
+                            dbshop.postStockCheckItems();
+
+                            // Additional validation that everything must be filled
+                            if (ShopNameController.text.isNotEmpty &&
+                                BookerNameController.text.isNotEmpty &&
+                                _brandDropDownController.text.isNotEmpty) {
+                              Navigator.pop(context);
+                              // Stop the timer on the home page
+                              HomePage();
+                            } else {
+                              Fluttertoast.showToast(
+                                msg: 'Please fill all fields before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                            }
+
+                            setState(() {
+                              isButtonPressed2 = false;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          child: Text('No Order'),
+                        ),
+
+                        SizedBox(height: 50),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // void saveStockCheckItems() async {
+  //   List<StockCheckItemsModel> stockCheckItemsList = [];
+  //
+  //   for (var stockCheckItem in stockCheckItems) {
+  //     final stockCheckItems = StockCheckItemsModel(
+  //       shopvisitId: shopVisitId ?? 0,
+  //       itemDesc: stockCheckItem.itemDescriptionController.text, // Access the text value
+  //       qty: int.tryParse(stockCheckItem.qtyController.text) ?? 0,
+  //     );
+  //     stockCheckItemsList.add(stockCheckItems);
+  //   }
+  //
+  //   await DBHelper().addStockCheckItems(stockCheckItemsList);
+  // }
+
+
+  Widget buildRow(String text, bool value, void Function(bool?) onChanged) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          text,
+          style: TextStyle(fontSize: 14, color: Colors.black),
+        ),
+        Row(
+          children: [
+            Checkbox(
+              value: value,
+              onChanged: onChanged,
+              checkColor: Colors.white,
+              activeColor: Colors.green,
+            ),
+            if (!value)
+              Icon(
+                Icons.warning,
+                color: Colors.red,
+                size: 24,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void addStockCheckItem() {
+    setState(() {
+      stockCheckItems.add(StockCheckItem());
+    });
+  }
+
+  void deleteStockCheckItem(int index) {
+    setState(() {
+      stockCheckItems.removeAt(index);
+    });
+  }
+
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    final formatter = DateFormat('dd-MMM-yyyy');
+    return formatter.format(now);
+  }
+
+  void onBrandSelected(String selectedBrand) {
+    setState(() {
+      _brandDropDownController.text = selectedBrand;
+    });
+  }
+
+  Future<void> fetchProductsNamesByBrand() async {
+    String selectedBrand = globalselectedbrand;
+    DBHelper dbHelper = DBHelper();
+    List<dynamic> productNames = await dbHelper.getProductsNamesByBrand(selectedBrand);
+
+    setState(() {
+      // Explicitly cast each element to String
+      dropdownItems5 = productNames.map((dynamic item) => item.toString()).toSet().toList();
+    });
+  }
+
+}
+
+class StockCheckItem {
+  TextEditingController itemDescriptionController = TextEditingController();
+  TextEditingController qtyController = TextEditingController();
+  String? selectedDropdownValue;
+}
+
+// class StockCheckItemRow extends StatelessWidget {
+//   final StockCheckItem stockCheckItem;
+//   final int serialNo;
+//   final VoidCallback onDelete;
+//   final List<String> dropdownItems;
+//   final List<String> selectedProductNames;
+//   final productsViewModel = Get.put(ProductsViewModel());
+//   StockCheckItemRow({
+//     required this.stockCheckItem,
+//     required this.serialNo,
+//     required this.onDelete,
+//     required this.dropdownItems,
+//     required this.selectedProductNames,
+//
+//   });
+
+// @override
+// Widget build(BuildContext context) {
+//   return Column(
+//     children: [
+//       Row(
+//         children: [
+//           Text(
+//             '$serialNo',
+//             style: TextStyle(fontSize: 16, color: Colors.black),
 //           ),
-//         ),
-//         body: SingleChildScrollView(
-//           child: Container(
-//             decoration: BoxDecoration(
-//               color: Colors.white,
-//             ),
-//
-//             child: Center(
-//
-//               child: Column(
-//
-//
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: <Widget>[
-//                     SizedBox(height: 20),
-//                     Row(
-//                       mainAxisAlignment: MainAxisAlignment.center,
-//                       children: [
-//
-//                         Container(
-//                           height: 150,
-//                           width: 150,
-//                           child: ElevatedButton(
-//                             onPressed: () {
-//                               if (isClockedIn) {
-//                                 Navigator.push(
-//                                   context,
-//                                   MaterialPageRoute(
-//                                     builder: (context) => ShopPage(),
-//                                   ),
-//                                 );
-//                               } else {
-//                                 showDialog(
-//                                   context: context,
-//                                   builder: (context) => AlertDialog(
-//                                     title: Text('Clock In Required'),
-//                                     content: Text('Turn on location.'),
-//                                     actions: [
-//                                       TextButton(
-//                                         onPressed: () => Navigator.pop(context),
-//                                         child: Text('OK'),
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 );
-//                               }
-//                             },
-//                             child: Column(
-//                               mainAxisAlignment: MainAxisAlignment.center,
-//                               children: [
-//                                 Icon(
-//                                   MyIcons.addShop,
-//                                   color: Colors.white,
-//                                   size: 50,
-//                                 ),
-//                                 SizedBox(height: 10),
-//                                 Text('Add Shop'),
-//                               ],
-//                             ),
-//                             style: ElevatedButton.styleFrom(
-//                               foregroundColor: Colors.white, backgroundColor: Colors.green,
-//                               shape: RoundedRectangleBorder(
-//                                 borderRadius: BorderRadius.circular(10),
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                         Column(
-//                           mainAxisAlignment: MainAxisAlignment.center,
-//                           children: [
-//
-//                           ],
-//                         ),
-//                         SizedBox(width: 10),
-//                         Container(
-//                           height: 150,
-//                           width: 150,
-//                           child: ElevatedButton(
-//                             onPressed: () {
-//                               if (isClockedIn) {
-//                                 Navigator.push(
-//                                   context,
-//                                   MaterialPageRoute(
-//                                     builder: (context) => ShopVisit(onBrandItemsSelected: (String) {}),
-//                                   ),
-//                                 );
-//                               } else {
-//                                 showDialog(
-//                                   context: context,
-//                                   builder: (context) => AlertDialog(
-//                                     title: Text('Clock In Required'),
-//                                     content: Text('Please clock in before visiting a shop.'),
-//                                     actions: [
-//                                       TextButton(
-//                                         onPressed: () => Navigator.pop(context),
-//                                         child: Text('OK'),
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 );
-//                               }
-//                             },
-//                             child: Column(
-//                               mainAxisAlignment: MainAxisAlignment.center,
-//                               children: [
-//                                 Icon(
-//                                   Icons.store,
-//                                   color: Colors.white,
-//                                   size: 50,
-//                                 ),
-//                                 SizedBox(height: 10),
-//                                 Text('Shop Visit'),
-//                               ],
-//                             ),
-//                             style: ElevatedButton.styleFrom(
-//                               foregroundColor: Colors.white, backgroundColor: Colors.green,
-//                               shape: RoundedRectangleBorder(
-//                                 borderRadius: BorderRadius.circular(10),
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//
-//                     SizedBox(height: 10),
-//                     Row(
-//                       mainAxisAlignment: MainAxisAlignment.center,
-//                       children: [
-//                         Container(
-//                           height: 150,
-//                           width: 150,
-//                           child: ElevatedButton(
-//                             onPressed: () {
-//                               if (isClockedIn) {
-//                                 Navigator.push(context, MaterialPageRoute(builder: (context) => ReturnFormPage()));
-//                               } else {
-//                                 showDialog(
-//                                   context: context,
-//                                   builder: (context) => AlertDialog(
-//                                     title: Text('Clock In Required'),
-//                                     content: Text('Please clock in before accessing the Return Form.'),
-//                                     actions: [
-//                                       TextButton(
-//                                         onPressed: () => Navigator.pop(context),
-//                                         child: Text('OK'),
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 );
-//                               }
-//                             },
-//                             child: Column(
-//                               mainAxisAlignment: MainAxisAlignment.center,
-//                               children: [
-//                                 Icon(
-//                                   MyIcons.returnForm,
-//                                   color: Colors.white,
-//                                   size: 50,
-//                                 ),
-//                                 SizedBox(height: 10),
-//                                 Text('Return Form'),
-//                               ],
-//                             ),
-//                             style: ElevatedButton.styleFrom(
-//                               foregroundColor: Colors.white, backgroundColor: Colors.green,
-//                               shape: RoundedRectangleBorder(
-//                                 borderRadius: BorderRadius.circular(10),
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                         SizedBox(width: 10),
-//                         Container(
-//                           height: 150,
-//                           width: 150,
-//                           child: ElevatedButton(
-//                             onPressed: () {
-//                               if (isClockedIn) {
-//                                 Navigator.push(context, MaterialPageRoute(builder: (context) => RecoveryFromPage()));
-//                               } else {
-//                                 showDialog(
-//                                   context: context,
-//                                   builder: (context) => AlertDialog(
-//                                     title: Text('Clock In Required'),
-//                                     content: Text('Please clock in before accessing the Recovery.'),
-//                                     actions: [
-//                                       TextButton(
-//                                         onPressed: () => Navigator.pop(context),
-//                                         child: Text('OK'),
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 );
-//                               }
-//                             },
-//                             child: Column(
-//                               mainAxisAlignment: MainAxisAlignment.center,
-//                               children: [
-//                                 Icon(
-//                                   Icons.person,
-//                                   color: Colors.white,
-//                                   size: 50,
-//                                 ),
-//                                 SizedBox(height: 10),
-//                                 Text('Recovery'),
-//                               ],
-//                             ),
-//                             style: ElevatedButton.styleFrom(
-//                               foregroundColor: Colors.white, backgroundColor: Colors.green,
-//                               shape: RoundedRectangleBorder(
-//                                 borderRadius: BorderRadius.circular(10),
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                     SizedBox(height: 10),
-//                     Row(
-//                       mainAxisAlignment: MainAxisAlignment.center,
-//                       children: [
-//                         Container(
-//                           height: 150,
-//                           width: 150,
-//                           child: ElevatedButton(
-//                             onPressed: () {
-//                               if (isClockedIn) {
-//                                 Navigator.push(
-//                                   context,
-//                                   MaterialPageRoute(
-//                                     builder: (context) => OrderBookingStatus(),
-//                                   ),
-//                                 );
-//                               } else {
-//                                 showDialog(
-//                                   context: context,
-//                                   builder: (context) => AlertDialog(
-//                                     title: Text('Clock In Required'),
-//                                     content: Text('Please clock in before checking Order Booking Status.'),
-//                                     actions: [
-//                                       TextButton(
-//                                         onPressed: () => Navigator.pop(context),
-//                                         child: Text('OK'),
-//                                       ),
-//                                     ],
-//                                   ),
-//                                 );
-//                               }
-//                             },
-//                             child: Column(
-//                               mainAxisAlignment: MainAxisAlignment.center,
-//                               children: [
-//                                 Icon(
-//                                   MyIcons.orderBookingStatus,
-//                                   color: Colors.white,
-//                                   size: 50,
-//                                 ),
-//                                 SizedBox(height: 10),
-//                                 Text('Order Booking Status'),
-//                               ],
-//                             ),
-//                             style: ElevatedButton.styleFrom(
-//                               foregroundColor: Colors.white, backgroundColor: Colors.green,
-//                               shape: RoundedRectangleBorder(
-//                                 borderRadius: BorderRadius.circular(10),
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                     SizedBox(height: 30),
-//                   ]
-//               ),
-//             ),
-//           ),
-//         ),
-//         //
-//         floatingActionButton: Align(
-//           alignment: Alignment.bottomCenter,
-//           child: Padding(
-//             padding: const EdgeInsets.only(bottom: 20.0),
-//
-//             child:ElevatedButton.icon(
-//               onPressed:() async {
-//                 // await MoveToBackground.moveTaskToBack();
-//                 final service = FlutterBackgroundService();
-//                 await _toggleClockInOut();
-//               },
-//               icon: Icon(
-//                 isClockedIn ? Icons.timer_off : Icons.timer,
-//                 color: isClockedIn ? Colors.red : Colors.green,
-//               ),
-//               label: Text(
-//                 isClockedIn ? 'Clock Out' : 'Clock In',
-//                 style: TextStyle(fontSize: 14),
-//               ),
-//               style: ElevatedButton.styleFrom(
-//                 primary: Colors.white,
-//                 onPrimary: isClockedIn ? Colors.red : Colors.green,
-//                 shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(10),
-//                 ),
-//               ),
-//             ),
-//
-//           ),
-//         ),
+//           SizedBox(width: 20),
+//       //     Container(
+//       //       width: 179.5,
+//       //       height: 50,
+//       //       margin: const EdgeInsets.all(0.5),
+//       //       child: Padding(
+//       //         padding: const EdgeInsets.symmetric(vertical: 0.50, horizontal: 0.10),
+//       //         child: TypeAheadFormField<ProductsModel>(
+//       //           textFieldConfiguration: TextFieldConfiguration(
+//       //             decoration: InputDecoration(
+//       //
+//       //               border: OutlineInputBorder(
+//       //                 borderRadius: BorderRadius.circular(5.0),
+//       //               ),
+//       //               contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 3.0),
+//       //             ),
+//       //             controller: stockCheckItem.itemDescriptionController,
+//       //             style: TextStyle(fontSize: 12),
+//       //             maxLines: null,
+//       //           ),
+//       //           suggestionsCallback: (pattern) async {
+//       //             await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+//       //
+//       //             return productsViewModel.allProducts
+//       //                 .where((product) =>
+//       //             product.product_name?.toLowerCase().contains(pattern.toLowerCase()) ?? false)
+//       //                 .toList();
+//       //           },
+//       //           itemBuilder: (context, itemData) {
+//       //             return ListTile(
+//       //               title: Text(itemData.product_name ?? ''),
+//       //               tileColor: stockCheckItem.selectedDropdownValue == itemData.product_name
+//       //                   ? Colors.grey
+//       //                   : Colors.transparent,
+//       //             );
+//       //           },
+//       //           onSuggestionSelected: (itemData) {
+//       //             // Only set the state if the selected item is in the suggestions list
+//       //             if (productsViewModel.allProducts.contains(itemData)) {
+//       //               stockCheckItem.selectedDropdownValue = itemData.product_name;
+//       //               stockCheckItem.itemDescriptionController.text = itemData.product_name ?? '';
+//       //             }
+//       //           },
+//       //           suggestionsBoxDecoration: SuggestionsBoxDecoration(),
+//       //         ),
+//       //       ),
+//       //     ),
+//       //     SizedBox(width: 10),
+//       //     Container(
+//       //       width: 60,
+//       //       height: 50,
+//       //       child: TextFormField(
+//       //         controller: stockCheckItem.qtyController,
+//       //         decoration: InputDecoration(
+//       //           border: OutlineInputBorder(
+//       //             borderRadius: BorderRadius.circular(5.0),
+//       //           ),
+//       //         ),
+//       //         style: TextStyle(fontSize: 11),
+//       //         keyboardType: TextInputType.number,
+//       //         inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^0{1,}'))], // Allow backspacing over initial zeros
+//       //         validator: (value) {
+//       //           if (value == null || value.isEmpty) {
+//       //             return 'Please enter a quantity.';
+//       //           } else {
+//       //             int? qty = int.tryParse(value);
+//       //             if (qty == null) {
+//       //               return 'Please enter a valid number.';
+//       //             } else if (qty <= 0) {
+//       //               return 'Quantity must be greater than zero.';
+//       //             }
+//       //           }
+//       //           return null;
+//       //         },
+//       //       ),
+//       //     ),
+//       //     SizedBox(width: 0),
+//       //     IconButton(
+//       //       icon: Icon(Icons.delete_outline, size: 20, color: Colors.red),
+//       //       onPressed: onDelete,
+//       //     ),
+//         ],
 //       ),
-//     );
-//   }
-//
-//   var gpx;
-//   // Create a track
-//   var track;
-//   // Create a track segment
-//   var segment;
-//   var trkpt;
-//   _getLocation() async {
-//     try {
-//       final loc.LocationData _locationResult = await location.getLocation();
-//       await FirebaseFirestore.instance.collection('location').doc(myUid).set({
-//         'latitude': _locationResult.latitude,
-//         'longitude': _locationResult.longitude,
-//         'name': name.toString(),
-//         'isActive': false
-//       }, SetOptions(merge: true));
-//     } catch (e) {
-//       print(e);
-//     }
-//   }
-//
-//   Future<void> _listenLocation() async {
-//     gpx = new Gpx();
-//     track = new Trk();
-//     segment = new Trkseg();
-//
-//     _locationSubscription = location.onLocationChanged.handleError((onError) {
-//       print(onError);
-//       _locationSubscription?.cancel();
-//       setState(() {
-//         _locationSubscription = null;
-//       });
-//     }).listen((loc.LocationData currentlocation) async {
-//       await FirebaseFirestore.instance.collection('location').doc(myUid).set({
-//         'latitude': currentlocation.latitude,
-//         'longitude': currentlocation.longitude,
-//         'name': name.toString(),
-//         'isActive':true
-//       }, SetOptions(merge: true));
-//
-//       // Create a track point with latitude, longitude, and time information
-//       final trackPoint = Wpt(
-//         lat: currentlocation.latitude,
-//         lon: currentlocation.longitude,
-//         time: DateTime.now(),
-//       );
-//
-//       segment.trkpts.add(trackPoint);
-//
-//       if (track.trksegs.isEmpty) {
-//         track.trksegs.add(segment);
-//         gpx.trks.add(track);
-//       }
-//
-//       final gpxString = GpxWriter().asString(gpx, pretty: true);
-//       print("XXX $gpxString");
-//     });
-//   }
-//   Future<void> saveGPXFile() async {
-//     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-//     final gpxString = await GpxWriter().asString(gpx, pretty: true);
-//     final downloadDirectory = await getDownloadsDirectory();
-//     final filePath = "${downloadDirectory!.path}/track$date.gpx";
-//     final file = File(filePath);
-//
-//     if (await file.exists()) {
-//       final existingGpx = await GpxReader().fromString(await file.readAsString());
-//       final newSegment = GpxReader().fromString(gpxString); // Replace this with the actual segment you want to add
-//       existingGpx.trks[0].trksegs.add(newSegment.trks[0].trksegs[0]);
-//       await file.writeAsString(GpxWriter().asString(existingGpx, pretty: true));
-//     } else {
-//       await file.writeAsString(gpxString);
-//     }
-//
-//     print('GPX file saved successfully at ${file.path}');
-//     Fluttertoast.showToast(
-//       msg: "GPX file saved in the Downloads folder!",
-//       toastLength: Toast.LENGTH_SHORT,
-//       gravity: ToastGravity.BOTTOM,
-//       backgroundColor: Colors.green,
-//       textColor: Colors.white,
-//     );
-//   }
-//
-//   Future<void> GPXinfo() async {
-//     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-//     final downloadDirectory = await getDownloadsDirectory();
-//     final filePath = "${downloadDirectory!.path}/track$date.gpx";
-//
-//     final file = File(filePath);
-//     print("XXX    DATA    ${file.readAsStringSync()}");
-//   }
-//
-//   Future<void> postFile() async {
-//     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-//     final downloadDirectory = await getDownloadsDirectory();
-//     //final directory = await getApplicationDocumentsDirectory();
-//     final filePath = File('${downloadDirectory?.path}/track$date.gpx');
-//
-//     if (!filePath.existsSync()) {
-//       print('File does not exist');
-//       return;
-//     }
-//     var request = http.MultipartRequest("POST",
-//         Uri.parse("https://apex.oracle.com/pls/apex/metaxperts/location/post/"));
-//     var gpxFile = await http.MultipartFile.fromPath(
-//         'body', filePath.path);
-//     request.files.add(gpxFile);
-//     // Add other fields if needed
-//     request.fields['userId'] = userId;
-//     request.fields['userName'] = userNames;
-//     request.fields['fileName'] = "${_getFormattedDate()}.gpx";
-//     request.fields['date'] = _getFormattedDate();
-//     print(userNames);
-//     // request.fields['currentTime']=
-//
-//     try {
-//       var response = await request.send();
-//       if (response.statusCode == 200) {
-//         var responseData = await response.stream.toBytes();
-//         var result = String.fromCharCodes(responseData);
-//         print("Results: Post Successfully");
-//         //deleteGPXFile(); // Delete the GPX file after successful upload
-//         _deleteDocument();
-//       } else {
-//         print("Failed to upload file. Status code: ${response.statusCode}");
-//       }
-//     } catch (e) {
-//       print("Error: $e");
-//     }
-//   }
-//
-//   // Future<void> deleteGPXFile() async {
-//   //   try {
-//   //     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-//   //    // final gpxString = await GpxWriter().asString(gpx, pretty: true);
-//   //     final downloadDirectory = await getDownloadsDirectory();
-//   //     final filePath = "${downloadDirectory!.path}/track$date.gpx";
-//   //     final file = File(filePath);
-//   //
-//   //     if (file.existsSync()) {
-//   //       await file.delete();
-//   //       print('GPX file deleted successfully');
-//   //     } else {
-//   //       print('GPX file does not exist');
-//   //     }
-//   //   } catch (e) {
-//   //     print('Error deleting GPX file: $e');
-//   //   }
-//   // }
-//
-//   _stopListening() {
-//     _locationSubscription?.cancel();
-//     setState(() {
-//       _locationSubscription = null;
-//     });
-//   }
-//   void showLoadingIndicator(BuildContext context) {
-//     showDialog(
-//       context: context,
-//       barrierDismissible: false,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           content: Row(
-//             children: [
-//               CircularProgressIndicator(),
-//               SizedBox(width: 20),
-//               Text("Refreshing..."),
-//             ],
-//           ),
-//         );
-//       },
-//     );
-//   }
-//
-//   Future<bool> isInternetConnected() async {
-//     var connectivityResult = await Connectivity().checkConnectivity();
-//     bool isConnected = connectivityResult == ConnectivityResult.mobile ||
-//         connectivityResult == ConnectivityResult.wifi;
-//
-//     print('Internet Connected: $isConnected');
-//
-//     return isConnected;
-//   }
-//
-//   Future<void> backgroundTask() async {
-//     try {
-//       bool isConnected = await isInternetConnected();
-//
-//       if (isConnected) {
-//         print('Internet connection is available. Initiating background data synchronization.');
-//         await synchronizeData();
-//         print('Background data synchronization completed.');
-//       } else {
-//         print('No internet connection available. Skipping background data synchronization.');
-//       }
-//     } catch (e) {
-//       print('Error in backgroundTask: $e');
-//     }
-//   }
-//
-//   Future<void> synchronizeData() async {
-//     print('Synchronizing data in the background.');
-//
-//     await postAttendanceTable();
-//     await postAttendanceOutTable();
-//     await postShopTable();
-//     await postShopVisitData();
-//     await postStockCheckItems();
-//     await postMasterTable();
-//     await postOrderDetails();
-//     await postReturnFormTable();
-//     await postReturnFormDetails();
-//     await postRecoveryFormTable();
-//   }
-//
-//   Future<void> postShopVisitData() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postShopVisitData();
-//   }
-//
-//   Future<void> postStockCheckItems() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postStockCheckItems();
-//   }
-//
-//   Future<void> postAttendanceOutTable() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postAttendanceOutTable();
-//   }
-//
-//   Future<void> postAttendanceTable() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postAttendanceTable();
-//   }
-//
-//   Future<void> postMasterTable() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postMasterTable();
-//   }
-//
-//   Future<void> postOrderDetails() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postOrderDetails();
-//   }
-//
-//   Future<void> postShopTable() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postShopTable();
-//   }
-//
-//   Future<void> postReturnFormTable() async {
-//     print('Attempting to post Return data');
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postReturnFormTable();
-//     print('Return data posted successfully');
-//   }
-//
-//   Future<void> postReturnFormDetails() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postReturnFormDetails();
-//   }
-//
-//   Future<void> postRecoveryFormTable() async {
-//     DBHelper dbHelper = DBHelper();
-//     await dbHelper.postRecoveryFormTable();
-//   }
-//
-//
-//   //delete document
-//   _deleteDocument() async {
-//     await FirebaseFirestore.instance
-//         .collection('location')
-//         .doc(myUid)
-//         .delete()
-//         .then(
-//           (doc) => print("Document deleted"),
-//       onError: (e) => print("Error updating document $e"),
-//     );
-//   }
-//   _requestPermission() async {
-//     var status = await Permission.location.request();
-//     if (status.isGranted) {
-//       print('done');
-//     } else if (status.isDenied) {
-//       _requestPermission();
-//     } else if (status.isPermanentlyDenied) {
-//       openAppSettings();
-//     }
-//   }
+//       // Optionally, you can add a SizedBox for spacing between columns
+//       SizedBox(height: 10),
+//     ],
+//   );
 // }
+// }
+class EditableQuantityField extends StatefulWidget {
+  final int? initialQuantity;
+
+  const EditableQuantityField({Key? key, this.initialQuantity}) : super(key: key);
+
+  @override
+  _EditableQuantityFieldState createState() => _EditableQuantityFieldState();
+}
+
+class _EditableQuantityFieldState extends State<EditableQuantityField> {
+  late int quantity;
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    quantity = widget.initialQuantity ?? 0; // Set initial quantity to 0
+    _controller = TextEditingController(text: quantity.toString());
+    _controller.addListener(() {
+      updateQuantity(int.tryParse(_controller.text) ?? 0);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      keyboardType: TextInputType.number,
+      textAlign: TextAlign.center,
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+      ),
+      controller: _controller,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+    );
+  }
+
+  void updateQuantity(int newQuantity) {
+    if (newQuantity >= 0) {
+      setState(() {
+        quantity = newQuantity;
+      });
+    }
+  }
+}

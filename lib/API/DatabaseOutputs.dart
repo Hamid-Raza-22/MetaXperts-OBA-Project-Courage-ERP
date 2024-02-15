@@ -43,7 +43,7 @@ class DatabaseOutputs{
 
     //
     // if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
-    //   var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/statusget/get/");
+    //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
     //   var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
     //   if (results2) {
     //     print("Data inserted successfully.");
@@ -75,14 +75,14 @@ class DatabaseOutputs{
     var Logindata = await dblogin.getAllLogins();
     var PCdata = await dbProductCategory.getAllPCs();
 
-    //https://apex.oracle.com/pls/apex/muhammad_usman/login/get/
-    // https://apex.oracle.com/pls/apex/metaxperts/login/get/
+    //https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/muhammad_usman/login/get/
+    // https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/
     // var username = 'yxeRFdCC0wjh1BYjXu1HFw..';
     // var password = 'KG-oKSMmf4DhqtFNmVtpMw..';
 
     if (Logindata == null || Logindata.isEmpty ) {
        // replace with your actual access token
-      var response3 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/login/get/");
+      var response3 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
       var results3= await dblogin.insertLogin(response3);//return True or False
       if (results3) {
         print("Data inserted successfully.");
@@ -95,7 +95,7 @@ class DatabaseOutputs{
 
 
     if (Accountsdata == null || Accountsdata.isEmpty ) {
-      var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/account/get/");
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
       var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
       if (results2) {
         print("Data inserted successfully.");
@@ -108,7 +108,7 @@ class DatabaseOutputs{
 
 
     if (NetBalancedata == null || NetBalancedata.isEmpty ) {
-      var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/balance/get/");
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
       var results2 = await dbnetbalance.insertNetBalanceData(response2);   //return True or False
       if (results2) {
         print("Data inserted successfully.");
@@ -121,7 +121,7 @@ class DatabaseOutputs{
 
 
     if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
-      var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/statusget/get/");
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
       var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
       if (results2) {
         print("Data inserted successfully.");
@@ -133,7 +133,7 @@ class DatabaseOutputs{
     }
 
     if (OrderMasterdata == null || OrderMasterdata.isEmpty ) {
-      var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/masterget/get/");
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
       var results2 = await dbordermaster.insertOrderMasterData(response2);   //return True or False
       if (results2) {
         print("Data inserted successfully.");
@@ -145,7 +145,7 @@ class DatabaseOutputs{
     }
 
     if (OrderDetailsdata == null || OrderDetailsdata.isEmpty ) {
-      var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/detailget/get/");
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
       var results2 = await dborderdetails.insertOrderDetailsData(response2);   //return True or False
       if (results2) {
         print("Data inserted successfully.");
@@ -158,7 +158,7 @@ class DatabaseOutputs{
 
 
     if (Productdata == null || Productdata.isEmpty ) {
-      var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/product/get/");
+      var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
       var results= await db.insertProductsData(response);  //return True or False
       if (results) {
         print("Data inserted successfully.");
@@ -172,7 +172,7 @@ class DatabaseOutputs{
     }
 
     if (Owerdata == null || Owerdata.isEmpty ) {
-      var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/owner/get/");
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
       var results2 = await dbowner.insertOwnerData(response2);   //return True or False
       if (results2) {
         print("Data inserted successfully.");
@@ -185,7 +185,7 @@ class DatabaseOutputs{
 
 
     if (PCdata == null || PCdata.isEmpty ) {
-      var response4 = await api.getApi("https://apex.oracle.com/pls/apex/metaxperts/brand/get/");
+      var response4 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
       var results4= await dbProductCategory.insertProductCategory(response4);//return True or False
       if (results4) {
         print("Data inserted successfully.");
@@ -219,6 +219,7 @@ class DatabaseOutputs{
   //    print(results5.toString());
   //    showAllTables();
   // }
+
   Future<void> update() async {
     final db = DBHelper();
     final dbowner = DBHelper();

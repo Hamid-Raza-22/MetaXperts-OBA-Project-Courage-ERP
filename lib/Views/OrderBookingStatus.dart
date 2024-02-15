@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:order_booking_shop/API/Globals.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
@@ -60,13 +62,22 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
     super.initState();
     fetchShopData();
     fetchOrderNumbers();
-   // onCreatee();
+    onCreatee();
   }
   // Future<void> onCreatee() async {
   //
   //   DatabaseOutputs outputs = DatabaseOutputs();
   //   outputs.checkFirstRun();
   // }
+
+  Future<void> onCreatee() async {
+    DatabaseOutputs db = DatabaseOutputs();
+    await db.showOrderMaster();
+
+    // DatabaseOutputs outputs = DatabaseOutputs();
+    // outputs.checkFirstRun();
+
+  }
 
   void clearFilters() {
     setState(() {
@@ -116,11 +127,11 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
     });
   }
   Future<List<Map<String, dynamic>>> fetchOrderBookingStatusData() async {
-    List<Map<String, dynamic>> data = await dbHelper.getOrderBookingStatusDB() ?? [];
+    List<Map<String, dynamic>> data = await dbHelper.getOrderMasterDB() ?? [];
 
     // Apply the filters
     if (selectedOrderNoFilter.isNotEmpty) {
-      data = data.where((row) => row['order_no'] == selectedOrderNoFilter).toList();
+      data = data.where((row) => row['orderId'] == selectedOrderNoFilter).toList();
     }
 // Filter by date range
     if (startDateController.text.isNotEmpty && endDateController.text.isNotEmpty) {
@@ -128,7 +139,7 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
       DateTime endDate = DateFormat('dd-MMM-yyyy').parse(endDateController.text);
 
       data = data.where((row) {
-        DateTime orderDate = DateFormat('dd-MMM-yyyy').parse(row['order_date']);
+        DateTime orderDate = DateFormat('dd-MMM-yyyy').parse(row['date']);
         return orderDate.isAfter(startDate.subtract(Duration(days: 1))) &&
             orderDate.isBefore(endDate.add(Duration(days: 1)));
       }).toList();
@@ -136,7 +147,7 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
 
 
     if (selectedShopFilter.isNotEmpty) {
-      data = data.where((row) => row['shop_name'] == selectedShopFilter).toList();
+      data = data.where((row) => row['shopName'] == selectedShopFilter).toList();
     }
 
     if (selectedStatusFilter.isNotEmpty) {
@@ -164,27 +175,102 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
     return data;
   }
 
-  List<DataRow> buildDataRows(List<Map<String, dynamic>> data) {
-    return data.map((map) {
-      bool highlightRow =
-          map['order_no'] == selectedOrderNoFilter ||
-              map['shop_name'] == selectedShopFilter ||
-              map['status'] == selectedStatusFilter;
+// List<int> selectedIndexes = [];  // Add this line at the beginning of your widget
+
+  Future<List<DataRow>> buildDataRows(List<Map<String, dynamic>> data) async {
+   data = data.reversed.toList();
+    return Future.wait(data.map((map) async {
+      // Get a reference to the database.
+      final Database? db = await DBHelper().db;
+
+      // Query the database for the status in the orderBookingStatusData table where the order_no equals the current order's id.
+      List<Map<String, dynamic>> statusRows = await db!.query('orderBookingStatusData', where: 'order_no = ?', whereArgs: [map['orderId']]);
+      print('Status Rows: $statusRows'); // Debug print
+
+      String status = statusRows.isNotEmpty ? statusRows.first['status'] : 'N/A';
+      print('Status: $status'); // Debug print
+
+      bool highlightRow = map['orderId'] == selectedOrderNoFilter ||
+          map['shopName'] == selectedShopFilter ||
+          status == selectedStatusFilter;
 
       return DataRow(
-        selected: highlightRow,
+        color: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+          if (status == 'DISPATCHED') return Colors.greenAccent;  // Set the color to green if the status is 'DISPATCHED'
+          if (status == 'PENDING') return Colors.transparent;
+          if (status == 'N/A') return Colors.yellowAccent;
+          return Colors.transparent;  // Use the default color for other statuses
+        }),
         cells: [
+          DataCell(Text(map['orderId'].toString())),
+          DataCell(Text(map['date'].toString())),
+          DataCell(Text(map['shopName'].toString())),
+          DataCell(Text(map['total'].toString())),
           DataCell(
-            Text(map['order_no'].toString()),
+            status == 'N/A'
+                ? Icon(Icons.sync, color: Colors.green) // Sync logo for 'N/A' status
+                : Text(status), // Use the status variable here
+          ),// Use the status variable here
+          DataCell(
+            GestureDetector(
+              onTap: () async {
+                // Get a reference to the database.
+                final Database? db = await DBHelper().db;
+
+                // Query the database for all rows in the order_details table where the order_details_id equals the current order's id.
+                List<Map<String, dynamic>> queryRows = await db!.query('order_details', where: 'order_master_id = ?', whereArgs: [map['orderId']]);
+
+                // Now you have the data, you can display it in the dialog.
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Order Details'),
+                      content: ListView.builder(
+                        itemCount: queryRows.length,
+                        itemBuilder: (context, index) {
+                          return RichText(
+                            text: TextSpan(
+                              style: DefaultTextStyle.of(context).style,
+                              children: <TextSpan>[
+                                TextSpan(text: 'Sr. No: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: '${index + 1}\n'), // Add serial number here
+                                TextSpan(text: 'Product Name: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: '${queryRows[index]['productName']}\n'),
+                                TextSpan(text: 'Quantity: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: '${queryRows[index]['quantity']}\n'),
+                                TextSpan(text: 'Unit Price: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                TextSpan(text: '${queryRows[index]['price']}\n'),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: Text(
+                'Order Details',
+                style: TextStyle(
+                  color: Colors.blue, //decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ),
-          DataCell(Text(map['order_date'].toString())),
-          DataCell(Text(map['shop_name'].toString())),
-          DataCell(Text(map['amount'].toString())),
-          DataCell(Text(map['status'].toString())),
         ],
       );
-    }).toList();
+    }).toList());
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -484,20 +570,32 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
                                 } else if (snapshot.hasError) {
                                   return Text('Error: ${snapshot.error}');
                                 } else {
-                                  List<DataRow> dataRows = buildDataRows(snapshot.data ?? []);
-                                  return DataTable(
-                                    columns: [
-                                      DataColumn(label: Text('Order No')),
-                                      DataColumn(label: Text('Order Date')),
-                                      DataColumn(label: Text('Shop Name')),
-                                      DataColumn(label: Text('Amount')),
-                                      DataColumn(label: Text('Status')),
-                                    ],
-                                    rows: dataRows,
+                                  return FutureBuilder<List<DataRow>>(
+                                    future: buildDataRows(snapshot.data ?? []),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return CircularProgressIndicator();
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        return DataTable(
+                                          columns: const [
+                                            DataColumn(label: Text('Order No')),
+                                            DataColumn(label: Text('Order Date')),
+                                            DataColumn(label: Text('Shop Name')),
+                                            DataColumn(label: Text('Amount')),
+                                            DataColumn(label: Text('Status')),
+                                            DataColumn(label: Text('Details')),
+                                          ],
+                                          rows: snapshot.data!,
+                                        );
+                                      }
+                                    },
                                   );
                                 }
                               },
-                            ),
+                            )
+
                           ),
                         ),
                       ),
@@ -545,10 +643,10 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
                           Navigator.of(context).pop();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Colors.red,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
-                            side: BorderSide(color: Colors.green),
+                            side: BorderSide(color: Colors.red),
                           ),
                           elevation: 8.0,
                         ),
