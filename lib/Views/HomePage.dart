@@ -890,6 +890,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       print("Error: $e");
     }
   }
+
   Future<void> deleteGPXFile() async {
       try {
         final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
