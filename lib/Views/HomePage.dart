@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
 import '../View_Models/AttendanceViewModel.dart';
 import 'login.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'OrderBookingStatus.dart';
 import 'RecoveryFormPage.dart';
 import 'ReturnFormPage.dart';
@@ -128,6 +129,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   Future<void> _toggleClockInOut() async {
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
+
     showDialog(
       context: context,
       barrierDismissible: false, // Prevent users from dismissing the dialog
@@ -137,9 +139,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         );
       },
     );
-    bool isLocationEnabled = await _isLocationEnabled();
 
-    requestPermissions(context);
+
+    bool isLocationEnabled = await _isLocationEnabled();
 
     if (!isLocationEnabled) {
       Fluttertoast.showToast(
@@ -160,51 +162,62 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       completer.complete();
       return completer.future;
     }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if(permission == false){
-      permission = await Geolocator.requestPermission();
-      completer.complete();
-    }
-
-    var id = await customAlphabet('1234567890', 10);
     await _getCurrentLocation();
 
-    setState(() {
+    setState(() async {
       isClockedIn = !isClockedIn;
+
       if (isClockedIn) {
         locationbool = true;
         service.startService();
-
+        var id = await customAlphabet('1234567890', 10);
+        await prefs.setString('clockInId', id);
         attendanceViewModel.addAttendance(AttendanceModel(
-          id: int.parse(id),
-          timeIn: _getFormattedtime(),
-          date: _getFormattedDate(),
-          userId: userId.toString(),
-          latIn: globalLatitude1,
-          lngIn: globalLongitude1,
+            id: prefs.getString('clockInId'),
+            timeIn: _getFormattedtime(),
+            date: _getFormattedDate(),
+            userId: userId.toString(),
+            latIn: globalLatitude1,
+            lngIn: globalLongitude1,
+            bookerName: userNames
         ));
+        //startTimer();
         _saveCurrentTime();
         _saveClockStatus(true);
+        //_getLocation();
+        //getLocation();
         _clockRefresh();
         isClockedIn = true;
         DBHelper dbmaster = DBHelper();
         dbmaster.postAttendanceTable();
+
       } else {
         service.invoke("stopService");
         attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-          id: int.parse(id),
+          id: prefs.getString('clockInId'),
           timeOut: _getFormattedtime(),
-          totalTime: _stopTimer(),
+          totalTime: _formatDuration(newsecondpassed.toString()),
           date: _getFormattedDate(),
           userId: userId.toString(),
           latOut: globalLatitude1,
           lngOut: globalLongitude1,
+          // posted: postedController
         ));
-        postFile();
         isClockedIn = false;
         _saveClockStatus(false);
+        DBHelper dbmaster = DBHelper();
+        dbmaster.postAttendanceOutTable();
         _stopTimer();
+        setState(() async {
+          _clockRefresh();
+          //_stopListening();
+          //stopListeningnew();
+          //await saveGPXFile();
+          await postFile();
+          await prefs.remove('clockInId');
+        });
       }
     });
     await Future.delayed(Duration(seconds: 3));
@@ -463,18 +476,35 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                 onSelected: (value) async {
                   switch (value) {
                     case 1:
-                      await backgroundTask();
-                      await postFile();
-                      DatabaseOutputs outputs = DatabaseOutputs();
-                      outputs.initializeData();
-                      // Show a loading indicator for 4 seconds
-                      showLoadingIndicator(context);
-                      await Future.delayed(Duration(seconds: 10));
-                      // After 4 seconds, hide the loading indicator and perform the refresh logic
-                      Navigator.of(context, rootNavigator: true).pop();
-                      // Pop the loading dialog
-                      // Add your logic for refreshing here
+                    // Check internet connection before refresh
+                      final bool isConnected = await InternetConnectionChecker().hasConnection;
+                      if (!isConnected) {
+                        // No internet connection
+                        Fluttertoast.showToast(
+                          msg: "No internet connection.",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                        );
+                      } else {
+                        // Internet connection is available
+                        DatabaseOutputs outputs = DatabaseOutputs();
+                        // Run both functions in parallel
+                        showLoadingIndicator(context);
+                        await Future.wait([
+                          backgroundTask(),
+                          postFile(),
+                          outputs.checkFirstRun(),
+                          Future.delayed(Duration(seconds: 10)),
+                        ]);
+
+                        // After 10 seconds, hide the loading indicator and perform the refresh logic
+                        Navigator.of(context, rootNavigator: true).pop();
+                      }
                       break;
+
                     case 2:
                     // Handle the action for the second menu item (Log Out)
                       if (isClockedIn) {
@@ -489,6 +519,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                         );
                       } else {
                         await _logOut();
+                        // If the user is not clocked in, proceed with logging out
                         Navigator.pushReplacement(
                           // Replace the current page with the login page
                           context,
@@ -512,7 +543,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                     ),
                   ];
                 },
-              ),
+              )
             ],
           ),
         ),
@@ -832,7 +863,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       return;
     }
     var request = http.MultipartRequest("POST",
-        Uri.parse("https://webhook.site/deb5543e-3d2b-4845-bee2-29f6874a45a6"));
+        Uri.parse("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/"));
     var gpxFile = await http.MultipartFile.fromPath(
         'body', filePath.path);
     request.files.add(gpxFile);
@@ -840,8 +871,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     // Add other fields if needed
     request.fields['userId'] = userId;
     request.fields['userName'] = userNames;
-    request.fields['fileName'] = "${_getFormattedDate()}.gpx";
-    request.fields['date'] = _getFormattedDate();
+    request.fields['fileName'] = "${_getFormattedDate1()}.gpx";
+    request.fields['date'] = _getFormattedDate1();
     request.fields['totalDistance'] = totalDistance.toString(); // Add totalDistance as a field
 
     try {
@@ -850,6 +881,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         var responseData = await response.stream.toBytes();
         var result = String.fromCharCodes(responseData);
         print("Results: Post Successfully");
+        deleteGPXFile();
         pref.setDouble("TotalDistance", 0.0);
       } else {
         print("Failed to upload file. Status code: ${response.statusCode}");
@@ -858,6 +890,24 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       print("Error: $e");
     }
   }
+  Future<void> deleteGPXFile() async {
+      try {
+        final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+       // final gpxString = await GpxWriter().asString(gpx, pretty: true);
+        final downloadDirectory = await getDownloadsDirectory();
+        final filePath = "${downloadDirectory!.path}/track$date.gpx";
+        final file = File(filePath);
+
+        if (file.existsSync()) {
+          await file.delete();
+          print('GPX file deleted successfully');
+        } else {
+          print('GPX file does not exist');
+        }
+      } catch (e) {
+        print('Error deleting GPX file: $e');
+    }
+    }
 
   Future<bool> requestPermissions(BuildContext context) async {
     final notificationStatus = await Permission.notification.status;
@@ -1037,4 +1087,10 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       openAppSettings();
     }
   }
+  String _getFormattedDate1() {
+    final now = DateTime.now();
+    final formatter = DateFormat('dd-MMM-yyyy  [hh:mm a] ');
+    return formatter.format(now);
+  }
+
 }
