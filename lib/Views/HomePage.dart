@@ -203,6 +203,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           userId: userId.toString(),
           latOut: globalLatitude1,
           lngOut: globalLongitude1,
+          totalDistance: prefs.getDouble('TotalDistance')
           // posted: postedController
         ));
         isClockedIn = false;
@@ -565,28 +566,28 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (isClockedIn) {
+                             // if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ShopPage(),
                                   ),
                                 );
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Clock In Required'),
-                                    content: Text('Turn on location.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
+                            //   } else {
+                            //     showDialog(
+                            //       context: context,
+                            //       builder: (context) => AlertDialog(
+                            //         title: Text('Clock In Required'),
+                            //         content: Text('Turn on location.'),
+                            //         actions: [
+                            //           TextButton(
+                            //             onPressed: () => Navigator.pop(context),
+                            //             child: Text('OK'),
+                            //           ),
+                            //         ],
+                            //       ),
+                            //     );
+                            //   }
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -619,29 +620,29 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (isClockedIn) {
+                              // if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ShopVisit(onBrandItemsSelected: (String) {}),
                                   ),
                                 );
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Clock In Required'),
-                                    content: Text('Please clock in before visiting a shop.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                            },
+                            //   } else {
+                            //     showDialog(
+                            //       context: context,
+                            //       builder: (context) => AlertDialog(
+                            //         title: Text('Clock In Required'),
+                            //         content: Text('Please clock in before visiting a shop.'),
+                            //         actions: [
+                            //           TextButton(
+                            //             onPressed: () => Navigator.pop(context),
+                            //             child: Text('OK'),
+                            //           ),
+                            //         ],
+                            //       ),
+                            //     );
+                            //   }
+                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -674,23 +675,23 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (isClockedIn) {
+                             // if (isClockedIn) {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => ReturnFormPage()));
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Clock In Required'),
-                                    content: Text('Please clock in before accessing the Return Form.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
+                              // } else {
+                              //   showDialog(
+                              //     context: context,
+                              //     builder: (context) => AlertDialog(
+                              //       title: Text('Clock In Required'),
+                              //       content: Text('Please clock in before accessing the Return Form.'),
+                              //       actions: [
+                              //         TextButton(
+                              //           onPressed: () => Navigator.pop(context),
+                              //           child: Text('OK'),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   );
+                              // }
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -718,23 +719,23 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (isClockedIn) {
+                            //  if (isClockedIn) {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => RecoveryFromPage()));
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Clock In Required'),
-                                    content: Text('Please clock in before accessing the Recovery.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
+                              // } else {
+                              //   showDialog(
+                              //     context: context,
+                              //     builder: (context) => AlertDialog(
+                              //       title: Text('Clock In Required'),
+                              //       content: Text('Please clock in before accessing the Recovery.'),
+                              //       actions: [
+                              //         TextButton(
+                              //           onPressed: () => Navigator.pop(context),
+                              //           child: Text('OK'),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   );
+                              // }
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -767,28 +768,28 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (isClockedIn) {
+                             // if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => OrderBookingStatus(),
                                   ),
                                 );
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Clock In Required'),
-                                    content: Text('Please clock in before checking Order Booking Status.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
+                              // } else {
+                              //   showDialog(
+                              //     context: context,
+                              //     builder: (context) => AlertDialog(
+                              //       title: Text('Clock In Required'),
+                              //       content: Text('Please clock in before checking Order Booking Status.'),
+                              //       actions: [
+                              //         TextButton(
+                              //           onPressed: () => Navigator.pop(context),
+                              //           child: Text('OK'),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   );
+                              // }
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,

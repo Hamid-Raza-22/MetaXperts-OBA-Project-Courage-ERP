@@ -16,9 +16,10 @@ import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
-import '../Models/ProductsModel.dart';
+
 import '../Models/ShopVisitModels.dart';
 import '../Models/StockCheckItems.dart';
 import '../View_Models/OrderViewModels/ProductsViewModel.dart';
@@ -147,8 +148,20 @@ class _ShopVisitState extends State<ShopVisit> {
     fetchProductsNamesByBrand();
     saveCurrentLocation();
     _checkUserIdAndFetchShopNames();
+    productsController.controllers.clear();
+    // removeSavedValues(index);
 
   }
+  Future<void> removeSavedValues(int index) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Remove itemDesc and qty from SharedPreferences
+    await prefs.remove('itemDesc$index');
+    await prefs.remove('qty$index');
+
+    print('Removed itemDesc$index and qty$index from SharedPreferences');
+  }
+
 
   Future<void> _checkUserIdAndFetchShopNames() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -188,27 +201,27 @@ class _ShopVisitState extends State<ShopVisit> {
     PermissionStatus permission = await Permission.location.request();
 
     if (permission.isGranted) {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      latitude  = position.latitude ;
-      longitude = position.longitude ;
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        latitude  = position.latitude ;
+        longitude = position.longitude ;
 
 
-      print('Latitude: $latitude, Longitude: $longitude');
+        print('Latitude: $latitude, Longitude: $longitude');
 
-      // Using geocoding to convert latitude and longitude to an address
-      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
-      Placemark currentPlace = placemarks[0];
+        // Using geocoding to convert latitude and longitude to an address
+        List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+        Placemark currentPlace = placemarks[0];
 
-      String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
-      address = address1;
+        String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
+        address = address1;
 
-      print('Address is: $address1');
-    } catch (e) {
-      print('Error getting location:$e');
-    }
+        print('Address is: $address1');
+      } catch (e) {
+        print('Error getting location:$e');
+      }
     } else {
       print('Location permission is not granted');
     }
@@ -354,7 +367,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             title: Text(suggestion),
                           );
                         },
-                        onSuggestionSelected: (suggestion) {
+                        onSuggestionSelected: (suggestion)  {
                           // Validate that the selected item is from the list
                           if (dropdownItems.contains(suggestion)) {
                             setState(() {
@@ -370,6 +383,14 @@ class _ShopVisitState extends State<ShopVisit> {
                                 });
                               }
                             }
+                            productsController.rows;
+                            productsController.fetchProducts();
+                            for (int i = 0; i < productsController.rows.length; i++) {
+                              removeSavedValues(i);
+                            }
+
+
+
                           }
                         },
                       ),
@@ -447,7 +468,11 @@ class _ShopVisitState extends State<ShopVisit> {
                                   widget.onBrandItemsSelected(itemData);
                                   print('Selected Brand: $itemData');
                                   print(globalselectedbrand);
-                                  await productsController.fetchProducts();
+                                  productsController.fetchProducts();
+                                  for (int i = 0; i < productsController.rows.length; i++) {
+                                    removeSavedValues(i);
+                                  }
+                                  productsController.controllers.clear();
                                 }
                               },
                             ),
@@ -757,7 +782,11 @@ class _ShopVisitState extends State<ShopVisit> {
                             shopVisitId = int.parse(visitId);
                             // Extract data from DataTable rows
                             // Extract data from DataTable rows with non-zero quantities
+                            List<Map<String, dynamic>> rowDataDetails = [];
+
                             List<StockCheckItemsModel> stockCheckItemsList = [];
+                            SharedPreferences prefs = await SharedPreferences.getInstance();
+
                             for (int i = 0; i < (filteredRows.isNotEmpty ? filteredRows : productsController.rows).length; i++) {
                               DataRow row = (filteredRows.isNotEmpty ? filteredRows : productsController.rows)[i];
                               String itemDesc = row.cells[0].child?.toString() ?? '';
@@ -772,8 +801,18 @@ class _ShopVisitState extends State<ShopVisit> {
                                     qty: qty,
                                   ),
                                 );
+
+                                // Store itemDesc and qty into SharedPreferences
+                                await prefs.setString('itemDesc$i', itemDesc);
+                                await prefs.setString('qty$i', qty);
+                                // Print itemDesc and qty
+                                print('itemDesc$i: $itemDesc');
+                                print('qty$i: $qty');
                               }
                             }
+
+
+                            // productsController.navigateToFinalOrderBookingPage();
 
 
 
@@ -800,26 +839,28 @@ class _ShopVisitState extends State<ShopVisit> {
                             }
 
 
+
                             // Display success message
-                            Fluttertoast.showToast(
-                              msg: 'Stock check items saved successfully!',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.green,
-                              textColor: Colors.white,
-                            );
+                            // Fluttertoast.showToast(
+                            //   msg: 'Stock check items saved successfully!',
+                            //   toastLength: Toast.LENGTH_SHORT,
+                            //   gravity: ToastGravity.BOTTOM,
+                            //   backgroundColor: Colors.green,
+                            //   textColor: Colors.white,
+                            // );
 
                             DBHelper dbShop = DBHelper();
                             dbShop.postShopVisitData();
                             dbShop.postStockCheckItems();
 
-                            Fluttertoast.showToast(
-                              msg: 'Data saved successfully!',
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.green,
-                              textColor: Colors.white,
-                            );
+                            // Fluttertoast.showToast(
+                            //   msg: 'Data saved successfully!',
+                            //   toastLength: Toast.LENGTH_SHORT,
+                            //   gravity: ToastGravity.BOTTOM,
+                            //   backgroundColor: Colors.green,
+                            //   textColor: Colors.white,
+                            // );
+
 
                             // Navigate to the FinalOrderBookingPage only if all validations pass
                             Map<String, dynamic> dataToPass = {
@@ -828,6 +869,8 @@ class _ShopVisitState extends State<ShopVisit> {
                               'selectedBrandName': _brandDropDownController.text,
                               'userName': BookerNameController.text,
                               'ownerContact': selectedOwnerContact.toString(),
+                              //  'rowDataDetails': rowDataDetails,
+
                             };
 
                             Navigator.push(
@@ -835,6 +878,7 @@ class _ShopVisitState extends State<ShopVisit> {
                               MaterialPageRoute(
                                 builder: (context) => FinalOrderBookingPage(),
                                 settings: RouteSettings(arguments: dataToPass),
+
                               ),
                             );
 
@@ -968,6 +1012,8 @@ class _ShopVisitState extends State<ShopVisit> {
                             dbshop.postShopVisitData();
                             dbshop.postStockCheckItems();
 
+
+
                             // Additional validation that everything must be filled
                             if (ShopNameController.text.isNotEmpty &&
                                 BookerNameController.text.isNotEmpty &&
@@ -1092,6 +1138,7 @@ class _ShopVisitState extends State<ShopVisit> {
     });
   }
 
+
 }
 
 class StockCheckItem {
@@ -1116,104 +1163,104 @@ class StockCheckItem {
 //
 //   });
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Column(
-  //     children: [
-  //       Row(
-  //         children: [
-  //           Text(
-  //             '$serialNo',
-  //             style: TextStyle(fontSize: 16, color: Colors.black),
-  //           ),
-  //           SizedBox(width: 20),
-  //       //     Container(
-  //       //       width: 179.5,
-  //       //       height: 50,
-  //       //       margin: const EdgeInsets.all(0.5),
-  //       //       child: Padding(
-  //       //         padding: const EdgeInsets.symmetric(vertical: 0.50, horizontal: 0.10),
-  //       //         child: TypeAheadFormField<ProductsModel>(
-  //       //           textFieldConfiguration: TextFieldConfiguration(
-  //       //             decoration: InputDecoration(
-  //       //
-  //       //               border: OutlineInputBorder(
-  //       //                 borderRadius: BorderRadius.circular(5.0),
-  //       //               ),
-  //       //               contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 3.0),
-  //       //             ),
-  //       //             controller: stockCheckItem.itemDescriptionController,
-  //       //             style: TextStyle(fontSize: 12),
-  //       //             maxLines: null,
-  //       //           ),
-  //       //           suggestionsCallback: (pattern) async {
-  //       //             await productsViewModel.fetchProductsByBrand(globalselectedbrand);
-  //       //
-  //       //             return productsViewModel.allProducts
-  //       //                 .where((product) =>
-  //       //             product.product_name?.toLowerCase().contains(pattern.toLowerCase()) ?? false)
-  //       //                 .toList();
-  //       //           },
-  //       //           itemBuilder: (context, itemData) {
-  //       //             return ListTile(
-  //       //               title: Text(itemData.product_name ?? ''),
-  //       //               tileColor: stockCheckItem.selectedDropdownValue == itemData.product_name
-  //       //                   ? Colors.grey
-  //       //                   : Colors.transparent,
-  //       //             );
-  //       //           },
-  //       //           onSuggestionSelected: (itemData) {
-  //       //             // Only set the state if the selected item is in the suggestions list
-  //       //             if (productsViewModel.allProducts.contains(itemData)) {
-  //       //               stockCheckItem.selectedDropdownValue = itemData.product_name;
-  //       //               stockCheckItem.itemDescriptionController.text = itemData.product_name ?? '';
-  //       //             }
-  //       //           },
-  //       //           suggestionsBoxDecoration: SuggestionsBoxDecoration(),
-  //       //         ),
-  //       //       ),
-  //       //     ),
-  //       //     SizedBox(width: 10),
-  //       //     Container(
-  //       //       width: 60,
-  //       //       height: 50,
-  //       //       child: TextFormField(
-  //       //         controller: stockCheckItem.qtyController,
-  //       //         decoration: InputDecoration(
-  //       //           border: OutlineInputBorder(
-  //       //             borderRadius: BorderRadius.circular(5.0),
-  //       //           ),
-  //       //         ),
-  //       //         style: TextStyle(fontSize: 11),
-  //       //         keyboardType: TextInputType.number,
-  //       //         inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^0{1,}'))], // Allow backspacing over initial zeros
-  //       //         validator: (value) {
-  //       //           if (value == null || value.isEmpty) {
-  //       //             return 'Please enter a quantity.';
-  //       //           } else {
-  //       //             int? qty = int.tryParse(value);
-  //       //             if (qty == null) {
-  //       //               return 'Please enter a valid number.';
-  //       //             } else if (qty <= 0) {
-  //       //               return 'Quantity must be greater than zero.';
-  //       //             }
-  //       //           }
-  //       //           return null;
-  //       //         },
-  //       //       ),
-  //       //     ),
-  //       //     SizedBox(width: 0),
-  //       //     IconButton(
-  //       //       icon: Icon(Icons.delete_outline, size: 20, color: Colors.red),
-  //       //       onPressed: onDelete,
-  //       //     ),
-  //         ],
-  //       ),
-  //       // Optionally, you can add a SizedBox for spacing between columns
-  //       SizedBox(height: 10),
-  //     ],
-  //   );
-  // }
+// @override
+// Widget build(BuildContext context) {
+//   return Column(
+//     children: [
+//       Row(
+//         children: [
+//           Text(
+//             '$serialNo',
+//             style: TextStyle(fontSize: 16, color: Colors.black),
+//           ),
+//           SizedBox(width: 20),
+//       //     Container(
+//       //       width: 179.5,
+//       //       height: 50,
+//       //       margin: const EdgeInsets.all(0.5),
+//       //       child: Padding(
+//       //         padding: const EdgeInsets.symmetric(vertical: 0.50, horizontal: 0.10),
+//       //         child: TypeAheadFormField<ProductsModel>(
+//       //           textFieldConfiguration: TextFieldConfiguration(
+//       //             decoration: InputDecoration(
+//       //
+//       //               border: OutlineInputBorder(
+//       //                 borderRadius: BorderRadius.circular(5.0),
+//       //               ),
+//       //               contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 3.0),
+//       //             ),
+//       //             controller: stockCheckItem.itemDescriptionController,
+//       //             style: TextStyle(fontSize: 12),
+//       //             maxLines: null,
+//       //           ),
+//       //           suggestionsCallback: (pattern) async {
+//       //             await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+//       //
+//       //             return productsViewModel.allProducts
+//       //                 .where((product) =>
+//       //             product.product_name?.toLowerCase().contains(pattern.toLowerCase()) ?? false)
+//       //                 .toList();
+//       //           },
+//       //           itemBuilder: (context, itemData) {
+//       //             return ListTile(
+//       //               title: Text(itemData.product_name ?? ''),
+//       //               tileColor: stockCheckItem.selectedDropdownValue == itemData.product_name
+//       //                   ? Colors.grey
+//       //                   : Colors.transparent,
+//       //             );
+//       //           },
+//       //           onSuggestionSelected: (itemData) {
+//       //             // Only set the state if the selected item is in the suggestions list
+//       //             if (productsViewModel.allProducts.contains(itemData)) {
+//       //               stockCheckItem.selectedDropdownValue = itemData.product_name;
+//       //               stockCheckItem.itemDescriptionController.text = itemData.product_name ?? '';
+//       //             }
+//       //           },
+//       //           suggestionsBoxDecoration: SuggestionsBoxDecoration(),
+//       //         ),
+//       //       ),
+//       //     ),
+//       //     SizedBox(width: 10),
+//       //     Container(
+//       //       width: 60,
+//       //       height: 50,
+//       //       child: TextFormField(
+//       //         controller: stockCheckItem.qtyController,
+//       //         decoration: InputDecoration(
+//       //           border: OutlineInputBorder(
+//       //             borderRadius: BorderRadius.circular(5.0),
+//       //           ),
+//       //         ),
+//       //         style: TextStyle(fontSize: 11),
+//       //         keyboardType: TextInputType.number,
+//       //         inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^0{1,}'))], // Allow backspacing over initial zeros
+//       //         validator: (value) {
+//       //           if (value == null || value.isEmpty) {
+//       //             return 'Please enter a quantity.';
+//       //           } else {
+//       //             int? qty = int.tryParse(value);
+//       //             if (qty == null) {
+//       //               return 'Please enter a valid number.';
+//       //             } else if (qty <= 0) {
+//       //               return 'Quantity must be greater than zero.';
+//       //             }
+//       //           }
+//       //           return null;
+//       //         },
+//       //       ),
+//       //     ),
+//       //     SizedBox(width: 0),
+//       //     IconButton(
+//       //       icon: Icon(Icons.delete_outline, size: 20, color: Colors.red),
+//       //       onPressed: onDelete,
+//       //     ),
+//         ],
+//       ),
+//       // Optionally, you can add a SizedBox for spacing between columns
+//       SizedBox(height: 10),
+//     ],
+//   );
+// }
 // }
 
 
@@ -1232,16 +1279,31 @@ class Products extends GetxController {
 
     for (var product in products) {
       var controller = TextEditingController(text: '0'); // Set default value here
+      FocusNode focusNode = FocusNode();
       controllers.add(controller);
+
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus && controller.text.isEmpty) {
+          controller.text = '0';
+        }
+      });
 
       rows.add(DataRow(cells: [
         DataCell(Text(product.product_name ?? '')),
         DataCell(TextField(
           controller: controller,
+          focusNode: focusNode, // Assign the FocusNode
           keyboardType: TextInputType.number,
+          onTap: () {
+            controller.clear(); // Clear the text when the TextField is focused
+          },
         ))
       ]));
     }
   }
+
 }
+
+
+
 

@@ -50,7 +50,7 @@ class AttendanceRepository {
 
   Future<List<AttendanceOutModel>> getAttendanceOut() async {
     var dbClient = await dbHelper.db;
-    List<Map> maps = await dbClient!.query('attendanceOut', columns: ['id', 'date' , 'timeOut' ,'totalTime', 'userId' , 'latOut', 'lngOut', 'posted']);
+    List<Map> maps = await dbClient!.query('attendanceOut', columns: ['id', 'date' , 'timeOut' ,'totalTime', 'userId' , 'latOut', 'lngOut','totalDistance', 'posted']);
     List<AttendanceOutModel> attendanceout = [];
 
     for (int i = 0; i < maps.length; i++) {

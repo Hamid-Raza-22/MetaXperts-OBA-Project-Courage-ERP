@@ -20,25 +20,6 @@ class OrderDetailsRepository {
     }
     return orderdetails;
   }
-  //
-  // Future<String> getLastOrderDetailsId() async {
-  //   var dbClient = await dbHelperOrderDetails.db;
-  //   List<Map> maps = await dbClient.query(
-  //     'order_details',
-  //     columns: ['id'],
-  //     orderBy: 'id DESC',
-  //     limit: 1,
-  //   );
-  //
-  //   if (maps.isEmpty) {
-  //     // Handle the case when no records are found
-  //     return "";
-  //   }
-  //
-  //   // Convert the orderId to a string and return
-  //   return maps[0]['id'].toString();
-  // }
-
 
   Future<int> add(OrderDetailsModel orderdetailsModel) async {
     var dbClient = await dbHelperOrderDetails.db;

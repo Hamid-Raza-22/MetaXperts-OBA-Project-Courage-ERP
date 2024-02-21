@@ -19,6 +19,17 @@ class OrderDetailsViewModel extends GetxController{
     super.onInit();
     fetchAllOrderDetails();
   }
+
+  fetchAllOrderDetails() async{
+    var orderdetails = await orderdetailsRepository.getOrderDetails();
+    allOrderDetails.value = orderdetails;
+  }
+
+  addOrderDetail(OrderDetailsModel orderdetailsModel){
+    orderdetailsRepository.add(orderdetailsModel);
+    fetchAllOrderDetails();
+  }
+
   Future<void> fetchProductsNames(String order_no) async {
     try {
       String order_no = selectedorderno;
@@ -31,24 +42,6 @@ class OrderDetailsViewModel extends GetxController{
       print("Error fetching products by Order No: $e");
     }
   }
-
-  // Future<String> fetchLastOrderDetailsId() async{
-  //   String orderdetails = await orderdetailsRepository.getLastOrderDetailsId();
-  //   return orderdetails;
-  // }
-
-
-  fetchAllOrderDetails() async{
-    var orderdetails = await orderdetailsRepository.getOrderDetails();
-    allOrderDetails.value = orderdetails;
-  }
-
-
-  addOrderDetail(OrderDetailsModel orderdetailsModel){
-    orderdetailsRepository.add(orderdetailsModel);
-    fetchAllOrderDetails();
-  }
-
   updateOrderDetails(OrderDetailsModel orderdetailsModel){
     orderdetailsRepository.update(orderdetailsModel);
     fetchAllOrderDetails();

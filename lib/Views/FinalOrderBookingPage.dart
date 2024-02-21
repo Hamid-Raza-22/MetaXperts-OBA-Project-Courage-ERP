@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:nanoid/nanoid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -12,9 +13,87 @@ import 'package:order_booking_shop/View_Models/OrderViewModels/OrderDetailsViewM
 import 'package:order_booking_shop/View_Models/OrderViewModels/OrderMasterViewModel.dart';
 import 'package:order_booking_shop/View_Models/OrderViewModels/ProductsViewModel.dart';
 import 'package:timezone/timezone.dart';
+import '../Databases/DBHelper.dart';
+import '../Models/OrderModels/OrderDetailsModel.dart';
 import 'HomePage.dart';
 import 'OrderBooking_2ndPage.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// ...
+
+class Productss extends GetxController {
+  final productsViewModel = ProductsViewModel();
+  RxList<DataRow> rows = <DataRow>[].obs;
+  List<TextEditingController> quantityControllers = [];
+  final amounts = RxMap<ProductsModel, RxDouble>();
+  final Map<String, String> args = Get.arguments ?? {};
+  RxString total = '0'.obs;
+  List<RxDouble> amountValues = [];
+  TextEditingController _totalController = TextEditingController();
+
+  Future<void> fetchProducts() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+    var products = productsViewModel.allProducts;
+
+    rows.clear();
+    quantityControllers.clear();
+    amountValues.clear();
+
+    for (var i = 0; i < products.length; i++) {
+      var product = products[i];
+
+      String qty = prefs.getString('qty$i') ?? '0'; // Load the saved quantity
+      TextEditingController controller = TextEditingController(text: '0');
+      FocusNode focusNode = FocusNode();
+      quantityControllers.add(controller);
+
+      RxDouble amount = RxDouble(0.0);
+      amounts[product] = amount;
+      amountValues.add(amount);
+
+      controller.addListener(() {
+        double rate = double.parse(product.price ?? '0');
+        int quantityValue = int.tryParse(controller.text) ?? 0;
+        amounts[product]!.value = rate * quantityValue;
+      });
+
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus && controller.text.isEmpty) {
+          controller.text = '0';
+        }
+      });
+
+      rows.add(DataRow(cells: [
+        DataCell(Text(product.product_name ?? '')),
+        DataCell(TextField(
+          controller: controller,
+          focusNode: focusNode,
+          keyboardType: TextInputType.number,
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.digitsOnly
+          ],
+          onTap: () {
+            controller.clear();
+          },
+        )),
+        // DataCell(Text(product.quantity ?? '0')),
+        DataCell(Text(product.quantity??'$qty')),
+        DataCell(Text(product.price??'0')),// Set the saved quantity here
+        DataCell(Obx(() => Text(amounts[product]!.value.toString()))),
+      ]));
+    }
+  }
+
+  void updateTotal() {
+    double total = 0.0;
+    for (var amount in amounts.values) {
+      total += amount.value;
+    }
+    _totalController.text = total.toString();
+  }
+}
 
 
 
@@ -29,7 +108,12 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   int? ordermasterId;
   int? orderdetailsId;
   final Productss productsController = Get.put(Productss());
-
+  bool _isNumeric(String str) {
+    if(str == null) {
+      return false;
+    }
+    return double.tryParse(str) != null;
+  }
   TextEditingController _ShopNameController = TextEditingController();
   TextEditingController _ownerNameController = TextEditingController();
   TextEditingController _phoneNoController = TextEditingController();
@@ -41,11 +125,14 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   TextEditingController _paymentController = TextEditingController();
   TextEditingController _balanceController = TextEditingController();
   TextEditingController _searchController = TextEditingController();
-
+  final quantityControllers = <ProductsModel, TextEditingController>{};
+  final amounts = <ProductsModel, double>{};
+  final String inStockValue = "In Stock";
   TextEditingController _requiredDeliveryController = TextEditingController();
   final productsViewModel = Get.put(ProductsViewModel());
   String selectedBrand = '';
   List<RowData> rowDataList = [];
+
   List<String> selectedProductNames = [];
   int serialNumber = 1;
   int serialCounter = 1;
@@ -57,6 +144,8 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   String selectedCreditLimit = ''; // Set a default value
   List<DataRow> rows = [];
   List<DataRow> filteredRows = [];
+  List<Map<String, dynamic>> rowDataDetails = [];
+
   void filterData(String query) {
     if (query.isEmpty) {
       setState(() {
@@ -79,21 +168,26 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   }
 
   @override
-  void initState() {
-    List<String> dropdownItems = ['15 Days', '30 Days', 'On Cash'];
 
-    // Initially add two rows
+  @override
+   initState() {
+ fetchAllProducts();
+    super.initState();
+    fetchAllProducts();
+    _searchController = TextEditingController();
     addNewRow();
     addNewRow();
     onCreatee();
     _loadCounter();
-     productsController.fetchProducts();
-
-
     addListenerToController(_totalController, _calculateSubTotal);
     addListenerToController(_discountController, _calculateSubTotal);
     addListenerToController(_paymentController, _calculateBalance);
     addListenerToController(_subTotalController, _calculateBalance);
+  }
+
+   Future<void>fetchAllProducts() async {
+    await productsController.fetchProducts();
+    await productsController.rows;
   }
 
 
@@ -120,6 +214,33 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     }
     super.dispose();
   }
+  void _calculateTotal() {
+
+
+    dynamic totalAmount = productsController._totalController.text;
+    List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
+    var t1= productsController.updateTotal();
+    for (int i = 0; i < rows.length; i++) {
+      DataRow row = rows[i];
+      String? qty =  productsController.quantityControllers[i].text;
+      String? rate = (row.cells[2].child as Text).data!;
+
+      if (qty != null && rate != null) {
+        try {
+          int qtyValue = int.tryParse(qty) ?? 0;
+          int rateValue = int.tryParse(rate) ?? 0;
+          totalAmount += qtyValue * rateValue;
+        } catch (e) {
+          // Handle parsing errors if needed
+        }
+      }
+    }
+
+    setState(() {
+      _totalController.text = totalAmount.toString();
+    });
+  }
+
 
 
   void addListenerToController(TextEditingController controller, Function() listener) {
@@ -137,17 +258,28 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the passed data
+    final Map<String, String> args = Get.arguments ?? {};
     final shopData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    // final rowDataDetails = shopData['rowDataDetails'] as List<Map<String, dynamic>>;
+    //final quantities = <String>[];
+
     final shopName = shopData['shopName'];
     final ownerName = shopData['ownerName'];
     final selectedBrandName = shopData['selectedBrandName'];
     final ownerContact = shopData['ownerContact'];
     final userName = shopData['userName'];
+    final qty =shopData['data'];
     print(OrderMasterid);
     print(shopName);
     print(ownerName);
     print(ownerContact);
     print(selectedBrandName);
+    // for (final rowData in rowDataDetails) {
+    //   final quantity = rowData['quantity'] as String;
+    //   quantities.add(quantity);
+    // }
+
 
     _ShopNameController.text = shopName!;
     _ownerNameController.text = ownerName!;
@@ -155,6 +287,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     _phoneNoController.text = ownerContact!;
     return WillPopScope(
         onWillPop: () async {
+          productsController.rows.clear();
           // Navigate to the home page
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -187,7 +320,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                     SizedBox(height: 10),
                     for (var i = 0; i < rowDataList.length; i++) buildRow(rowDataList[i], i + 1),
                     SizedBox(height: 20),
-                    SizedBox(height: 25),
                     Column(
                       children: [
 
@@ -197,7 +329,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               Padding(
                                 padding: EdgeInsets.all(5.0),
                                 child: Container(
-                                  height: 500, // Set the desired height
+                                  height: 400, // Set the desired height
                                   width: 300, // Set the desired width
                                   child:Card(
                                     elevation: 5,
@@ -226,26 +358,21 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                                             ),
                                           ),
                                           SingleChildScrollView(
-                                            scrollDirection: Axis.vertical, // Add vertical scroll direction
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: GetBuilder<Productss>(
-                                                init: Productss(),
-                                                builder: (controller) {
-                                                  return DataTable(
-                                                    columns: [
-                                                      DataColumn(label: Text('Product')),
-                                                      DataColumn(label: Text('In Stock')),
-                                                      DataColumn(label: Text('Quantity')),
-                                                      DataColumn(label: Text('Rate')),
-                                                      DataColumn(label: Text('Amount')),
-                                                    ],
-                                                    rows: filteredRows.isNotEmpty ? filteredRows : controller.rows,
-                                                  );
-                                                },
-                                              )
 
-                                            ),
+                                              scrollDirection: Axis.horizontal,
+                                              child:DataTable(
+
+                                                columns: [
+                                                  // DataColumn(label: Text('Sr')),
+                                                  DataColumn(label: Text('Products')),
+                                                  DataColumn(label: Text('Quantity')),
+                                                  DataColumn(label: Text('In Stock', style: TextStyle(color: Colors.black))),
+                                                  DataColumn(label: Text('Rate')),
+                                                  DataColumn(label: Text('Amount')),
+                                                ],
+
+                                                rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
+                                              )
                                           ),
                                         ],
                                       ),
@@ -261,7 +388,9 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                     Align(
                       alignment: Alignment.center,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async{
+                          await fetchAllProducts();
+
                           addNewRow();
                         },
                         style: ElevatedButton.styleFrom(
@@ -297,12 +426,14 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               _ownerNameController.text.isNotEmpty &&
                               _phoneNoController.text.isNotEmpty &&
                               _brandNameController.text.isNotEmpty &&
+
                               _totalController.text.isNotEmpty &&
                               _creditLimitController.text.isNotEmpty &&
-                              ['15 Days', '30 Days', 'On Cash'].contains(_creditLimitController.text) &&
+                              ['7 Days','15 Days', '30 Days', 'On Cash'].contains(_creditLimitController.text) &
                               // _discountController.text.isNotEmpty &&
                               // _subTotalController.text.isNotEmpty &&
                               _requiredDeliveryController.text.isNotEmpty &&
+
                               // Add additional checks for other required fields
                               rowDataList.every((rowData) =>
                               rowData.selectedProduct != null &&
@@ -310,24 +441,51 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                                   rowData.rateController.text.isNotEmpty &&
                                   rowData.amountController.text.isNotEmpty)) {
 
+
+
                             // All required fields are filled, proceed with confirmation logic
 
                             // String newOrderId = generateNewOrderId(userId.toString(), currentMonth);
 
-                            List<Map<String, dynamic>> rowDataDetails = [];
-                            for (var rowData in rowDataList) {
-                              String selectedItem = rowData.selectedProduct?.product_name ?? '';
-                              int quantity = int.tryParse(rowData.qtyController.text) ?? 0;
-                              int rate = int.tryParse(rowData.rateController.text) ?? 0;
-                              int totalAmount = int.tryParse(rowData.amountController.text) ?? 0;
+                            List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
 
-                              rowDataDetails.add({
-                                'selectedItem': selectedItem,
-                                'quantity': quantity,
-                                'rate': rate,
-                                'totalAmount': totalAmount,
-                              });
+                            for (int i = 0; i < rows.length; i++) {
+                              DataRow row = rows[i];
+                              String selectedItem = (row.cells[0].child as Text).data!;
+                              String quantity = productsController.quantityControllers[i].text;
+
+                              String rateString = (row.cells[2].child as Text).data!;
+                              int rate = 0;
+                              print('Rate String: $rateString');
+
+                              if (_isNumeric(rateString)) {
+                                rate = int.parse(rateString);
+                              } else {
+                                print('Error: Invalid number format: $rateString');
+                              }
+
+                              int totalAmount = productsController.amounts[productsController.productsViewModel.allProducts.firstWhere((product) => product.product_name == selectedItem)]!.value.toInt();
+
+
+
+                              if (int.parse(quantity) != 0) {
+                                rowDataDetails.add({
+                                  'selectedItem': selectedItem,
+                                  'quantity': quantity,
+                                  'rate': rate,
+                                  'totalAmount': totalAmount,
+                                });
+                                print('product: $selectedItem');
+                                print('Rate String: $rate');
+                                print('quatity: $quantity');
+                              }
+
                             }
+
+                            DBHelper dbmaster = DBHelper();
+
+
+                            await dbmaster.postOrderDetails();
 
                             Map<String, dynamic> dataToPass = {
                               'shopName': _ShopNameController.text,
@@ -688,46 +846,46 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
           ),
           SizedBox(height: 5),
           Container(
-              width: 46,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Qty',
-                      style: TextStyle(fontSize: 13, color: Colors.black),
-                    ),
-                    SizedBox(height: 5),
-                    Container(
-                      height: 50,
-                      child: TextFormField(
-                        controller: rowData.qtyController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5.0),
-                          ),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 10), // Set the width here
-                        ),
-                        style: TextStyle(fontSize: 11),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^0{1,}'))], // Allow backspacing over initial zeros
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a quantity.';
-                          } else {
-                            int? qty = int.tryParse(value);
-                            if (qty == null) {
-                              return 'Please enter a valid number.';
-                            } else if (qty <= 0) {
-                              return 'Quantity must be greater than zero.';
-                            }
-                          }
-                          return null;
-                        },
+            width: 46,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Qty',
+                  style: TextStyle(fontSize: 13, color: Colors.black),
+                ),
+                SizedBox(height: 5),
+                Container(
+                  height: 50,
+                  child: TextFormField(
+                    controller: rowData.qtyController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
                       ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10), // Set the width here
                     ),
-                  ],
+                    style: TextStyle(fontSize: 11),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'^0{1,}'))], // Allow backspacing over initial zeros
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a quantity.';
+                      } else {
+                        int? qty = int.tryParse(value);
+                        if (qty == null) {
+                          return 'Please enter a valid number.';
+                        } else if (qty <= 0) {
+                          return 'Quantity must be greater than zero.';
+                        }
+                      }
+                      return null;
+                    },
                   ),
-              ),
+                ),
+              ],
+            ),
+          ),
 
 
           SizedBox(height: 5),
@@ -889,28 +1047,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     });
   }
 
-  void _calculateTotal() {
-    int totalAmount = 0;
 
-    for (var rowData in rowDataList) {
-      String? qty = rowData.qtyController.text;
-      String? rate = rowData.rateController.text;
-
-      if (qty != null && rate != null) {
-        try {
-          int qtyValue = int.tryParse(qty) ?? 0;
-          int rateValue = int.tryParse(rate) ?? 0;
-          totalAmount += qtyValue * rateValue;
-        } catch (e) {
-          // Handle parsing errors if needed
-        }
-      }
-    }
-
-    setState(() {
-      _totalController.text = totalAmount.toString();
-    });
-  }
   void _calculateSubTotal() {
     String? totalValue = _totalController.text;
     String? discountValue = _discountController.text;
@@ -1008,95 +1145,11 @@ class RowData {
   String itemsDropdownValue;
   ProductsModel? selectedProduct;
   RowData({
-  required this.serialNumber,
-  required this.qtyController,
-  required this.rateController,
-  required this.amountController,
-  required this.itemsDropdownValue,
-  required this.selectedProduct,
-  });
-}
-
-class Productss extends GetxController {
-  final productsViewModel = ProductsViewModel();
-
-  List<Product> products = [];
-  RxList<DataRow> rows = <DataRow>[].obs;
-  List<TextEditingController> controllers = [];
-  List<String> amounts = []; // Store the amounts here
-
-  Future<void> fetchProducts() async {
-    await productsViewModel.fetchProductsByBrand(globalselectedbrand);
-    var products = productsViewModel.allProducts;
-
-    // Clear existing rows and controllers before adding new ones
-    rows.clear();
-    controllers.clear();
-    amounts.clear();
-
-    for (var product in products) {
-      var controller = TextEditingController(
-          text: '0'); // Set default value here
-      controllers.add(controller);
-
-      // Initialize the amount for this product
-      amounts.add((int.parse(controller.text) * int.parse(product.price ?? '5'))
-          .toString());
-
-      // Add a listener that updates the amount when the value changes
-      controller.addListener(() {
-        updateAmount(controllers.indexOf(controller), controller.text);
-      });
-
-      rows.add(DataRow(cells: [
-        DataCell(Text(product.product_name ?? '')),
-        DataCell(Text(product.quantity ?? '')),
-        DataCell(TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-
-        )),
-        DataCell(Text(product.price ?? '')),
-        DataCell(Text(amounts[controllers.indexOf(controller)])),
-        // Display the amount here
-      ]));
-    }
-  }
-
-  void updateAmount(int index, String value) {
-    int quantity = int.parse(value);
-    int price = int.parse(products[index].price ?? '0');
-    amounts[index] = (quantity * price).toString();
-
-    // Update the specific row that has changed
-    rows[index] = DataRow(cells: [
-      DataCell(Text(products[index].name ?? '')),
-      DataCell(Text(products[index].quantity ?? '')),
-      DataCell(TextField(
-        controller: controllers[index],
-        keyboardType: TextInputType.number,
-        onChanged: (value) {
-          updateAmount(index, value); // Call updateAmount when the text changes
-        },
-      )),
-      DataCell(Text(products[index].price ?? '')),
-      DataCell(Text(amounts[index])),
-    ]);
-
-    update(); // Call update to refresh the UI
-  }
-}
-
-class Product {
-  final String id;
-  final String name;
-  final String price;
-  final String quantity;
-
-  Product({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.quantity,
+    required this.serialNumber,
+    required this.qtyController,
+    required this.rateController,
+    required this.amountController,
+    required this.itemsDropdownValue,
+    required this.selectedProduct,
   });
 }

@@ -57,7 +57,7 @@ class AttendanceOutModel {
   dynamic? totalTime;
   dynamic? latOut;
   dynamic? lngOut;
- // dynamic? posted;
+  dynamic? totalDistance;
 
 
   AttendanceOutModel({
@@ -68,7 +68,7 @@ class AttendanceOutModel {
     this.totalTime,
     this.latOut,
     this.lngOut,
-   // this.posted
+    this.totalDistance
   });
 
   factory AttendanceOutModel.fromMap(Map<dynamic, dynamic> json) {
@@ -81,7 +81,7 @@ class AttendanceOutModel {
       totalTime: json['totalTime'],
       latOut: json['latOut'],
       lngOut:json['lngOut'],
-     // posted: json['posted']
+      totalDistance: json['totalDistance']
 
     );
   }
@@ -95,7 +95,7 @@ class AttendanceOutModel {
       'totalTime':totalTime,
       'latOut': latOut,
       'lngOut':lngOut,
-      //'posted':posted
+      'totalDistance': totalDistance
     };
   }
 }

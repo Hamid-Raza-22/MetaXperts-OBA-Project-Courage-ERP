@@ -16,6 +16,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/OrderModels/OrderDetailsModel.dart';
 import '../Models/OrderModels/OrderMasterModel.dart';
@@ -41,6 +42,20 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
   String currentMonth = DateFormat('MMM').format(DateTime.now());
   final TextEditingController orderIDController = TextEditingController();
   String currentOrderId = '';
+
+  void initState() {
+    super.initState();
+    onCreatee();
+  }
+
+
+  Future<void> onCreatee() async {
+    DatabaseOutputs db = DatabaseOutputs();
+    await db.showOrderMaster();
+    await db.showOrderDetails();
+    await db.showShopVisit();
+    await db.showStockCheckItems();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,13 +86,13 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     //orderMasterid= orderId;
 
     final selectedItems = <String>[];
-    final quantities = <int>[];
-    final rates = <int>[];
+    final quantities = <String>[];
+    final rates = <dynamic>[];
     final totalAmounts = <int>[];
 
     for (final rowData in rowDataDetails) {
       final selectedItem = rowData['selectedItem'] as String;
-      final quantity = rowData['quantity'] as int;
+      final quantity = rowData['quantity'] as String;
       final rate = rowData['rate'] as int;
       final totalAmount = rowData['totalAmount'] as int;
 
@@ -191,11 +206,11 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   requiredDelivery: requiredDelivery,
                                 ));
 
-                                List<OrderDetailsModel> orderDetailsList = [];
+                            //    List<OrderDetailsModel> orderDetailsList = [];
 
                                  saveRowDataDetailsToDatabase(rowDataDetails);
 
-                                 DBHelper().addOrderDetails(orderDetailsList);
+                              //   DBHelper().addOrderDetails(orderDetailsList);
 
                                 DBHelper dbmaster = DBHelper();
 
@@ -319,7 +334,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
   // New method to save rowDataDetails to the order details database
   Future<void> saveRowDataDetailsToDatabase(List<Map<String, dynamic>> rowDataDetails) async {
-    final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
+   // final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
 
     for (var rowData in rowDataDetails) {
       var id = await customAlphabet('1234567890', 5);

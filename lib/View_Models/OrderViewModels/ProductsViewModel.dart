@@ -21,7 +21,6 @@ class ProductsViewModel extends GetxController {
     var products = await productsRepository.getProductsModel();
     allProducts.value = products;
   }
-
   addProductAll(ProductsModel productsModel) {
     productsRepository.add(productsModel);
     fetchAllProductsModel();
@@ -31,11 +30,11 @@ class ProductsViewModel extends GetxController {
     productsRepository.update(productsModel);
     fetchAllProductsModel();
   }
-
   deleteProductsAll(int id) {
     productsRepository.delete(id);
     fetchAllProductsModel();
   }
+
   Future<void> fetchProductsByBrand(String brand) async {
     try {
       String brand = globalselectedbrand;
@@ -49,14 +48,6 @@ class ProductsViewModel extends GetxController {
     }
   }
 
-  void updateProductQuantity(int index, int quantity) {
-    if (index >= 0 && index < allProducts.length) {
-      allProducts[index].quantity = quantity;
-      // Update the list with the modified product
-      allProducts[index] = allProducts[index];
-      // Notify listeners about the change
-      update();
-    }
-  }
+
 
 }

@@ -79,6 +79,7 @@ class _ShopPageState extends State<ShopPage> {
 
   final shopNameController = TextEditingController();
   final cityController = TextEditingController();
+  final distributorNameController = TextEditingController();
   final shopAddressController = TextEditingController();
   final ownerNameController = TextEditingController();
   final ownerCNICController = TextEditingController();
@@ -342,6 +343,60 @@ class _ShopPageState extends State<ShopPage> {
 
                               ],
                             ),
+                            const SizedBox(height: 10),
+
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Distributor Name',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                TypeAheadFormField(
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    controller: distributorNameController,
+                                    decoration: InputDecoration(
+                                      contentPadding:
+                                      EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                                      labelText: 'Enter Distributor Name',
+                                      floatingLabelBehavior: FloatingLabelBehavior.never,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(5.0),
+                                      ),
+                                    ),
+                                  ),
+                                  suggestionsCallback: (pattern) {
+                                    // Your suggestions callback for distributor names
+                                    // Replace this with your actual distributor names suggestions logic
+                                    return [
+                                      'Distributor 1',
+                                      'Distributor 2',
+                                      'Distributor 3',
+                                      // Add more distributor names as needed
+                                    ].where((distributor) =>
+                                        distributor.toLowerCase().contains(pattern.toLowerCase())).toList();
+                                  },
+                                  itemBuilder: (context, suggestion) {
+                                    // Your itemBuilder for distributor names
+                                    // Replace this with your actual distributor names itemBuilder logic
+                                    return ListTile(
+                                      title: Text(suggestion),
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) {
+                                    // Your onSuggestionSelected for distributor names
+                                    // Replace this with your actual onSuggestionSelected logic
+                                  },
+                                ),
+                              ],
+                            ),
 
                             const SizedBox(height: 10),
 
@@ -594,20 +649,20 @@ class _ShopPageState extends State<ShopPage> {
                                       // City is valid, proceed with the rest of the code
 
                                       // Check if the location is available
-                                    //  Map<String, double?> currentLocation = CurrentLocationScreen.getCurrentLocation();
-                                    //   if (currentLocation['latitude'] == null || currentLocation['longitude'] == null) {
-                                    //     // Show toast message for missing location
-                                    //     Fluttertoast.showToast(
-                                    //       msg: 'Location not available. Please try again.',
-                                    //       toastLength: Toast.LENGTH_SHORT,
-                                    //       gravity: ToastGravity.BOTTOM,
-                                    //       timeInSecForIosWeb: 1,
-                                    //       backgroundColor: Colors.red,
-                                    //       textColor: Colors.white,
-                                    //       fontSize: 16.0,
-                                    //     );
-                                    //     return;
-                                    //   }
+                                      //  Map<String, double?> currentLocation = CurrentLocationScreen.getCurrentLocation();
+                                      //   if (currentLocation['latitude'] == null || currentLocation['longitude'] == null) {
+                                      //     // Show toast message for missing location
+                                      //     Fluttertoast.showToast(
+                                      //       msg: 'Location not available. Please try again.',
+                                      //       toastLength: Toast.LENGTH_SHORT,
+                                      //       gravity: ToastGravity.BOTTOM,
+                                      //       timeInSecForIosWeb: 1,
+                                      //       backgroundColor: Colors.red,
+                                      //       textColor: Colors.white,
+                                      //       fontSize: 16.0,
+                                      //     );
+                                      //     return;
+                                      //   }
 
                                       // Continue with the rest of the validation and data saving logic
                                       if (shopNameController.text.isNotEmpty &&
@@ -698,8 +753,7 @@ class _ShopPageState extends State<ShopPage> {
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
+                                    foregroundColor: Colors.white, backgroundColor: Colors.green,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -724,6 +778,6 @@ class _ShopPageState extends State<ShopPage> {
             ),
           ),
         )
-    );
+        );
     }
 }
