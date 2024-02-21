@@ -454,7 +454,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               String selectedItem = (row.cells[0].child as Text).data!;
                               String quantity = productsController.quantityControllers[i].text;
 
-                              String rateString = (row.cells[2].child as Text).data!;
+                              String rateString = (row.cells[3].child as Text).data!;
                               int rate = 0;
                               print('Rate String: $rateString');
 
