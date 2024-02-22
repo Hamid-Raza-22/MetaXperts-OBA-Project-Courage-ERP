@@ -498,7 +498,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           backgroundTask(),
                           postFile(),
                           outputs.checkFirstRun(),
-                          Future.delayed(Duration(seconds: 10)),
+                          Future.delayed(Duration(seconds: 5)),
                         ]);
 
                         // After 10 seconds, hide the loading indicator and perform the refresh logic
@@ -864,7 +864,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       return;
     }
     var request = http.MultipartRequest("POST",
-        Uri.parse("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/"));
+        Uri.parse("https://webhook.site/f01bcf9e-c9df-482c-868d-b1c6da295a6c"));
     var gpxFile = await http.MultipartFile.fromPath(
         'body', filePath.path);
     request.files.add(gpxFile);
@@ -882,7 +882,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         var responseData = await response.stream.toBytes();
         var result = String.fromCharCodes(responseData);
         print("Results: Post Successfully");
-        deleteGPXFile();
+       //deleteGPXFile();
         pref.setDouble("TotalDistance", 0.0);
       } else {
         print("Failed to upload file. Status code: ${response.statusCode}");
@@ -892,24 +892,24 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     }
   }
 
-  Future<void> deleteGPXFile() async {
-      try {
-        final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-       // final gpxString = await GpxWriter().asString(gpx, pretty: true);
-        final downloadDirectory = await getDownloadsDirectory();
-        final filePath = "${downloadDirectory!.path}/track$date.gpx";
-        final file = File(filePath);
-
-        if (file.existsSync()) {
-          await file.delete();
-          print('GPX file deleted successfully');
-        } else {
-          print('GPX file does not exist');
-        }
-      } catch (e) {
-        print('Error deleting GPX file: $e');
-    }
-    }
+  // Future<void> deleteGPXFile() async {
+  //     try {
+  //       final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  //      // final gpxString = await GpxWriter().asString(gpx, pretty: true);
+  //       final downloadDirectory = await getDownloadsDirectory();
+  //       final filePath = "${downloadDirectory!.path}/track$date.gpx";
+  //       final file = File(filePath);
+  //
+  //       if (file.existsSync()) {
+  //         await file.delete();
+  //         print('GPX file deleted successfully');
+  //       } else {
+  //         print('GPX file does not exist');
+  //       }
+  //     } catch (e) {
+  //       print('Error deleting GPX file: $e');
+  //   }
+  //   }
 
   Future<bool> requestPermissions(BuildContext context) async {
     final notificationStatus = await Permission.notification.status;

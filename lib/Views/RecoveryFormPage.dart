@@ -28,18 +28,16 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   TextEditingController _netBalanceController = TextEditingController();
   List<Map<String, dynamic>> accountsData = []; // Add this line
   String? selectedShopName;
-
   List<String> dropdownItems = [];
   List<String> dropdownItems1 = [];
-
   String? selectedDropdownValue;
   List<Map<String, dynamic>> shopOwners = [];
   DBHelper dbHelper = DBHelper();
 
-  int recoveryFormSerialCounter = 1;
   double recoveryFormCurrentBalance = 0.0;
   String recoveryFormCurrentUserId = '';
   String recoveryFormCurrentMonth = DateFormat('MMM').format(DateTime.now());
+  int recoveryFormSerialCounter = 1;
 
 
 
@@ -271,7 +269,9 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     await prefs.setString('recoveryFormCurrentUserId', recoveryFormCurrentUserId);
   }
 
-  String generateNewRecoveryFormOrderId(String Receipt, String userId, String currentMonth) {
+  String generateNewRecoveryFormOrderId(String Receipt, String userId) {
+    String currentMonth = DateFormat('MMM').format(DateTime.now());
+
     if (this.recoveryFormCurrentUserId != userId) {
       recoveryFormSerialCounter = 1;
       this.recoveryFormCurrentUserId = userId;
@@ -288,6 +288,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     _saveRecoveryFormCounter();
     return orderId;
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -571,8 +572,8 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                   // Validation passed, proceed with your submission logic
                                   if (recoveryFormCurrentBalance > 0.0) {
                                     try {
-                                      String newOrderId2 = generateNewRecoveryFormOrderId(
-                                          Receipt, userId.toString(), recoveryFormCurrentMonth);
+                                      String newOrderId2 = generateNewRecoveryFormOrderId(Receipt, userId.toString());
+
 
                                       recoveryformViewModel.addRecoveryForm(
                                         RecoveryFormModel(

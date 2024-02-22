@@ -186,8 +186,8 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   }
 
    Future<void>fetchAllProducts() async {
-    await productsController.fetchProducts();
-    await productsController.rows;
+    productsController.fetchProducts();
+    productsController.rows;
   }
 
 
@@ -601,7 +601,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     await prefs.setString('currentUserId', currentUserId); // Add this line
   }
 
-  String generateNewOrderId( String userId, String currentMonth) {
+  String generateNewOrderId( String userId) {
     if (this.currentUserId != userId) {
       // Reset serial counter when the userId changes
       serialCounter = 1;
@@ -802,16 +802,25 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
 
-    if (picked != null && picked != DateTime.now()) {
-      final formattedDate = DateFormat('dd-MMM-yyyy').format(picked);
-      controller.text = formattedDate;
+    if (picked != null) {
+      final currentDate = DateTime.now();
+      if (picked.isBefore(currentDate)) {
+        // Show a message or perform an action indicating that the selected date is before today's date
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Selected date must be today or a future date."),
+          ),
+        );
+      } else {
+        final formattedDate = DateFormat('dd-MMM-yyyy').format(picked);
+        controller.text = formattedDate;
+    }
     }
   }
-
   Widget buildRow(RowData rowData, int rowNumber) {
     rowData.qtyController.addListener(() {
       calculateAmount(rowData.qtyController, rowData.rateController,

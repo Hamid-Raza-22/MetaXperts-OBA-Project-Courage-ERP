@@ -28,13 +28,13 @@ import 'package:location00/location00.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AndroidAlarmManager.initialize();
-
-  // Initialize the FlutterBackground plugin
-  await FlutterBackground.initialize();
-
-  // Enable background execution
-  await FlutterBackground.enableBackgroundExecution();
+  // AndroidAlarmManager.initialize();
+  //
+  // // Initialize the FlutterBackground plugin
+  // await FlutterBackground.initialize();
+  //
+  // // Enable background execution
+  // await FlutterBackground.enableBackgroundExecution();
 
   // Initialize the service
   await initializeServiceLocation();

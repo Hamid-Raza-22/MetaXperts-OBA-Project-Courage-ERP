@@ -148,7 +148,7 @@ class _ShopVisitState extends State<ShopVisit> {
     fetchProductsNamesByBrand();
     saveCurrentLocation();
     _checkUserIdAndFetchShopNames();
-    productsController.controllers.clear();
+   // productsController.controllers.clear();
     // removeSavedValues(index);
 
   }
@@ -243,7 +243,9 @@ class _ShopVisitState extends State<ShopVisit> {
     await prefs.setString('currentUserId', currentUserId); // Add this line
   }
 
-  String generateNewOrderId( String userId, String currentMonth) {
+  String generateNewOrderId( String userId) {
+    String currentMonth = DateFormat('MMM').format(DateTime.now());
+
     if (this.currentUserId != userId) {
       // Reset serial counter when the userId changes
       serialCounter = 1;
@@ -755,7 +757,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             var id = await customAlphabet('1234567890', 10);
                             List<int> imageBytesList = await File(imagePath).readAsBytes();
                             Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
-                            String NewOrderId = generateNewOrderId(userId.toString(), currentMonth);
+                            String NewOrderId = generateNewOrderId(userId.toString());
                             OrderMasterid= NewOrderId;
                             print(OrderMasterid);
 
