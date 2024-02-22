@@ -127,8 +127,52 @@ class _ShopPageState extends State<ShopPage> {
     'Talagang', 'Tando Adam', 'Tando Allahyar', 'Tando Bago', 'Tangi', 'Tar Ahamd Rind', 'Tarbela', 'Taxila', 'Thall', 'Thalo', 'Thatta', 'Toba Tek Singh', 'Tordher', 'Tujal', 'Tump', 'Turbat', 'Umarao', 'Umarkot', 'Uthal', 'Vehari', 'Veirwaro', 'Vitakri', 'Wadh',
     'Wah Cantonment', 'Washap', 'Wasjuk', 'Yakmach' , 'Pasrur', 'Zafarwal', 'Waziranbad', 'Siraye Alamgir' ,'Kingra'];
 
+  List<String> dropdownItems = [];
+  DBHelper dbHelper = DBHelper();
 
+  List<Map<String, dynamic>> shopOwners = [];
 
+  Future<void> _checkUserIdAndFetchShopNames() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+
+    if (userId != 'B0001' && userId != 'B0006' && userId != 'B0004') {
+      await fetchShopNames();
+      setState(() {
+        cityController.text = 'Sialkot';
+        distributorNameController.text = 'M.A Traders Sialkot';
+      });
+
+    } else {
+      await fetchShopNames1();
+    }
+  }
+  Future<void> fetchShopNames() async {
+    String userCity = userCitys;
+    List<dynamic> bussiness_name = await dbHelper. getDistributorNamesForCity(userCity);
+    setState(() {
+      // Explicitly cast each element to String
+      dropdownItems = bussiness_name.map((dynamic item) => item.toString()).toSet().toList();
+    });
+  }
+
+  Future<void> fetchShopNames1() async {
+    List<dynamic> bussiness_name = await dbHelper.getDistributorsNames();
+    setState(() {
+      // Explicitly cast each element to String
+      dropdownItems = bussiness_name.map((dynamic item) => item.toString()).toSet().toList();
+    });
+  }
+  // Future<void> _checkUserIdAndFetchShopNames() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? userId = prefs.getString('userId');
+  //
+  //   if (userId == 'B0001' || userId == 'B0006' || userId == 'B0004') {
+  //     await fetchShopNames1();
+  //   } else {
+  //    // await fetchShopNames();
+  //   }
+  // }
   @override
   void initState() {
 
@@ -163,18 +207,6 @@ class _ShopPageState extends State<ShopPage> {
       }
     } else {
       print('Location permission is not granted');
-    }
-  }
-  Future<void> _checkUserIdAndFetchShopNames() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId');
-
-    if (userId != 'B0001' && userId != 'B0006' && userId != 'B0004') {
-      setState(() {
-        cityController.text = 'Sialkot';
-      });
-    } else {
-      // Proceed with your logic for the specified user IDs
     }
   }
 
@@ -375,12 +407,8 @@ class _ShopPageState extends State<ShopPage> {
                                   suggestionsCallback: (pattern) {
                                     // Your suggestions callback for distributor names
                                     // Replace this with your actual distributor names suggestions logic
-                                    return [
-                                      'Distributor 1',
-                                      'Distributor 2',
-                                      'Distributor 3',
-                                      // Add more distributor names as needed
-                                    ].where((distributor) =>
+                                    return dropdownItems
+                                    .where((distributor) =>
                                         distributor.toLowerCase().contains(pattern.toLowerCase())).toList();
                                   },
                                   itemBuilder: (context, suggestion) {

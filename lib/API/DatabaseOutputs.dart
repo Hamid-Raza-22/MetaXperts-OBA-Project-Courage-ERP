@@ -58,6 +58,7 @@ class DatabaseOutputs{
     final api = ApiServices();
     final db = DBHelper();
     final dbowner = DBHelper();
+    final dbdistributor = DBHelper();
     final dbordermaster= DBHelper();
     final dborderdetails= DBHelper();
     final dbnetbalance= DBHelper();
@@ -72,6 +73,7 @@ class DatabaseOutputs{
     var Accountsdata = await dbaccounts.getAccoutsDB();
     var OrderBookingStatusdata= await dborderbookingstatus.getOrderBookingStatusDB();
     var Owerdata = await dbowner.getOwnersDB();
+    var Distributordata = await dbdistributor.getDistributorsDB();
     var Logindata = await dblogin.getAllLogins();
     var PCdata = await dbProductCategory.getAllPCs();
 
@@ -85,7 +87,7 @@ class DatabaseOutputs{
       var response3 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
       var results3= await dblogin.insertLogin(response3);//return True or False
       if (results3) {
-        print("Data inserted successfully.");
+        print(" Login Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -98,7 +100,7 @@ class DatabaseOutputs{
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
       var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
       if (results2) {
-        print("Data inserted successfully.");
+        print("Accounts Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -111,7 +113,7 @@ class DatabaseOutputs{
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
       var results2 = await dbnetbalance.insertNetBalanceData(response2);   //return True or False
       if (results2) {
-        print("Data inserted successfully.");
+        print(" Net Balance Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -124,7 +126,7 @@ class DatabaseOutputs{
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
       var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
       if (results2) {
-        print("Data inserted successfully.");
+        print("OrderBookingStatus Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -136,7 +138,7 @@ class DatabaseOutputs{
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
       var results2 = await dbordermaster.insertOrderMasterData(response2);   //return True or False
       if (results2) {
-        print("Data inserted successfully.");
+        print("OrderMaster Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -148,7 +150,7 @@ class DatabaseOutputs{
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
       var results2 = await dborderdetails.insertOrderDetailsData(response2);   //return True or False
       if (results2) {
-        print("Data inserted successfully.");
+        print("OrderDetails Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -161,7 +163,7 @@ class DatabaseOutputs{
       var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
       var results= await db.insertProductsData(response);  //return True or False
       if (results) {
-        print("Data inserted successfully.");
+        print("Products Data inserted successfully.");
       }
       else {
         print("Error inserting data.");
@@ -175,7 +177,7 @@ class DatabaseOutputs{
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
       var results2 = await dbowner.insertOwnerData(response2);   //return True or False
       if (results2) {
-        print("Data inserted successfully.");
+        print("Owner Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -183,12 +185,23 @@ class DatabaseOutputs{
       print("Data is available.");
     }
 
+    if (Distributordata == null || Distributordata.isEmpty ) {
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/distributorlist/get/");
+      var results2 = await dbowner.insertDistributorData(response2);   //return True or False
+      if (results2) {
+        print("Distributors Data inserted successfully.");
+      } else {
+        print("Error inserting data.");
+      }
+    } else {
+      print("Data is available.");
+    }
 
     if (PCdata == null || PCdata.isEmpty ) {
       var response4 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
       var results4= await dbProductCategory.insertProductCategory(response4);//return True or False
       if (results4) {
-        print("Data inserted successfully.");
+        print("Pc Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -224,6 +237,7 @@ class DatabaseOutputs{
     final db = DBHelper();
     final dbowner = DBHelper();
     final dblogin=DBHelper();
+    final dbdistributor = DBHelper();
     final dbordermaster= DBHelper();
     final dborderdetails= DBHelper();
     final dborderbookingstatus= DBHelper();
@@ -233,6 +247,7 @@ class DatabaseOutputs{
     await db.deleteAllRecords();
     await dbowner.deleteAllRecords();
     await dblogin.deleteAllRecords();
+    await dbdistributor.deleteAllRecords();
     await dbProductCategory.deleteAllRecords();
     await dbordermaster.deleteAllRecords();
     await dborderdetails.deleteAllRecords();
@@ -439,6 +454,7 @@ class DatabaseOutputs{
     print("************Tables Products**************");
     final db = DBHelper();
     final dbowner = DBHelper();
+    final dbdistributor = DBHelper();
     final dblogin = DBHelper();
     final dbPC = DBHelper();
     final dbordermaster = DBHelper();
@@ -529,6 +545,16 @@ class DatabaseOutputs{
     }
     print("TOTAL of Accounts is $co");
 
+
+  print("************Tables Distributors**************");
+  co=0;
+  data = await dbdistributor.getDistributorsDB();
+  for(var i in data!){
+  co++;
+  print("$co | ${i.toString()} \n");
   }
+  print("TOTAL of Distributors is $co");
+
+}
 
 }

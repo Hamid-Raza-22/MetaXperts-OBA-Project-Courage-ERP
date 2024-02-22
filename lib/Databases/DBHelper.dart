@@ -38,6 +38,7 @@ class DBHelper {
     return db;
   }
 _onCreate(Database db, int version) async {
+    await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
     await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,posted INTEGER DEFAULT 0,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
@@ -57,6 +58,7 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE shopVisit (id TEXT PRIMARY KEY,date TEXT,shopName TEXT,userId TEXT,bookerName TEXT,brand TEXT,walkthrough TEXT,planogram TEXT,signage TEXT,productReviewed TEXT,feedback TEXT,latitude TEXT,longitude TEXT,address TEXT,body BLOB)");
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
     await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT)");
+
 }
   Future<void> insertShop(ShopModel shop) async {
     final Database db = await initDatabase();
@@ -468,6 +470,17 @@ _onCreate(Database db, int version) async {
     }
   }
 
+  Future<List<String>> getDistributorsNames() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> bussiness_name = await db.query('distributors');
+      return bussiness_name.map((map) => map['bussiness_name'] as String).toList();
+    } catch (e) {
+      print("Error retrieving bussiness_name: $e");
+      return [];
+    }
+  }
+
   Future<List<Map<String, dynamic>>?> getOwnersDB() async {
     final Database db = await initDatabase();
     try {
@@ -479,6 +492,17 @@ _onCreate(Database db, int version) async {
     }
   }
 
+
+  Future<List<Map<String, dynamic>>?> getDistributorsDB() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> distributor = await db.query('distributors');
+      return distributor;
+    } catch (e) {
+      print("Error retrieving products: $e");
+      return null;
+    }
+  }
   Future<List<String>> getShopNamesForCity(String userCity) async {
     final Database db = await initDatabase();
     try {
@@ -490,6 +514,20 @@ _onCreate(Database db, int version) async {
       return shopNames.map((map) => map['shop_name'] as String).toList();
     } catch (e) {
       print("Error retrieving shop names for city: $e");
+      return [];
+    }
+  }
+  Future<List<String>> getDistributorNamesForCity(String userCity) async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> bussiness_name = await db.query(
+        'distributors',
+        where: 'area_name = ?',
+        whereArgs: [userCitys],
+      );
+      return bussiness_name.map((map) => map['bussiness_name'] as String).toList();
+    } catch (e) {
+      print("Error retrieving sbussiness_name for city: $e");
       return [];
     }
   }
@@ -508,7 +546,18 @@ _onCreate(Database db, int version) async {
       return false;
     }
   }
-
+  Future<bool> insertDistributorData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('distributors', data);
+      }
+      return true;
+    } catch (e) {
+      print("Error inserting distributor  data: ${e.toString()}");
+      return false;
+    }
+  }
   Future<void> deleteAllRecords() async{
     final db = await initDatabase();
     await db.delete('ownerData');
@@ -520,6 +569,7 @@ _onCreate(Database db, int version) async {
     await db.delete('accounts');
     await db.delete('productCategory');
     await db.delete('login');
+    await db.delete('distributors');
   }
 
   Future<bool> insertProductsData(List<dynamic> dataList) async {
