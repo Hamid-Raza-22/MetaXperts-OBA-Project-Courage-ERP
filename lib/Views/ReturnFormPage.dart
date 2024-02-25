@@ -134,7 +134,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
   void fetchShopData() async {
     List<String> shopNames = await dbHelper.getOrderMasterShopNames();
-    shopOwners = (await dbHelper.getOrderMasterDataDB())!;
+    shopOwners = (await dbHelper.getOrderMasterdataDB())!;
     setState(() {
       dropdownItems = shopNames.toSet().toList();
     });
@@ -149,13 +149,15 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     }
     return '';
   }
+  void printOrderNoForSelectedShop() {
+    String orderNo = getOrderNoForSelectedShop();
+    print('Order number for selected shop: $orderNo');
+  }
 
   Future<void> onCreatee() async {
     DatabaseOutputs db = DatabaseOutputs();
-    await db.showReturnForm();
-    await db.showReturnFormDetails();
     await db.showOrderDetailsData();
-    await db.showOrderMasterData();
+   //await db.showOrderDispacthed();
   }
 
   @override
@@ -263,6 +265,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                     selectedorderno = getOrderNoForSelectedShop();
                     print('order no: $selectedorderno');
                     fetchProductDataForSelectedShop(suggestion);
+                    printOrderNoForSelectedShop();
                   });
                 },
                 textFieldConfiguration: TextFieldConfiguration(
@@ -366,8 +369,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         firstController.isSelectionFromSuggestion = true;
                       });
                       await updateQuantityField(suggestion, index);
-                      await updatePriceField(suggestion, index);
-                      await calculateTotalAmount();
+                      // await updatePriceField(suggestion, index);
+                      // await calculateTotalAmount();
                     },
                     textFieldConfiguration: TextFieldConfiguration(
                       decoration: InputDecoration(
@@ -622,14 +625,14 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
       if (db != null) {
         final List<Map<String, dynamic>> result = await db.query(
-          'orderDetailsData',
-          columns: ['quantity_booked'],
-          where: 'product_name = ?',
+          'order_details',
+          columns: ['quantity'],
+          where: 'productName = ?',
           whereArgs: [productName],
         );
 
         if (result.isNotEmpty) {
-          return result[0]['quantity_booked'].toString();
+          return result[0]['quantity'].toString();
         } else {
           return null; // Handle the case where quantity is not found
         }

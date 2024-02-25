@@ -16,10 +16,9 @@ import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:sqflite/sqflite.dart';
 import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
-
 import '../Models/ShopVisitModels.dart';
 import '../Models/StockCheckItems.dart';
 import '../View_Models/OrderViewModels/ProductsViewModel.dart';
@@ -101,7 +100,11 @@ class _ShopVisitState extends State<ShopVisit> {
   List<String> selectedProductNames = [];
   // Add an instance of ProductsViewModel
   ProductsViewModel productsViewModel = Get.put(ProductsViewModel());
-  int serialCounter = 1;
+ // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
+  int serialCounter = highestSerial ?? 0;
+
+ // int? serialCounter;
+
   double currentBalance = 0.0;
   String currentUserId = '';
   String currentMonth = DateFormat('MMM').format(DateTime.now());
@@ -138,6 +141,9 @@ class _ShopVisitState extends State<ShopVisit> {
   void initState() {
 
     super.initState();
+    data();
+   // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
+
     //selectedDropdownValue = dropdownItems[0]; // Default value
     _fetchBrandItemsFromDatabase();
     //fetchShopData();
@@ -150,7 +156,14 @@ class _ShopVisitState extends State<ShopVisit> {
     _checkUserIdAndFetchShopNames();
    // productsController.controllers.clear();
     // removeSavedValues(index);
+    print(userId);
+    print(highestSerial);
 
+  }
+  data(){
+    DBHelper dbHelper = DBHelper();
+    print('data0');
+    dbHelper.getHighestSerialNo();
   }
   Future<void> removeSavedValues(int index) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -228,12 +241,15 @@ class _ShopVisitState extends State<ShopVisit> {
   }
 
   _loadCounter() async {
+    //serialCounter=highestSerial;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      serialCounter = prefs.getInt('serialCounter') ?? 1;
+    //  serialCounter++;
+      serialCounter = (prefs.getInt('serialCounter') ?? highestSerial)! ;
       currentMonth = prefs.getString('currentMonth') ?? currentMonth;
       currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
     });
+    print('SR:$serialCounter');
   }
 
   _saveCounter() async {
@@ -248,7 +264,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
     if (this.currentUserId != userId) {
       // Reset serial counter when the userId changes
-      serialCounter = 1;
+      serialCounter = highestSerial!;
       this.currentUserId = userId;
     }
 
@@ -509,7 +525,7 @@ class _ShopVisitState extends State<ShopVisit> {
                               Padding(
                                 padding: EdgeInsets.all(5.0),
                                 child: Container(
-                                  height: 500, // Set the desired height
+                                  height: 400, // Set the desired height
                                   width: 300, // Set the desired width
                                   child:Card(
                                     elevation: 5,
@@ -537,9 +553,9 @@ class _ShopVisitState extends State<ShopVisit> {
                                               ),
                                             ),
                                           ),
-                                          SingleChildScrollView(
-                                            scrollDirection: Axis.vertical, // Add vertical scroll direction
-                                            child: SingleChildScrollView(
+                                         // Add vertical scroll direction
+                                          Obx(() =>
+                                               SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
                                               child: DataTable(
                                                 columns: [
@@ -1139,8 +1155,6 @@ class _ShopVisitState extends State<ShopVisit> {
       dropdownItems5 = productNames.map((dynamic item) => item.toString()).toSet().toList();
     });
   }
-
-
 }
 
 class StockCheckItem {

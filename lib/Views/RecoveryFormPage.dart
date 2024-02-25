@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 
@@ -37,13 +38,14 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   double recoveryFormCurrentBalance = 0.0;
   String recoveryFormCurrentUserId = '';
   String recoveryFormCurrentMonth = DateFormat('MMM').format(DateTime.now());
-  int recoveryFormSerialCounter = 1;
+  int recoveryFormSerialCounter = RecoveryhighestSerial?? 0;
 
 
 
   @override
   void initState() {
     super.initState();
+    data();
     //selectedDropdownValue = dropdownItems[0];
     _dateController.text = getCurrentDate();
     _cashRecoveryController.text = ''; // Assuming initial value is zero
@@ -51,15 +53,20 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     //fetchShopData();
     onCreatee();
     _loadRecoveryFormCounter();
-
     //fetchShopNames();
    // fetchShopData();
     fetchShopNamesAndTotals();
     fetchAccountsData();
     fetchShopData1();
     // Add this line
-
   }
+
+  data(){
+    DBHelper dbHelper = DBHelper();
+    print('data0');
+    dbHelper.getRecoveryHighestSerialNo();
+  }
+
   String? validateCashRecovery(String value) {
     if (value.isEmpty) {
       showToast('Please enter some text');
@@ -256,10 +263,11 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     //prefs.remove('recoveryFormCurrentMonth')  ;
     setState(() {
-      recoveryFormSerialCounter = prefs.getInt('recoveryFormSerialCounter') ?? 1;
+      recoveryFormSerialCounter = (prefs.getInt('recoveryFormSerialCounter') ?? RecoveryhighestSerial)!;
       recoveryFormCurrentMonth = prefs.getString('recoveryFormCurrentMonth') ?? recoveryFormCurrentMonth;
       recoveryFormCurrentUserId = prefs.getString('recoveryFormCurrentUserId') ?? '';
     });
+    print('SR:$recoveryFormSerialCounter');
   }
 
   _saveRecoveryFormCounter() async {
@@ -278,7 +286,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     }
 
     if (this.recoveryFormCurrentMonth != currentMonth) {
-      recoveryFormSerialCounter = 1;
+      recoveryFormSerialCounter = RecoveryhighestSerial!;
       this.recoveryFormCurrentMonth = currentMonth;
     }
 
@@ -556,8 +564,10 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                         SizedBox(height: 20),
 
                         ElevatedButton(
-                          onPressed: ()  {
-                            if (!isButtonPressed && selectedDropdownValue!.isNotEmpty) {
+                          onPressed: () async {
+                            final bool isConnected = await InternetConnectionChecker().hasConnection;
+
+                            if (isConnected && !isButtonPressed && selectedDropdownValue!.isNotEmpty) {
                               // Check if both text fields are not empty
                               if (_cashRecoveryController.text.isNotEmpty && _netBalanceController.text.isNotEmpty) {
                                 // Set the flag to true to indicate that the button has been pressed
@@ -570,7 +580,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                 // Check if validation passes
                                 if (cashRecoveryValidation == null) {
                                   // Validation passed, proceed with your submission logic
-                                  if (recoveryFormCurrentBalance > 0.0) {
+                                  if (  recoveryFormCurrentBalance > 0.0) {
                                     try {
                                       String newOrderId2 = generateNewRecoveryFormOrderId(Receipt, userId.toString());
 
@@ -640,7 +650,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                     isButtonPressed = false;
                                   });
                                 }
-                              } else {
+                              }else {
                                 // Display an error message if any text field is empty
                                 showToast('Please fill in all fields before submitting.');
 
@@ -649,7 +659,18 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                   isButtonPressed = false;
                                 });
                               }
-                            }
+
+                              }else {
+                                // Display an error message if any text field is empty
+                                showToast('Please Check Internet');
+
+                                // Reset the flag to false if validation fails
+                                setState(() {
+                                  isButtonPressed = false;
+                                });
+                              }
+
+
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,

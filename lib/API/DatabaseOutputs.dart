@@ -19,6 +19,19 @@ class DatabaseOutputs{
      await initializeData();
     }
   }
+  Future<void> checkFirstRunAccounts() async {
+    SharedPreferences SP = await SharedPreferences.getInstance();
+    bool firstrun = await SP.getBool('firstrun') ?? true;
+    if(firstrun == true){
+
+      await SP.setBool('firstrun', false);
+      await initializeData2();
+    }else{
+      print("UPDATING.......................................");
+      await update2();
+      await initializeData2();
+    }
+  }
   Future<void> check_OB() async{
     SharedPreferences SP = await SharedPreferences.getInstance();
     bool firstrun = await SP.getBool('firstrun') ?? true;
@@ -66,6 +79,8 @@ class DatabaseOutputs{
     final dborderbookingstatus= DBHelper();
     final dblogin=DBHelper();
     final dbProductCategory=DBHelper();
+    final dbrecovertformget=DBHelper();
+
     var Productdata = await db.getProductsDB();
     var OrderMasterdata = await dbordermaster.getOrderMasterDB();
     var OrderDetailsdata = await dborderdetails.getOrderDetailsDB();
@@ -76,6 +91,7 @@ class DatabaseOutputs{
     var Distributordata = await dbdistributor.getDistributorsDB();
     var Logindata = await dblogin.getAllLogins();
     var PCdata = await dbProductCategory.getAllPCs();
+    var RecoveryFormGetData = await dbrecovertformget.getRecoverydataDB();
 
     //https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/muhammad_usman/login/get/
     // https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/
@@ -127,6 +143,18 @@ class DatabaseOutputs{
       var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
       if (results2) {
         print("OrderBookingStatus Data inserted successfully.");
+      } else {
+        print("Error inserting data.");
+      }
+    } else {
+      print("Data is available.");
+    }
+
+    if (RecoveryFormGetData == null || RecoveryFormGetData.isEmpty ) {
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
+      var results2 = await dbrecovertformget.insertRecoveryFormData(response2);   //return True or False
+      if (results2) {
+        print("RecoveryFormGetData Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
@@ -211,27 +239,51 @@ class DatabaseOutputs{
     showAllTables();
   }
 
+  Future<void>  initializeData2() async {
+    final api = ApiServices();
+    final dbnetbalance= DBHelper();
+    final dbaccounts= DBHelper();
 
-  // void initializeData() async{
-  //    final api = ApiServices();
-  //    final db = DBHelperProducts();
-  //    final dbowner = DBHelperOwner();
-  //    final dblogin=DBHelperLogin();
-  //    final dbProductCategory=DBHelperProductCategory();
-  //    var response = await api.getApi("https://g04d40198f41624-i0czh1rzrnvg0r4l.adb.me-dubai-1.oraclecloudapps.com/ords/courage/product/record");
-  //    var results= await db.insertProductsData(response);  //return True or False
-  //    //print(results.toString());
-  //    var response2 = await api.getApi("https://g04d40198f41624-i0czh1rzrnvg0r4l.adb.me-dubai-1.oraclecloudapps.com/ords/courage/AddAhop/record/");
-  //    var results2 = await dbowner.insertOwnerData(response2);   //return True or False
-  //    //print(results2.toString());
-  //    var response4 = await api.getApi("https://g04d40198f41624-i0czh1rzrnvg0r4l.adb.me-dubai-1.oraclecloudapps.com/ords/courage/login/get/");
-  //    var results4= await dblogin.insertLogin(response4);//return True or False
-  //    //print(results4.toString());
-  //    var response5 = await api.getApi("https://g04d40198f41624-i0czh1rzrnvg0r4l.adb.me-dubai-1.oraclecloudapps.com/ords/courage/product_brand/get/");
-  //    var results5= await dbProductCategory.insertProductCategory(response5);//return True or False
-  //    print(results5.toString());
-  //    showAllTables();
-  // }
+
+    var NetBalancedata = await dbnetbalance.getNetBalanceDB();
+    var Accountsdata = await dbaccounts.getAccoutsDB();
+
+    if (Accountsdata == null || Accountsdata.isEmpty ) {
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
+      var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
+      if (results2) {
+        print("Accounts Data inserted successfully.");
+      } else {
+        print("Error inserting data.");
+      }
+    } else {
+      print("Data is available.");
+    }
+
+
+    if (NetBalancedata == null || NetBalancedata.isEmpty ) {
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
+      var results2 = await dbnetbalance.insertNetBalanceData(response2);   //return True or False
+      if (results2) {
+        print(" Net Balance Data inserted successfully.");
+      } else {
+        print("Error inserting data.");
+      }
+    } else {
+      print("Data is available.");
+    }
+
+
+    showAllTables2();
+  }
+
+  Future<void> update2() async {
+    final dbnetbalance=DBHelper();
+    final dbaccounts=DBHelper();
+    print("DELETING.......................................");
+    await dbnetbalance.deleteAllRecordsAccounts();
+    //await dbaccounts.deleteAllRecords();
+  }
 
   Future<void> update() async {
     final db = DBHelper();
@@ -243,6 +295,9 @@ class DatabaseOutputs{
     final dborderbookingstatus= DBHelper();
     final dbProductCategory=DBHelper();
     final dbnetbalance=DBHelper();
+    final dbAccounts=DBHelper();
+    final dbrecoveryformgetdata=DBHelper();
+
     print("DELETING.......................................");
     await db.deleteAllRecords();
     await dbowner.deleteAllRecords();
@@ -253,6 +308,8 @@ class DatabaseOutputs{
     await dborderdetails.deleteAllRecords();
     await dbnetbalance.deleteAllRecords();
     await dborderbookingstatus.deleteAllRecords();
+    await dbAccounts.deleteAllRecords();
+    await dbrecoveryformgetdata.deleteAllRecords();
   }
   Future<void> showOrderMaster() async {
     print("************Tables SHOWING**************");
@@ -273,7 +330,7 @@ class DatabaseOutputs{
     print("************Order Master get data**************");
     final db = DBHelper();
 
-    var data = await db.getOrderMasterDataDB();
+    var data = await db.getOrderBookingStatusDB();
     int co = 0;
     for(var i in data!){
       co++;
@@ -446,8 +503,54 @@ class DatabaseOutputs{
     print("TOTAL of Return Form Details is $co");
 
   }
+  Future<void> showOrderDispacthed() async {
+    print("************Tables SHOWING**************");
+    print("************Dispatched Orders**************");
+    final db = DBHelper();
+
+    var data = await db.getOrderBookingStatusDB();
+    int co = 0;
+    for(var i in data!){
+      co++;
+      print("$co | ${i.toString()} \n");
+    }
+    print("TOTAL of Orders Dispatched is $co");
+
+  }
+
+  Future<void> showAllTables2() async {
+    print("************Tables SHOWING**************");
+    print("************Tables Products**************");
+    final db = DBHelper();
+
+    final dbnetbalance = DBHelper();
+    final dbaccounts = DBHelper();
+
+    var data = await db.getProductsDB();
+    int co = 0;
 
 
+    print("TOTAL of netBalance is $co");
+
+    print("************Tables Net Balance**************");
+    co=0;
+    data = await dbnetbalance.getNetBalanceDB();
+    for(var i in data!){
+      co++;
+      print("$co | ${i.toString()} \n");
+    }
+    print("TOTAL of Net Balance is $co");
+
+    print("************Tables Accounts**************");
+    co=0;
+    data = await dbaccounts.getAccoutsDB();
+    for(var i in data!){
+      co++;
+      print("$co | ${i.toString()} \n");
+    }
+    print("TOTAL of Accounts is $co");
+
+  }
 
   Future<void> showAllTables() async {
     print("************Tables SHOWING**************");
@@ -555,6 +658,16 @@ class DatabaseOutputs{
   }
   print("TOTAL of Distributors is $co");
 
-}
+    print("************Tables Recovery Form Get**************");
+    co=0;
+    data = await dbdistributor.getRecoverydataDB();
+    for(var i in data!){
+      co++;
+      print("$co | ${i.toString()} \n");
+    }
+    print("TOTAL of Recovery Form Get is $co");
+
+
+  }
 
 }

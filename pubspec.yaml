@@ -100,6 +100,7 @@ dependencies:
   location00:
     git:
       url: https://github.com/abd143685/location3.git
+  flutter_easyloading: ^3.0.5
 
 
 dev_dependencies:

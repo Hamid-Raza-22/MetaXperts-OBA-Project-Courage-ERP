@@ -280,7 +280,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     //   quantities.add(quantity);
     // }
 
-
     _ShopNameController.text = shopName!;
     _ownerNameController.text = ownerName!;
     _brandNameController.text = selectedBrandName;
@@ -322,7 +321,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                     SizedBox(height: 20),
                     Column(
                       children: [
-
                         SingleChildScrollView(
                           child: Column(
                             children: [
@@ -331,7 +329,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                                 child: Container(
                                   height: 400, // Set the desired height
                                   width: 300, // Set the desired width
-                                  child:Card(
+                                  child: Card(
                                     elevation: 5,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
@@ -357,32 +355,31 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                                               ),
                                             ),
                                           ),
-                                          SingleChildScrollView(
-
-                                              scrollDirection: Axis.horizontal,
-                                              child:DataTable(
-
-                                                columns: [
-                                                  // DataColumn(label: Text('Sr')),
-                                                  DataColumn(label: Text('Products')),
-                                                  DataColumn(label: Text('Quantity')),
-                                                  DataColumn(label: Text('In Stock', style: TextStyle(color: Colors.black))),
-                                                  DataColumn(label: Text('Rate')),
-                                                  DataColumn(label: Text('Amount')),
-                                                ],
-
-                                                rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
-                                              )
-                                          ),
+                                         Obx(() =>
+                                              SingleChildScrollView(
+                                                    scrollDirection: Axis.horizontal,
+                                                 child: DataTable(
+                                              columns: [
+                                                // DataColumn(label: Text('Sr')),
+                                                   DataColumn(label: Text('Products')),
+                                                   DataColumn(label: Text('Quantity')),
+                                                   DataColumn(label: Text('In Stock', style: TextStyle(color: Colors.black))),
+                                                   DataColumn(label: Text('Rate')),
+                                                   DataColumn(label: Text('Amount')),
+                                              ],
+                                              rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
+                                            ),
+                                          )
+                                         ),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ],),
+                            ],
+                          ),
                         ),
-
                       ],
                     ),
                     Align(

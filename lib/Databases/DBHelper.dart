@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,8 +30,6 @@ class DBHelper {
     _db = await initDatabase();
     return _db!;
   }
-
-
   Future<Database> initDatabase() async {
     io.Directory documentDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentDirectory.path, 'shop.db');
@@ -38,6 +37,7 @@ class DBHelper {
     return db;
   }
 _onCreate(Database db, int version) async {
+    await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
     await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,posted INTEGER DEFAULT 0)");
@@ -46,7 +46,6 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE products(id NUMBER, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
     await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE orderDetailsData(order_no TEXT, product_name TEXT, quantity_booked INTEGER, price INTEGER)");
-    await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
     await db.execute("CREATE TABLE accounts(account_id INTEGER, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT)");
     await db.execute("CREATE TABLE productCategory(brand TEXT)");
@@ -58,8 +57,88 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE shopVisit (id TEXT PRIMARY KEY,date TEXT,shopName TEXT,userId TEXT,bookerName TEXT,brand TEXT,walkthrough TEXT,planogram TEXT,signage TEXT,productReviewed TEXT,feedback TEXT,latitude TEXT,longitude TEXT,address TEXT,body BLOB)");
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
     await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT)");
+    await db.execute("CREATE TABLE recoveryFormGet (recovery_id TEXT, user_id TEXT)");
 
 }
+  Future<void> getHighestSerialNo() async {
+    int serial;
+
+    final db = await this.db;
+    final result = await db!.rawQuery('''
+    SELECT order_no 
+    FROM orderBookingStatusData 
+    WHERE user_id = ? AND order_no IS NOT NULL
+  ''', [userId]);
+
+    if (result.isNotEmpty) {
+      // Extract the serial numbers from the order_no strings
+      final serialNos = result.map((row) {
+        final orderNo = row['order_no'] as String?;
+        if (orderNo != null) {
+          final parts = orderNo.split('-');
+          if (parts.length > 0) {
+            final serialNoPart = parts.last;
+            if (serialNoPart.isNotEmpty) {
+              return int.tryParse(serialNoPart);
+            }
+          }
+        }
+        return null;
+      }).where((serialNo) => serialNo != null).cast<int>().toList();
+
+      // Find and set the maximum serial number
+      if (serialNos.isNotEmpty) {
+        serial = serialNos.reduce(max);
+        serial++;
+        // Increment the highest serial number
+        highestSerial = serial;
+      } else {
+        print('No valid order numbers found for this user');
+      }
+    } else {
+      print('No orders found for this user');
+    }
+  }
+
+  Future<void> getRecoveryHighestSerialNo() async {
+    int serial;
+    final db = await this.db;
+    final result = await db!.rawQuery('''
+    SELECT recovery_id 
+    FROM recoveryFormGet 
+    WHERE user_id = ? AND recovery_id IS NOT NULL
+  ''', [userId]);
+
+    if (result.isNotEmpty) {
+      // Extract the serial numbers from the order_no strings
+      final serialNos = result.map((row) {
+        final orderNo = row['recovery_id'] as String?;
+        if (orderNo != null) {
+          final parts = orderNo.split('-');
+          if (parts.length > 0) {
+            final serialNoPart = parts.last;
+            if (serialNoPart.isNotEmpty) {
+              return int.tryParse(serialNoPart);
+            }
+          }
+        }
+        return null;
+      }).where((serialNo) => serialNo != null).cast<int>().toList();
+
+      // Find and set the maximum serial number
+      if (serialNos.isNotEmpty) {
+        serial = serialNos.reduce(max);
+        serial++;
+        // Increment the highest serial number
+        RecoveryhighestSerial = serial;
+      } else {
+        print('No valid recovery_id numbers found for this user');
+      }
+    } else {
+      print('No orders found for this user');
+    }
+  }
+
   Future<void> insertShop(ShopModel shop) async {
     final Database db = await initDatabase();
 
@@ -87,7 +166,16 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
-
+  Future<List<Map<String, dynamic>>?> getRecoverydataDB() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> recoveryFormGet = await db.query('recoveryFormGet');
+      return recoveryFormGet;
+    } catch (e) {
+      print("Error retrieving products: $e");
+      return null;
+    }
+  }
   Future<bool> insertOrderDetailsData(List<dynamic> dataList) async {
     final Database db = await initDatabase();
     try {
@@ -570,6 +658,12 @@ _onCreate(Database db, int version) async {
     await db.delete('productCategory');
     await db.delete('login');
     await db.delete('distributors');
+    await db.delete('recoveryFormGet');
+  }
+  Future<void>deleteAllRecordsAccounts()async{
+    final db = await initDatabase();
+    await db.delete('netBalance');
+    await db.delete('accounts');
   }
 
   Future<bool> insertProductsData(List<dynamic> dataList) async {
@@ -675,6 +769,19 @@ _onCreate(Database db, int version) async {
       return true;
     } catch (e) {
       print("Error inserting orderBookingStatusData: ${e.toString()}");
+      return false;
+    }
+  }
+
+  Future<bool> insertRecoveryFormData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('recoveryFormGet', data);
+      }
+      return true;
+    } catch (e) {
+      print("Error inserting recoveryFormGet: ${e.toString()}");
       return false;
     }
   }

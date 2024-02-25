@@ -14,7 +14,6 @@ import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
 import '../View_Models/AttendanceViewModel.dart';
-import 'login.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'OrderBookingStatus.dart';
 import 'RecoveryFormPage.dart';
@@ -81,6 +80,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   double? globalLatitude1;
   double? globalLongitude1;
   DBHelper dbHelper = DBHelper();
+  bool isLoading = false; // Define isLoading variable
 
   final loc.Location location = loc.Location();
   StreamSubscription<loc.LocationData>? _locationSubscription;
@@ -139,7 +139,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         );
       },
     );
-
 
     bool isLocationEnabled = await _isLocationEnabled();
 
@@ -295,10 +294,18 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     prefs.setBool('isClockedIn', clockedIn);
     isClockedIn = clockedIn;
   }
+  data(){
+    DBHelper dbHelper = DBHelper();
+    print('data0');
+    dbHelper.getRecoveryHighestSerialNo();
+    dbHelper.getHighestSerialNo();
+  }
 
   @override
   void initState() {
     super.initState();
+
+    backgroundTask();
     WidgetsBinding.instance!.addObserver(this);
     _loadClockStatus();
     fetchShopList();
@@ -311,6 +318,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
     location.enableBackgroundMode(enable: true);
     _getFormattedDate();
+    data();
   }
 
   void _saveCurrentTime() async {
@@ -451,104 +459,154 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.green,
-          toolbarHeight: 80.0,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
+        appBar:AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.green,
+            toolbarHeight: 80.0,
+            title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Timer: ${_formatDuration(newsecondpassed.toString())}',
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Timer: ${_formatDuration(newsecondpassed.toString())}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Material(
+                        elevation: 10.0,  // Set the elevation here
+                        shape: CircleBorder(),
+                        color: Colors.deepOrangeAccent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.deepOrangeAccent,
+                              width: 0.1,
+                            ),
+                            //borderRadius: BorderRadius.circular(1),
+                          ),
+                          child: IconButton(
+                            icon: Icon(Icons.refresh),
+                            color: Colors.white,iconSize: 20,
+                            onPressed: () async {
+                              // Check internet connection before refresh
+                              final bool isConnected = await InternetConnectionChecker().hasConnection;
+                              if (!isConnected) {
+                                // No internet connection
+                                Fluttertoast.showToast(
+                                  msg: "No internet connection.",
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                  fontSize: 16.0,
+                                );
+                              } else {
+                                // Internet connection is available
+                                DatabaseOutputs outputs = DatabaseOutputs();
+                                // Run both functions in parallel
+                                showLoadingIndicator(context);
+                                await Future.wait([
+                                  backgroundTask(),
+                                  postFile(),
+                                  outputs.checkFirstRun(),
+                                  Future.delayed(Duration(seconds: 10)),
+                                ]);
+                                // After 10 seconds, hide the loading indicator and perform the refresh logic
+                                Navigator.of(context, rootNavigator: true).pop();
+                              }
+                            },
+                          ),
+                        ),
+                      )
 
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.0,
-                    ),
+
+                      // PopupMenuButton<int>(
+                      //   icon: Icon(Icons.more_vert),
+                      //   color: Colors.white,
+                      //   onSelected: (value) async {
+                      //     switch (value) {
+                      //       case 1:
+                      //       // Check internet connection before refresh
+                      //         final bool isConnected = await InternetConnectionChecker().hasConnection;
+                      //         if (!isConnected) {
+                      //           // No internet connection
+                      //           Fluttertoast.showToast(
+                      //             msg: "No internet connection.",
+                      //             toastLength: Toast.LENGTH_SHORT,
+                      //             gravity: ToastGravity.BOTTOM,
+                      //             backgroundColor: Colors.red,
+                      //             textColor: Colors.white,
+                      //             fontSize: 16.0,
+                      //           );
+                      //         } else {
+                      //           // Internet connection is available
+                      //           DatabaseOutputs outputs = DatabaseOutputs();
+                      //           // Run both functions in parallel
+                      //           showLoadingIndicator(context);
+                      //           await Future.wait([
+                      //             backgroundTask(),
+                      //             postFile(),
+                      //             outputs.checkFirstRun(),
+                      //             Future.delayed(Duration(seconds: 10)),
+                      //           ]);
+                      //           // After 10 seconds, hide the loading indicator and perform the refresh logic
+                      //           Navigator.of(context, rootNavigator: true).pop();
+                      //         }
+                      //         break;
+                      //
+                      //       case 2:
+                      //       // Handle the action for the second menu item (Log Out)
+                      //         if (isClockedIn) {
+                      //           // Check if the user is clocked in
+                      //           Fluttertoast.showToast(
+                      //             msg: "Please clock out before logging out.",
+                      //             toastLength: Toast.LENGTH_SHORT,
+                      //             gravity: ToastGravity.BOTTOM,
+                      //             backgroundColor: Colors.red,
+                      //             textColor: Colors.white,
+                      //             fontSize: 16.0,
+                      //           );
+                      //         } else {
+                      //           await _logOut();
+                      //           // If the user is not clocked in, proceed with logging out
+                      //           Navigator.pushReplacement(
+                      //             // Replace the current page with the login page
+                      //             context,
+                      //             MaterialPageRoute(
+                      //               builder: (context) => LoginForm(),
+                      //             ),
+                      //           );
+                      //         }
+                      //         break;
+                      //     }
+                      //   },
+                      //   itemBuilder: (BuildContext context) {
+                      //     return [
+                      //       PopupMenuItem<int>(
+                      //         value: 1,
+                      //         child: Text('Refresh'),
+                      //       ),
+                      //       PopupMenuItem<int>(
+                      //         value: 2,
+                      //         child: Text('Log Out'),
+                      //       ),
+                      //     ];
+                      //   },
+                      // ),
+                    ],
                   ),
                 ],
-              ),
-              PopupMenuButton<int>(
-                icon: Icon(Icons.more_vert),
-                color: Colors.white,
-                onSelected: (value) async {
-                  switch (value) {
-                    case 1:
-                    // Check internet connection before refresh
-                      final bool isConnected = await InternetConnectionChecker().hasConnection;
-                      if (!isConnected) {
-                        // No internet connection
-                        Fluttertoast.showToast(
-                          msg: "No internet connection.",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          backgroundColor: Colors.red,
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
-                      } else {
-                        // Internet connection is available
-                        DatabaseOutputs outputs = DatabaseOutputs();
-                        // Run both functions in parallel
-                        showLoadingIndicator(context);
-                        await Future.wait([
-                          backgroundTask(),
-                          postFile(),
-                          outputs.checkFirstRun(),
-                          Future.delayed(Duration(seconds: 5)),
-                        ]);
-
-                        // After 10 seconds, hide the loading indicator and perform the refresh logic
-                        Navigator.of(context, rootNavigator: true).pop();
-                      }
-                      break;
-
-                    case 2:
-                    // Handle the action for the second menu item (Log Out)
-                      if (isClockedIn) {
-                        // Check if the user is clocked in
-                        Fluttertoast.showToast(
-                          msg: "Please clock out before logging out.",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          backgroundColor: Colors.red,
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
-                      } else {
-                        await _logOut();
-                        // If the user is not clocked in, proceed with logging out
-                        Navigator.pushReplacement(
-                          // Replace the current page with the login page
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LoginForm(),
-                          ),
-                        );
-                      }
-                      break;
-                  }
-                },
-                itemBuilder: (BuildContext context) {
-                  return [
-                    PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Refresh'),
-                    ),
-                    PopupMenuItem<int>(
-                      value: 2,
-                      child: Text('Log Out'),
-                    ),
-                  ];
-                },
-              )
-            ],
-          ),
-        ),
-        body: SingleChildScrollView(
+                ),
+            ), body: SingleChildScrollView(
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -717,27 +775,60 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                         Container(
                           height: 150,
                           width: 150,
-                          child: ElevatedButton(
-                            onPressed: () {
-                            //  if (isClockedIn) {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => RecoveryFromPage()));
-                              // } else {
-                              //   showDialog(
-                              //     context: context,
-                              //     builder: (context) => AlertDialog(
-                              //       title: Text('Clock In Required'),
-                              //       content: Text('Please clock in before accessing the Recovery.'),
-                              //       actions: [
-                              //         TextButton(
-                              //           onPressed: () => Navigator.pop(context),
-                              //           child: Text('OK'),
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   );
-                              // }
+                          child:ElevatedButton(
+                            onPressed: () async {
+                              setState(() {
+                                isLoading = true; // assuming isLoading is a boolean state variable
+                              });
+
+                              // Delay for 5 seconds
+                             // await Future.delayed(Duration(seconds: 5));
+
+                              final bool isConnected = await InternetConnectionChecker().hasConnection;
+
+                              if (!isConnected) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Clock In Required'),
+                                    content: Text('Please clock in before accessing the Recovery.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else if (!isConnected) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Internet Data Required'),
+                                    content: Text('Please check your internet connection before accessing the Recovery.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                DatabaseOutputs outputs = DatabaseOutputs();
+                                outputs.checkFirstRunAccounts();
+
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => RecoveryFromPage()));
+                              }
+
+                              setState(() {
+                                isLoading = false; // set loading state to false after execution
+                              });
                             },
-                            child: Column(
+                            child: isLoading
+                                ? CircularProgressIndicator() // Show a loading indicator
+                                : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -750,12 +841,14 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                               ],
                             ),
                             style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white, backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.green,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                          ),
+                          )
+
                         ),
                       ],
                     ),
