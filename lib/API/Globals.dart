@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
 DBHelper dbHelper = DBHelper();
-
+String SellectedproductName= "";
 int? highestSerial;
 int? RecoveryhighestSerial;
 String userNames = "";

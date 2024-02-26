@@ -56,7 +56,7 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE return_form_details(id INTEGER PRIMARY KEY AUTOINCREMENT,returnFormId TEXT,productName TEXT,quantity TEXT,reason TEXT,bookerId TEXT,FOREIGN KEY (returnFormId) REFERENCES returnForm(returnId))");
     await db.execute("CREATE TABLE shopVisit (id TEXT PRIMARY KEY,date TEXT,shopName TEXT,userId TEXT,bookerName TEXT,brand TEXT,walkthrough TEXT,planogram TEXT,signage TEXT,productReviewed TEXT,feedback TEXT,latitude TEXT,longitude TEXT,address TEXT,body BLOB)");
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
-    await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT, designation TEXT)");
+    await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT, designation TEXT,images BLOB)");
     await db.execute("CREATE TABLE recoveryFormGet (recovery_id TEXT, user_id TEXT)");
 
 }

@@ -30,11 +30,6 @@ class TypeAheadController extends TextEditingController {
   bool isSelectionFromSuggestion = false;
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: ReturnFormPage(),
-  ));
-}
 
 class ReturnFormPage extends StatefulWidget {
   @override
@@ -107,7 +102,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
   Future<void> updateQuantityField(String selectedProductName,
       int index) async {
-    String? quantity = await fetchQuantityForProduct(selectedProductName);
+    String? quantity = await fetchQuantityForProduct();
     if (quantity != null) {
       setState(() {
         qtyControllers[index].text = quantity;
@@ -116,7 +111,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   }
   Future<void> updatePriceField(String selectedProductName,
       int index) async {
-    String? price = await fetchPriceForProduct(selectedProductName);
+    String? price = await fetchPriceForProduct();
     if (price != null) {
       setState(() {
         priceControllers[index].text = price;
@@ -364,12 +359,14 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                       );
                     },
                     onSuggestionSelected: (suggestion) async {
+                      print(suggestion);
+                      SellectedproductName= suggestion;
                       setState(() {
                         firstController.text = suggestion;
                         firstController.isSelectionFromSuggestion = true;
                       });
                       await updateQuantityField(suggestion, index);
-                      // await updatePriceField(suggestion, index);
+                       await updatePriceField(suggestion, index);
                       // await calculateTotalAmount();
                     },
                     textFieldConfiguration: TextFieldConfiguration(
@@ -620,7 +617,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     secondTypeAheadControllers.add(TextEditingController());
   }
 
-  Future<String?> fetchQuantityForProduct(String productName) async {
+  Future<String?> fetchQuantityForProduct() async {
     try {
       final Database? db = await productController.dbHelper.db;
 
@@ -629,7 +626,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           'orderDetailsData',
           columns: ['quantity_booked'],
           where: 'product_name = ?',
-          whereArgs: [productName],
+          whereArgs: [SellectedproductName],
         );
 
         if (result.isNotEmpty) {
@@ -646,7 +643,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     }
   }
 
-  Future<String?> fetchPriceForProduct(String productName) async {
+  Future<String?> fetchPriceForProduct() async {
     try {
       final Database? db = await productController.dbHelper.db;
 
@@ -655,7 +652,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           'orderDetailsData',
           columns: ['price'],
           where: 'product_name = ?',
-          whereArgs: [productName],
+          whereArgs: [SellectedproductName],
         );
 
         if (result.isNotEmpty) {
