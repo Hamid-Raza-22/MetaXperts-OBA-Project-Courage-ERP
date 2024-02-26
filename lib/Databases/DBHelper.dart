@@ -58,7 +58,6 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
     await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT, designation TEXT,images BLOB)");
     await db.execute("CREATE TABLE recoveryFormGet (recovery_id TEXT, user_id TEXT)");
-
 }
   Future<void> getHighestSerialNo() async {
     int serial;

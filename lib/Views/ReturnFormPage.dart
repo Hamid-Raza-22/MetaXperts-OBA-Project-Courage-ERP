@@ -367,7 +367,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                       });
                       await updateQuantityField(suggestion, index);
                        await updatePriceField(suggestion, index);
-                      // await calculateTotalAmount();
+                       await calculateTotalAmount();
                     },
                     textFieldConfiguration: TextFieldConfiguration(
                       decoration: InputDecoration(
@@ -387,7 +387,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                 height: 50,
                 width: 50,
                 child: TextFormField(
-                  controller: qtyController,
+                  controller: priceController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5.0),
@@ -623,9 +623,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
       if (db != null) {
         final List<Map<String, dynamic>> result = await db.query(
-          'orderDetailsData',
-          columns: ['quantity_booked'],
-          where: 'product_name = ?',
+          'order_details',
+          columns: ['quantity'],
+          where: 'productName = ?',
           whereArgs: [SellectedproductName],
         );
 
