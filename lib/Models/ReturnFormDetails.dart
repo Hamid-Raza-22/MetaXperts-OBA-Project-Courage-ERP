@@ -26,7 +26,7 @@ class ReturnFormDetailsModel {
       bookerId: json['bookerId'],
       reason: json['reason'],
       quantity: json['quantity'],
-      //returnAmount: json['returnAmount']
+     // returnAmount: json['returnAmount']
     );
   }
 
@@ -38,7 +38,7 @@ class ReturnFormDetailsModel {
       'bookerId':bookerId,
       'reason': reason,
       'quantity': quantity,
-    //  'returnAmount':returnAmount
+     //'returnAmount':returnAmount
     };
   }
 }

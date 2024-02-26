@@ -733,15 +733,15 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           height: 150,
                           width: 150,
                           child: ElevatedButton(
-                            onPressed: () {
-                              if (isClockedIn) {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => ReturnFormPage()));
-                              } else {
+                            onPressed: () async{
+                              final bool isConnected = await InternetConnectionChecker().hasConnection;
+
+                              if (!isClockedIn) {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: Text('Clock In Required'),
-                                    content: Text('Please clock in before accessing the Return Form.'),
+                                    content: Text('Please clock in before accessing the Recovery.'),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context),
@@ -750,6 +750,26 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                     ],
                                   ),
                                 );
+                              } else if (!isConnected) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Internet Data Required'),
+                                    content: Text('Please check your internet connection before accessing the Recovery.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                DatabaseOutputs outputs = DatabaseOutputs();
+                                //outputs.checkFirstRun();
+
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => ReturnFormPage()));
                               }
                             },
                             child: Column(
@@ -1083,12 +1103,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
 
   Future<bool> isInternetConnected() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    bool isConnected = connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi;
-
+    bool isConnected = await InternetConnectionChecker().hasConnection;
     print('Internet Connected: $isConnected');
-
     return isConnected;
   }
 

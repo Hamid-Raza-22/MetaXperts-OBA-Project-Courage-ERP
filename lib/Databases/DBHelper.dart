@@ -1185,7 +1185,6 @@ _onCreate(Database db, int version) async {
           reason: i['reason'].toString(),
           quantity: i['quantity'].toString(),
           bookerId: i['bookerId'].toString(),
-
         );
         var result = await api.masterPost(v.toMap(),
             'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');

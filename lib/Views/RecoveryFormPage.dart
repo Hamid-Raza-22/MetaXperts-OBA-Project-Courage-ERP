@@ -201,6 +201,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     setState(() {
       // Update the current balance field with the calculated net balance
       recoveryFormCurrentBalance = netBalance;
+      globalnetBalance = netBalance;
       _currentBalanceController.text = recoveryFormCurrentBalance.toString();
     });
   }

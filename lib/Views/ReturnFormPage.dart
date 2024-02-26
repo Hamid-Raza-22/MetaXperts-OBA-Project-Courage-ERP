@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:nanoid/async.dart';
@@ -14,6 +15,7 @@ import '../View_Models/OrderViewModels/ReturnFormDetailsViewModel.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'HomePage.dart';
+import 'RecoveryFormPage.dart';
 
 class ProductController extends GetxController {
   final DBHelper dbHelper = DBHelper();
@@ -30,6 +32,11 @@ class TypeAheadController extends TextEditingController {
   bool isSelectionFromSuggestion = false;
 }
 
+void main() {
+  runApp(MaterialApp(
+    home: ReturnFormPage(),
+  ));
+}
 
 class ReturnFormPage extends StatefulWidget {
   @override
@@ -52,6 +59,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   List<String> dropdownItems2 = [];
   List<Map<String, dynamic>> productOwners = [];
   DBHelper dbHelper = DBHelper();
+  double? amountControllerNetBalance;
   TextEditingController amountController = TextEditingController();
 
   final ProductController productController = Get.put(ProductController());
@@ -77,7 +85,6 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     fetchProductDataForSelectedShop(_selectedShopController.text);
   }
 
-
   double calculateTotalAmount() {
     double totalAmount = 0.0;
 
@@ -95,14 +102,23 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       }
     }
 
-    amountController.text = totalAmount.toString();  // Set the total amount to the controller
+    amountController.text = totalAmount.toString(); // Set the total amount to the controller
+
     return totalAmount;
+  }
+  Future<void> netbalance() async {
+    double? amount = double.tryParse(amountController.text);
+    if (amount != null) {
+      amountControllerNetBalance = (globalnetBalance! >= amount) ? 0.0 : 0.0;
+    } else {
+      print("Error: amountController.text is not a valid number.");
+    }
   }
 
 
   Future<void> updateQuantityField(String selectedProductName,
       int index) async {
-    String? quantity = await fetchQuantityForProduct();
+    String? quantity = await fetchQuantityForProduct(selectedProductName);
     if (quantity != null) {
       setState(() {
         qtyControllers[index].text = quantity;
@@ -111,7 +127,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   }
   Future<void> updatePriceField(String selectedProductName,
       int index) async {
-    String? price = await fetchPriceForProduct();
+    String? price = await fetchPriceForProduct(selectedProductName);
     if (price != null) {
       setState(() {
         priceControllers[index].text = price;
@@ -366,8 +382,10 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         firstController.isSelectionFromSuggestion = true;
                       });
                       await updateQuantityField(suggestion, index);
+                      print(globalnetBalance);
                        await updatePriceField(suggestion, index);
                        await calculateTotalAmount();
+                       await netbalance();
                     },
                     textFieldConfiguration: TextFieldConfiguration(
                       decoration: InputDecoration(
@@ -387,7 +405,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                 height: 50,
                 width: 50,
                 child: TextFormField(
-                  controller: priceController,
+                  controller: qtyController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5.0),
@@ -520,8 +538,11 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       padding: const EdgeInsets.all(20.0),
       child: ElevatedButton(
         onPressed: () async {
-          if (isFormValid()) {
-            await calculateTotalAmount();
+          await calculateTotalAmount();
+          double? amount = double.tryParse(amountController.text);
+
+          if (isFormValid() && globalnetBalance!>=amount!) {
+
             // Your existing code for submission
             var id = await customAlphabet('1234567890', 5);
             returnformViewModel.addReturnForm(ReturnFormModel(
@@ -530,9 +551,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
               date: _getCurrentDate(),
               returnAmount: amountController.text,
               bookerId: userId,
-              bookerName: userNames,
-             // returnAmount : amountController.text
-
+              bookerName: userNames
             ));
 
             String visitid = await returnformViewModel.fetchLastReturnFormId();
@@ -547,14 +566,15 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                   productName: firstTypeAheadControllers[i].text,
                   reason: secondTypeAheadControllers[i].text,
                   quantity: qtyControllers[i].text,
-                  bookerId: userId,
+                 bookerId: userId,
+                // returnAmount: amountController.text,
                 ),
               );
             }
 
             DBHelper dbreturnform = DBHelper();
-             dbreturnform.postReturnFormTable();
-             dbreturnform.postReturnFormDetails();
+            await dbreturnform.postReturnFormTable();
+             await dbreturnform.postReturnFormDetails();
 
             onCreatee();
 
@@ -566,6 +586,13 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           } else {
             // Show an error message or handle invalid form case
             print('Invalid form. Please check your inputs.');
+            Fluttertoast.showToast(
+              msg: 'Please Enter Quantity Lower Than The Current Balance',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+            );
           }
         },
         style: ElevatedButton.styleFrom(
@@ -617,20 +644,20 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     secondTypeAheadControllers.add(TextEditingController());
   }
 
-  Future<String?> fetchQuantityForProduct() async {
+  Future<String?> fetchQuantityForProduct(String productName) async {
     try {
       final Database? db = await productController.dbHelper.db;
 
       if (db != null) {
         final List<Map<String, dynamic>> result = await db.query(
-          'order_details',
-          columns: ['quantity'],
-          where: 'productName = ?',
-          whereArgs: [SellectedproductName],
+          'orderDetailsData',
+          columns: ['quantity_booked'],
+          where: 'product_name = ? AND order_no = ?',
+          whereArgs: [productName,selectedorderno ],
         );
 
         if (result.isNotEmpty) {
-          return result[0]['quantity'].toString();
+          return result[0]['quantity_booked'].toString();
         } else {
           return null; // Handle the case where quantity is not found
         }
@@ -643,7 +670,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     }
   }
 
-  Future<String?> fetchPriceForProduct() async {
+  Future<String?> fetchPriceForProduct(String productName) async {
     try {
       final Database? db = await productController.dbHelper.db;
 
@@ -651,8 +678,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
         final List<Map<String, dynamic>> result = await db.query(
           'orderDetailsData',
           columns: ['price'],
-          where: 'product_name = ?',
-          whereArgs: [SellectedproductName],
+          where: 'product_name = ? AND order_no = ?',
+          whereArgs: [productName,selectedorderno ],
         );
 
         if (result.isNotEmpty) {
