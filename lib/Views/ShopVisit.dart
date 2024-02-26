@@ -837,19 +837,19 @@ class _ShopVisitState extends State<ShopVisit> {
                             // }
 
                             // Check if there are any non-zero quantity items
-                            if (stockCheckItemsList.isEmpty) {
-                              Fluttertoast.showToast(
-                                msg: 'Please enter quantities greater than zero before proceeding.',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                              );
-                              setState(() {
-                                isButtonPressed = false;
-                              });
-                              return;
-                            }
+                            // if (stockCheckItemsList.isEmpty) {
+                            //   Fluttertoast.showToast(
+                            //     msg: 'Please enter quantities greater than zero before proceeding.',
+                            //     toastLength: Toast.LENGTH_SHORT,
+                            //     gravity: ToastGravity.BOTTOM,
+                            //     backgroundColor: Colors.red,
+                            //     textColor: Colors.white,
+                            //   );
+                            //   setState(() {
+                            //     isButtonPressed = false;
+                            //   });
+                            //   return;
+                            // }
 
                             // Call the method to add stock check items to the database
                             for (var stockCheckItems in stockCheckItemsList) {
@@ -1010,20 +1010,36 @@ class _ShopVisitState extends State<ShopVisit> {
                             await shopisitViewModel.fetchLastShopVisitId();
                             shopVisitId = int.parse(visitId);
 
-                            // List<Map<String, dynamic>> stockCheckItemsDetails = [];
-                            // for (var stockCheckItem in stockCheckItems) {
-                            //   String selectedItem =
-                            //       stockCheckItem.itemDescriptionController.text;
-                            //   int quantity =
-                            //       int.tryParse(stockCheckItem.qtyController.text) ?? 0;
-                            //
-                            //   stockCheckItemsDetails.add({
-                            //     'selectedItem': selectedItem,
-                            //     'quantity': quantity,
-                            //   });
-                            // }
-                            //
-                            // saveStockCheckItems();
+                            // Extract data from DataTable rows with non-zero quantities
+                            //List<Map<String, dynamic>> rowDataDetails = [];
+
+                            List<StockCheckItemsModel> stockCheckItemsList = [];
+                            SharedPreferences prefs = await SharedPreferences.getInstance();
+
+                            for (int i = 0; i < (filteredRows.isNotEmpty ? filteredRows : productsController.rows).length; i++) {
+                              DataRow row = (filteredRows.isNotEmpty ? filteredRows : productsController.rows)[i];
+                              String itemDesc = row.cells[0].child?.toString() ?? '';
+                              String qty = productsController.controllers[i].text; // Get the value from the controller
+
+                              // Only add the item if qty is not null or empty
+                              if (int.parse(qty) != 0) {
+                                stockCheckItemsList.add(
+                                  StockCheckItemsModel(
+                                    shopvisitId: shopVisitId,
+                                    itemDesc: itemDesc,
+                                    qty: qty,
+                                  ),
+                                );
+
+                                // Store itemDesc and qty into SharedPreferences
+                                await prefs.setString('itemDesc$i', itemDesc);
+                                await prefs.setString('qty$i', qty);
+                                // Print itemDesc and qty
+                                print('itemDesc$i: $itemDesc');
+                                print('qty$i: $qty');
+                              }
+                            }
+
 
                             DBHelper dbshop = DBHelper();
 

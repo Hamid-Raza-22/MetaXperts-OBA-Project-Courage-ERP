@@ -57,6 +57,7 @@ class Productss extends GetxController {
         double rate = double.parse(product.price ?? '0');
         int quantityValue = int.tryParse(controller.text) ?? 0;
         amounts[product]!.value = rate * quantityValue;
+        calculateTotal();
       });
 
       focusNode.addListener(() {
@@ -79,20 +80,27 @@ class Productss extends GetxController {
           },
         )),
         // DataCell(Text(product.quantity ?? '0')),
-        DataCell(Text(product.quantity??'$qty')),
-        DataCell(Text(product.price??'0')),// Set the saved quantity here
+        DataCell(Text(product.quantity ?? '$qty')),
+        DataCell(Text(product.price ?? '0')), // Set the saved quantity here
         DataCell(Obx(() => Text(amounts[product]!.value.toString()))),
       ]));
     }
   }
 
-  void updateTotal() {
-    double total = 0.0;
+  void calculateTotal() {
+    double totalAmount = 0.0;
     for (var amount in amounts.values) {
-      total += amount.value;
+      totalAmount += amount.value;
     }
-    _totalController.text = total.toString();
+    total.value = totalAmount.toString();
   }
+  bool isQuantityZeroAtIndex(int index) {
+    if (index < 0 || index >= quantityControllers.length) {
+      throw RangeError('Index out of range');
+    }
+    return int.tryParse(quantityControllers[index].text) == 0;
+  }
+
 }
 
 
@@ -174,6 +182,9 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
  fetchAllProducts();
     super.initState();
     fetchAllProducts();
+    productsController.total.listen((total) {
+   _totalController.text = total; // Update the total controller when the total changes
+     });
     _searchController = TextEditingController();
     addNewRow();
     addNewRow();
@@ -214,32 +225,32 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     }
     super.dispose();
   }
-  void _calculateTotal() {
-
-
-    dynamic totalAmount = productsController._totalController.text;
-    List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
-    var t1= productsController.updateTotal();
-    for (int i = 0; i < rows.length; i++) {
-      DataRow row = rows[i];
-      String? qty =  productsController.quantityControllers[i].text;
-      String? rate = (row.cells[2].child as Text).data!;
-
-      if (qty != null && rate != null) {
-        try {
-          int qtyValue = int.tryParse(qty) ?? 0;
-          int rateValue = int.tryParse(rate) ?? 0;
-          totalAmount += qtyValue * rateValue;
-        } catch (e) {
-          // Handle parsing errors if needed
-        }
-      }
-    }
-
-    setState(() {
-      _totalController.text = totalAmount.toString();
-    });
-  }
+  // void _calculateTotal() {
+  //
+  //
+  //   dynamic totalAmount = productsController._totalController.text;
+  //   List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
+  //   var t1= productsController.updateTotal();
+  //   for (int i = 0; i < rows.length; i++) {
+  //     DataRow row = rows[i];
+  //     String? qty =  productsController.quantityControllers[i].text;
+  //     String? rate = (row.cells[2].child as Text).data!;
+  //
+  //     if (qty != null && rate != null) {
+  //       try {
+  //         int qtyValue = int.tryParse(qty) ?? 0;
+  //         int rateValue = int.tryParse(rate) ?? 0;
+  //         totalAmount += qtyValue * rateValue;
+  //       } catch (e) {
+  //         // Handle parsing errors if needed
+  //       }
+  //     }
+  //   }
+  //
+  //   setState(() {
+  //     _totalController.text = totalAmount.toString();
+  //   });
+  // }
 
 
 
@@ -317,7 +328,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                     SizedBox(height: 10),
                     buildTextFormField('Brand', _brandNameController,readOnly: true),
                     SizedBox(height: 10),
-                    for (var i = 0; i < rowDataList.length; i++) buildRow(rowDataList[i], i + 1),
+                   // for (var i = 0; i < rowDataList.length; i++) buildRow(rowDataList[i], i + 1),
                     SizedBox(height: 20),
                     Column(
                       children: [
@@ -382,24 +393,24 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                         ),
                       ],
                     ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: ElevatedButton(
-                        onPressed: () async{
-                          await fetchAllProducts();
-
-                          addNewRow();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepOrange,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ),
-                        child: Text('Add Products'),
-                      ),
-                    ),
+                    // Align(
+                    //   alignment: Alignment.center,
+                    //   child: ElevatedButton(
+                    //     onPressed: () async{
+                    //       await fetchAllProducts();
+                    //
+                    //       addNewRow();
+                    //     },
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: Colors.deepOrange,
+                    //       foregroundColor: Colors.white,
+                    //       shape: RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.circular(5),
+                    //       ),
+                    //     ),
+                    //     child: Text('Add Products'),
+                    //   ),
+                    // ),
                     buildTextFormField('Total', _totalController, readOnly: true),
 
 
@@ -418,6 +429,13 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                       alignment: Alignment.center,
                       child: ElevatedButton(
                         onPressed: () async {
+                          bool isAnyQuantityZero = false;
+                        for (int index = 0; index < productsController.quantityControllers.length; index++) {
+                          if (productsController.isQuantityZeroAtIndex(index)) {
+                            isAnyQuantityZero = true;
+                            break;
+                          }
+                        }
                           // Check if credit limit is in the list
                           if (_ShopNameController.text.isNotEmpty &&
                               _ownerNameController.text.isNotEmpty &&
@@ -429,14 +447,14 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               ['7 Days','15 Days', '30 Days', 'On Cash'].contains(_creditLimitController.text) &
                               // _discountController.text.isNotEmpty &&
                               // _subTotalController.text.isNotEmpty &&
-                              _requiredDeliveryController.text.isNotEmpty &&
-
+                              _requiredDeliveryController.text.isNotEmpty )
                               // Add additional checks for other required fields
-                              rowDataList.every((rowData) =>
-                              rowData.selectedProduct != null &&
-                                  rowData.qtyController.text.isNotEmpty &&
-                                  rowData.rateController.text.isNotEmpty &&
-                                  rowData.amountController.text.isNotEmpty)) {
+                              // rowDataList.every((rowData) =>
+                              // rowData.selectedProduct != null &&
+                              //     rowData.qtyController.text.isNotEmpty &&
+                              //     rowData.rateController.text.isNotEmpty &&
+                              //     rowData.amountController.text.isNotEmpty))
+                          {
 
 
 
@@ -478,11 +496,19 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               }
 
                             }
+                            // Check if there are any non-zero quantity items
+                            if (rowDataDetails.isEmpty) {
+                              Fluttertoast.showToast(
+                                msg: 'Please enter quantities greater than zero before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
 
-                            DBHelper dbmaster = DBHelper();
+                              return;
+                            }
 
-
-                            await dbmaster.postOrderDetails();
 
                             Map<String, dynamic> dataToPass = {
                               'shopName': _ShopNameController.text,
@@ -1106,7 +1132,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
         int amount = qtyValue * rateValue;
         amountController.text = amount.toString();
         // After calculating individual amounts, recalculate the total
-        _calculateTotal();
+        //_calculateTotal();
         _calculateSubTotal();
         _calculateBalance();
       } catch (e) {

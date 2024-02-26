@@ -34,6 +34,7 @@ class  RecoveryFormModel {
       userId: json['userId'],
       bookerName: json['bookerName']
 
+
     );
   }
 

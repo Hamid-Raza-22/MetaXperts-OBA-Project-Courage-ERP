@@ -13,6 +13,7 @@ import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
+import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'OrderBookingStatus.dart';
@@ -215,7 +216,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           //_stopListening();
           //stopListeningnew();
           //await saveGPXFile();
-          await postFile();
+          //await postFile();
           await prefs.remove('clockInId');
         });
       }
@@ -624,28 +625,28 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                             // if (isClockedIn) {
+                              if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ShopPage(),
                                   ),
                                 );
-                            //   } else {
-                            //     showDialog(
-                            //       context: context,
-                            //       builder: (context) => AlertDialog(
-                            //         title: Text('Clock In Required'),
-                            //         content: Text('Turn on location.'),
-                            //         actions: [
-                            //           TextButton(
-                            //             onPressed: () => Navigator.pop(context),
-                            //             child: Text('OK'),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     );
-                            //   }
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Clock In Required'),
+                                    content: Text('Turn on location.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -678,28 +679,28 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              // if (isClockedIn) {
+                               if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ShopVisit(onBrandItemsSelected: (String) {}),
                                   ),
                                 );
-                            //   } else {
-                            //     showDialog(
-                            //       context: context,
-                            //       builder: (context) => AlertDialog(
-                            //         title: Text('Clock In Required'),
-                            //         content: Text('Please clock in before visiting a shop.'),
-                            //         actions: [
-                            //           TextButton(
-                            //             onPressed: () => Navigator.pop(context),
-                            //             child: Text('OK'),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     );
-                            //   }
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Clock In Required'),
+                                    content: Text('Please clock in before visiting a shop.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                              },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -733,23 +734,23 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                             // if (isClockedIn) {
+                              if (isClockedIn) {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => ReturnFormPage()));
-                              // } else {
-                              //   showDialog(
-                              //     context: context,
-                              //     builder: (context) => AlertDialog(
-                              //       title: Text('Clock In Required'),
-                              //       content: Text('Please clock in before accessing the Return Form.'),
-                              //       actions: [
-                              //         TextButton(
-                              //           onPressed: () => Navigator.pop(context),
-                              //           child: Text('OK'),
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   );
-                              // }
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Clock In Required'),
+                                    content: Text('Please clock in before accessing the Return Form.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -786,7 +787,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
                               final bool isConnected = await InternetConnectionChecker().hasConnection;
 
-                              if (!isConnected) {
+                              if (!isClockedIn) {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -945,45 +946,45 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       ),
     );
   }
-  Future<void> postFile() async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    double totalDistance = pref.getDouble("TotalDistance") ?? 0.0;
-    final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-    final downloadDirectory = await getDownloadsDirectory();
-    final filePath = File('${downloadDirectory?.path}/track$date.gpx');
-
-    if (!filePath.existsSync()) {
-      print('File does not exist');
-      return;
-    }
-    var request = http.MultipartRequest("POST",
-        Uri.parse("https://webhook.site/f01bcf9e-c9df-482c-868d-b1c6da295a6c"));
-    var gpxFile = await http.MultipartFile.fromPath(
-        'body', filePath.path);
-    request.files.add(gpxFile);
-
-    // Add other fields if needed
-    request.fields['userId'] = userId;
-    request.fields['userName'] = userNames;
-    request.fields['fileName'] = "${_getFormattedDate1()}.gpx";
-    request.fields['date'] = _getFormattedDate1();
-    request.fields['totalDistance'] = totalDistance.toString(); // Add totalDistance as a field
-
-    try {
-      var response = await request.send();
-      if (response.statusCode == 200) {
-        var responseData = await response.stream.toBytes();
-        var result = String.fromCharCodes(responseData);
-        print("Results: Post Successfully");
-       //deleteGPXFile();
-        pref.setDouble("TotalDistance", 0.0);
-      } else {
-        print("Failed to upload file. Status code: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error: $e");
-    }
-  }
+  // Future<void> postFile() async {
+  //   SharedPreferences pref = await SharedPreferences.getInstance();
+  //   double totalDistance = pref.getDouble("TotalDistance") ?? 0.0;
+  //   final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  //   final downloadDirectory = await getDownloadsDirectory();
+  //   final filePath = File('${downloadDirectory?.path}/track$date.gpx');
+  //
+  //   if (!filePath.existsSync()) {
+  //     print('File does not exist');
+  //     return;
+  //   }
+  //   var request = http.MultipartRequest("POST",
+  //       Uri.parse("https://webhook.site/f01bcf9e-c9df-482c-868d-b1c6da295a6c"));
+  //   var gpxFile = await http.MultipartFile.fromPath(
+  //       'body', filePath.path);
+  //   request.files.add(gpxFile);
+  //
+  //   // Add other fields if needed
+  //   request.fields['userId'] = userId;
+  //   request.fields['userName'] = userNames;
+  //   request.fields['fileName'] = "${_getFormattedDate1()}.gpx";
+  //   request.fields['date'] = _getFormattedDate1();
+  //   request.fields['totalDistance'] = totalDistance.toString(); // Add totalDistance as a field
+  //
+  //   try {
+  //     var response = await request.send();
+  //     if (response.statusCode == 200) {
+  //       var responseData = await response.stream.toBytes();
+  //       var result = String.fromCharCodes(responseData);
+  //       print("Results: Post Successfully");
+  //      //deleteGPXFile();
+  //       pref.setDouble("TotalDistance", 0.0);
+  //     } else {
+  //       print("Failed to upload file. Status code: ${response.statusCode}");
+  //     }
+  //   } catch (e) {
+  //     print("Error: $e");
+  //   }
+  // }
 
   // Future<void> deleteGPXFile() async {
   //     try {

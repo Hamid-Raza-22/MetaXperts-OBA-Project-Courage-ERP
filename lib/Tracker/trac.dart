@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/Globals.dart';
+import 'package:http/http.dart' as http;
 
 var gpx;
 var track;
@@ -37,5 +41,52 @@ void startTimerFromSavedTime() {
     await prefs.setInt('secondsPassed', secondsPassed);
     print("Loaded Saved Time");
   });
+}
+
+
+Future<void> postFile() async {
+  SharedPreferences pref = await SharedPreferences.getInstance();
+  double totalDistance = pref.getDouble("TotalDistance") ?? 0.0;
+  final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  final downloadDirectory = await getDownloadsDirectory();
+  final filePath = File('${downloadDirectory?.path}/track$date.gpx');
+
+  if (!filePath.existsSync()) {
+    print('File does not exist');
+    return;
+  }
+  var request = http.MultipartRequest("POST",
+      Uri.parse("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/"));
+  var gpxFile = await http.MultipartFile.fromPath(
+      'body', filePath.path);
+  request.files.add(gpxFile);
+
+  // Add other fields if needed
+  request.fields['userId'] = userId;
+  request.fields['userName'] = userNames;
+  request.fields['fileName'] = "${_getFormattedDate1()}.gpx";
+  request.fields['date'] = _getFormattedDate1();
+  request.fields['totalDistance'] = "${totalDistance.toString()} KM"; // Add totalDistance as a field
+
+  try {
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      var responseData = await response.stream.toBytes();
+      var result = String.fromCharCodes(responseData);
+      print("Results: Post Successfully");
+      //deleteGPXFile();
+      pref.setDouble("TotalDistance", 0.0);
+    } else {
+      print("Failed to upload file. Status code: ${response.statusCode}");
+    }
+  } catch (e) {
+    print("Error: $e");
+  }
+}
+
+String _getFormattedDate1() {
+  final now = DateTime.now();
+  final formatter = DateFormat('dd-MMM-yyyy  [hh:mm a] ');
+  return formatter.format(now);
 }
 // Total distance is stored in the shared Prefernces "TotalDistance" when the user clock out.

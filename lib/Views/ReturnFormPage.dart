@@ -533,7 +533,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
               date: _getCurrentDate(),
               returnAmount: amountController.text,
               bookerId: userId,
-              bookerName: userNames
+              bookerName: userNames,
+             // returnAmount : amountController.text
+
             ));
 
             String visitid = await returnformViewModel.fetchLastReturnFormId();
@@ -548,8 +550,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                   productName: firstTypeAheadControllers[i].text,
                   reason: secondTypeAheadControllers[i].text,
                   quantity: qtyControllers[i].text,
-                 bookerId: userId
-                 // returnAmount: amountController.text,
+                  bookerId: userId,
                 ),
               );
             }
@@ -625,9 +626,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
       if (db != null) {
         final List<Map<String, dynamic>> result = await db.query(
-          'order_details',
-          columns: ['quantity'],
-          where: 'productName = ?',
+          'orderDetailsData',
+          columns: ['quantity_booked'],
+          where: 'product_name = ?',
           whereArgs: [productName],
         );
 
