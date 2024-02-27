@@ -99,7 +99,7 @@ dependencies:
   internet_connection_checker: ^0.0.1+2
   location00:
     git:
-      url: https://github.com/abd143685/location3.git
+      url: https://github.com/IqraMalik8585/Location-27-feb.git
   flutter_easyloading: ^3.0.5
 
 
