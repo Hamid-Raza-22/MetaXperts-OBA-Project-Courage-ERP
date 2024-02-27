@@ -134,13 +134,13 @@ class _ShopPageState extends State<ShopPage> {
 
   Future<void> _checkUserIdAndFetchShopNames() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId');
+    String? userDesignation = prefs.getString('userDesignation');
 
-    if (userId != 'B0001' && userId != 'B0006' && userId != 'B0004') {
+    if (userDesignation != 'ASM') {
       await fetchShopNames();
       setState(() {
         cityController.text = 'Sialkot';
-        distributorNameController.text = 'M.A Traders Sialkot';
+      //  distributorNameController.text = 'M.A Traders Sialkot';
       });
 
     } else {
@@ -377,56 +377,56 @@ class _ShopPageState extends State<ShopPage> {
                             ),
                             const SizedBox(height: 10),
 
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Distributor Name',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                TypeAheadFormField(
-                                  textFieldConfiguration: TextFieldConfiguration(
-                                    controller: distributorNameController,
-                                    decoration: InputDecoration(
-                                      contentPadding:
-                                      EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                                      labelText: 'Enter Distributor Name',
-                                      floatingLabelBehavior: FloatingLabelBehavior.never,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(5.0),
-                                      ),
-                                    ),
-                                  ),
-                                  suggestionsCallback: (pattern) {
-                                    // Your suggestions callback for distributor names
-                                    // Replace this with your actual distributor names suggestions logic
-                                    return dropdownItems
-                                    .where((distributor) =>
-                                        distributor.toLowerCase().contains(pattern.toLowerCase())).toList();
-                                  },
-                                  itemBuilder: (context, suggestion) {
-                                    // Your itemBuilder for distributor names
-                                    // Replace this with your actual distributor names itemBuilder logic
-                                    return ListTile(
-                                      title: Text(suggestion),
-                                    );
-                                  },
-                                  onSuggestionSelected: (suggestion) {
-                                    // Your onSuggestionSelected for distributor names
-                                    // Replace this with your actual onSuggestionSelected logic
-                                  },
-                                ),
-                              ],
-                            ),
+                            // Column(
+                            //   crossAxisAlignment: CrossAxisAlignment.start,
+                            //   children: [
+                            //     const Align(
+                            //       alignment: Alignment.centerLeft,
+                            //       child: Text(
+                            //         'Distributor Name',
+                            //         style: TextStyle(
+                            //           fontSize: 18,
+                            //           color: Colors.black,
+                            //           fontWeight: FontWeight.bold,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     TypeAheadFormField(
+                            //       textFieldConfiguration: TextFieldConfiguration(
+                            //         controller: distributorNameController,
+                            //         decoration: InputDecoration(
+                            //           contentPadding:
+                            //           EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                            //           labelText: 'Enter Distributor Name',
+                            //           floatingLabelBehavior: FloatingLabelBehavior.never,
+                            //           border: OutlineInputBorder(
+                            //             borderRadius: BorderRadius.circular(5.0),
+                            //           ),
+                            //         ),
+                            //       ),
+                            //       suggestionsCallback: (pattern) {
+                            //         // Your suggestions callback for distributor names
+                            //         // Replace this with your actual distributor names suggestions logic
+                            //         return dropdownItems
+                            //         .where((distributor) =>
+                            //             distributor.toLowerCase().contains(pattern.toLowerCase())).toList();
+                            //       },
+                            //       itemBuilder: (context, suggestion) {
+                            //         // Your itemBuilder for distributor names
+                            //         // Replace this with your actual distributor names itemBuilder logic
+                            //         return ListTile(
+                            //           title: Text(suggestion),
+                            //         );
+                            //       },
+                            //       onSuggestionSelected: (suggestion) {
+                            //         // Your onSuggestionSelected for distributor names
+                            //         // Replace this with your actual onSuggestionSelected logic
+                            //       },
+                            //     ),
+                            //   ],
+                            // ),
 
-                            const SizedBox(height: 10),
+                           // const SizedBox(height: 10),
 
                             // Text Field 2 - Shop Address
                             Column(

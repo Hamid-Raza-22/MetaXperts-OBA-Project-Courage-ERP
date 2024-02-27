@@ -125,6 +125,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       userId = prefs.getString('userId') ?? '';
       userNames = prefs.getString('userNames') ?? '';
       userCitys = prefs.getString('userCitys') ?? '';
+      userDesignation = prefs.getString('userDesignation') ?? '';
     });
   }
   Future<void> _toggleClockInOut() async {

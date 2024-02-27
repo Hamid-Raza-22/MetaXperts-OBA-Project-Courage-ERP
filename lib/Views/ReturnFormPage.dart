@@ -587,7 +587,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
             // Show an error message or handle invalid form case
             print('Invalid form. Please check your inputs.');
             Fluttertoast.showToast(
-              msg: 'Please Enter Quantity Lower Than The Current Balance',
+              msg: 'Please Enter Quantity Lower Than The Current Balance          ',
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.BOTTOM,
               backgroundColor: Colors.red,

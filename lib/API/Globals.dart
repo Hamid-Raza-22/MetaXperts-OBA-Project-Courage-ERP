@@ -5,6 +5,8 @@ import 'package:order_booking_shop/Databases/DBHelper.dart';
 DBHelper dbHelper = DBHelper();
 String SellectedproductName= "";
 double? globalnetBalance;
+String selectedShopCity= '';
+String userDesignation = "";
 int? highestSerial;
 int? RecoveryhighestSerial;
 String userNames = "";

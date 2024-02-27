@@ -18,6 +18,7 @@ class OrderMasterModel {
   dynamic? payment;
   dynamic? balance;
   dynamic? requiredDelivery;
+  dynamic? shopCity;
 
   OrderMasterModel({
 
@@ -29,6 +30,7 @@ class OrderMasterModel {
     this.brand,
     this.userId,
     this.userName,
+    this.shopCity,
 
     this.creditLimit,
     // this.discount,
@@ -51,6 +53,7 @@ class OrderMasterModel {
         userName: json['userName'],
 
       total: json['total'],
+      shopCity: json['shopCity'],
       // subTotal: json['subTotal'],
       //
       // discount: json['discount'],
@@ -71,6 +74,7 @@ class OrderMasterModel {
       'userId': userId,
       'userName': userName,
       'total': total,
+      'shopCity': shopCity,
       'creditLimit': creditLimit,
       // 'discount': discount,
       //

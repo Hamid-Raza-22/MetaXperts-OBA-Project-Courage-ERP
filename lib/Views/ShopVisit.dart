@@ -88,8 +88,6 @@ class _ShopVisitState extends State<ShopVisit> {
   String selectedShopOrderNo = '';
   List<Map<String, dynamic>> shopOwners = [];
   final Products productsController = Get.put(Products());
-
-
   DBHelper dbHelper = DBHelper();
   List<String> dropdownItems5 = [];
   List<String> dropdownItems = [];
@@ -178,9 +176,9 @@ class _ShopVisitState extends State<ShopVisit> {
 
   Future<void> _checkUserIdAndFetchShopNames() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId');
+    String? userDesignation = prefs.getString('userDesignation');
 
-    if (userId == 'B0001' || userId == 'B0006' || userId == 'B0004') {
+    if (userDesignation == 'ASM') {
       await fetchShopNames1();
     } else {
       await fetchShopNames();
@@ -398,6 +396,8 @@ class _ShopVisitState extends State<ShopVisit> {
                                 setState(() {
                                   selectedShopOwner = owner['owner_name'];
                                   selectedOwnerContact = owner['phone_no'];
+                                  selectedShopCity= owner['city'];
+                                  print(selectedShopCity);
                                 });
                               }
                             }

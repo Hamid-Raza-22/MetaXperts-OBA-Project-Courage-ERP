@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui';
 import 'package:background_locator_2/background_locator.dart';
 import 'package:background_locator_2/callback_dispatcher.dart';
@@ -14,9 +15,11 @@ import 'package:flutter_background_service_android/flutter_background_service_an
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart' as gp;
 import 'package:get/get.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:order_booking_shop/Tracker/trac.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
+import 'API/DatabaseOutputs.dart';
 import 'API/Globals.dart';
 import 'Databases/DBHelper.dart';
 import 'Views/splash_screen.dart';
@@ -28,6 +31,7 @@ import 'package:location00/location00.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   // AndroidAlarmManager.initialize();
   //
   // // Initialize the FlutterBackground plugin
@@ -37,6 +41,7 @@ Future<void> main() async {
   // await FlutterBackground.enableBackgroundExecution();
 
   // Initialize the service
+  await initializeServiceBackGroundData();
   await initializeServiceLocation();
 
   // Ensure Firebase is initialized before running the app
@@ -53,6 +58,8 @@ Future<void> main() async {
     ),
   );
 }
+
+
 
 void callbackDispatcher(){
   Workmanager().executeTask((task, inputData) async {
@@ -105,6 +112,56 @@ Future<void> initializeServiceLocation() async {
   );
 }
 
+Future<void> initializeServiceBackGroundData() async {
+  final service = FlutterBackgroundService();
+
+  await service.configure(
+    androidConfiguration: AndroidConfiguration(
+      onStart: onStart1,
+      autoStart: true,
+      isForegroundMode: false, // Change this to false
+    ),
+    iosConfiguration: IosConfiguration(
+      autoStart: true,
+      onForeground: onStart1,
+    ),
+  );
+}
+
+@pragma('vm:entry-point')
+void onStart1(ServiceInstance service) async {
+  DartPluginRegistrant.ensureInitialized();
+
+  Timer.periodic(const Duration(minutes: 10), (timer) async {
+    if (service is AndroidServiceInstance) {
+      if (await service.isForegroundService()) {
+        backgroundTask();
+      }
+    }
+    final deviceInfo = DeviceInfoPlugin();
+    String? device;
+
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      device = androidInfo.model;
+    }
+
+    if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      device = iosInfo.model;
+    }
+
+    service.invoke(
+      'update',
+      {
+        "current_date": DateTime.now().toIso8601String(),
+        "device": device,
+      },
+    );
+  });
+}
+
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
@@ -122,6 +179,7 @@ void onStart(ServiceInstance service) async {
 
     service.on('setAsBackground').listen((event) {
       service.setAsBackgroundService();
+      backgroundTask();
       //ls.listenLocation();
     });
   }
@@ -146,6 +204,7 @@ void onStart(ServiceInstance service) async {
   Timer.periodic(const Duration(seconds: 1), (timer) async {
     if (service is AndroidServiceInstance) {
       if (await service.isForegroundService()) {
+
         flutterLocalNotificationsPlugin.show(
           888,
           'COOL SERVICE',
@@ -176,7 +235,7 @@ void onStart(ServiceInstance service) async {
         // );
 
         service.setForegroundNotificationInfo(
-          title: "My App Service",
+          title: "ClockIn",
           content: "Timer ${_formatDuration(secondsPassed.toString())}",
         );
       }
@@ -219,15 +278,91 @@ String _formatDuration(String secondsString) {
 }
 
 
-Future<bool> isInternetConnected() async {
-  var connectivityResult = await Connectivity().checkConnectivity();
-  bool isConnected = connectivityResult == ConnectivityResult.mobile ||
-      connectivityResult == ConnectivityResult.wifi;
+backgroundTask() async {
 
-  print('Internet Connected: $isConnected');
+  try {
+    bool isConnected = await InternetConnectionChecker().hasConnection;
+    DatabaseOutputs outputs = DatabaseOutputs();
+    if (isConnected) {
+      print('Internet connection is available. Initiating background data synchronization.');
+      await synchronizeData();
+      await outputs.checkFirstRun();
 
-  return isConnected;
+  print('Background data synchronization completed.');
+    } else {
+      print('No internet connection available. Skipping background data synchronization.');
+    }
+  } catch (e) {
+    print('Error in backgroundTask: $e');
+  }
 }
+Future<void> synchronizeData() async {
+  print('Synchronizing data in the background.');
+  await postAttendanceTable();
+  await postAttendanceOutTable();
+  await postShopTable();
+  await postShopVisitData();
+  await postStockCheckItems();
+  await postMasterTable();
+  await postOrderDetails();
+  await postReturnFormTable();
+  await postReturnFormDetails();
+  await postRecoveryFormTable();
+}
+
+Future<void> postShopVisitData() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postShopVisitData();
+}
+
+Future<void> postStockCheckItems() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postStockCheckItems();
+}
+
+Future<void> postAttendanceOutTable() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postAttendanceOutTable();
+}
+
+Future<void> postAttendanceTable() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postAttendanceTable();
+}
+
+Future<void> postMasterTable() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postMasterTable();
+}
+
+Future<void> postOrderDetails() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postOrderDetails();
+}
+
+Future<void> postShopTable() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postShopTable();
+}
+
+Future<void> postReturnFormTable() async {
+  print('Attempting to post Return data');
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postReturnFormTable();
+  print('Return data posted successfully');
+}
+
+Future<void> postReturnFormDetails() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postReturnFormDetails();
+}
+
+Future<void> postRecoveryFormTable() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postRecoveryFormTable();
+}
+
+
 
 
 

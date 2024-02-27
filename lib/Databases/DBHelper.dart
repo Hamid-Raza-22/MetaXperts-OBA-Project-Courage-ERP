@@ -40,7 +40,7 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
     await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0)");
-    await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,posted INTEGER DEFAULT 0)");
+    await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,shopCity TEXT,posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,posted INTEGER DEFAULT 0,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
     await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT)");
     await db.execute("CREATE TABLE products(id NUMBER, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
@@ -484,10 +484,9 @@ _onCreate(Database db, int version) async {
             date: i['date'].toString(),
             userId: i['userId'].toString(),
             userName: i['userName'].toString(),
-
+            shopCity: i['shopCity'].toString(),
             total: i['total'].toString(),
             // subTotal: i['subTotal'].toString(),
-            //
             // discount: i['discount'].toString(),
             creditLimit: i['creditLimit'].toString(),
             requiredDelivery: i['requiredDelivery'].toString()
@@ -1496,6 +1495,21 @@ _onCreate(Database db, int version) async {
       }
     } catch (e) {
       print("Error fetching user city: $e");
+      return null;
+    }
+  }
+  Future<String?> getUserDesignation(String userId) async {
+    final Database db = await initDatabase();
+    try {
+      var results = await db.rawQuery("select designation from login where user_id = '$userId'");
+      if (results.isNotEmpty) {
+        // Explicitly cast to String
+        return results.first['designation'] as String?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching user designation: $e");
       return null;
     }
   }

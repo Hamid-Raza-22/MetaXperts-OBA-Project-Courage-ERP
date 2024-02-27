@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:order_booking_shop/API/DatabaseOutputs.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:order_booking_shop/Views/ShopListPage.dart';
@@ -53,20 +54,24 @@ class _LoginFormState extends State<LoginForm> {
     if (response == true) {
       var userName = await dblogin.getUserName(_emailController.text);
       var userCity = await dblogin.getUserCity(_emailController.text);
+      var designation = await dblogin.getUserDesignation(_emailController.text);
 
-      if (userName != null && userCity != null) {
-        print('User Name: $userName, City: $userCity');
+      if (userName != null && userCity != null && designation!= null) {
+        print('User Name: $userName, City: $userCity, Designation: $designation');
 
         // Store user inputs in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('userId', _emailController.text);
         prefs.setString('userNames', userName);
         prefs.setString('userCitys', userCity);
+        prefs.setString('userDesignation', designation);
 
         // Print saved values
         print('Saved userId: ${prefs.getString('userId')}');
         print('Saved userNames: ${prefs.getString('userNames')}');
         print('Saved userCitys: ${prefs.getString('userCitys')}');
+        print('Saved userDesignation: ${prefs.getString('userDesignation')}');
+
 
         Map<String, dynamic> dataToPass = {
           'userName': userName,
@@ -93,7 +98,8 @@ class _LoginFormState extends State<LoginForm> {
     String? userId = prefs.getString('userId');
     String? userNames = prefs.getString('userNames');
     String? userCitys = prefs.getString('userCitys');
-    return userId != null && userId.isNotEmpty && userCitys!=null && userCitys.isNotEmpty && userNames!=null && userNames.isNotEmpty;
+    String? userDesignation = prefs.getString('userDesignation');
+    return userDesignation!= null && userId != null && userId.isNotEmpty && userCitys!=null && userCitys.isNotEmpty && userNames!=null && userNames.isNotEmpty;
   }
 
 
@@ -236,11 +242,23 @@ class _LoginFormState extends State<LoginForm> {
                   height: 40,
                   width: 200,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      bool isConnected = await InternetConnectionChecker().hasConnection;
+                      if(isConnected){
                       _login();
                       // DatabaseOutputs outputs = DatabaseOutputs();
                       // outputs.checkFirstRun();
-                    },
+                    }else{
+                        Fluttertoast.showToast(
+                          msg: "No internet connection.",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                        );
+                      }
+                      },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.black,

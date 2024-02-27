@@ -201,6 +201,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   userName: userNames.toString(),
                                   total: total,
                                   creditLimit: creditLimit,
+                                  shopCity: selectedShopCity,
                                   // discount: discount,
                                   // subTotal: subTotal,
                                   requiredDelivery: requiredDelivery,

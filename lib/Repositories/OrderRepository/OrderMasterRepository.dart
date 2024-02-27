@@ -11,7 +11,7 @@ class OrderMasterRepository{
 
   Future<List<OrderMasterModel>> getShopVisit() async{
     var dbClient = await dbHelperOrderMaster.db;
-    List<Map> maps = await dbClient!.query('orderMaster',columns: ['orderId','date','shopName','ownerName','phoneNo','brand','userId','userName','total','creditLimit','requiredDelivery','posted']);
+    List<Map> maps = await dbClient!.query('orderMaster',columns: ['orderId','date','shopName','ownerName','phoneNo','brand','userId','userName','total','creditLimit','requiredDelivery','shopCity','posted']);
     List<OrderMasterModel> ordermaster = [];
     for(int i = 0; i<maps.length; i++)
     {
