@@ -860,6 +860,10 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     // Save the PDF to the device's storage
     final file = File(filePath);
     await file.writeAsBytes(await pdf.save());
+    // Create a temporary file in the directory
+    final output = File('${directory?.path}/order_summary_$OrderMasterid.pdf');
+    await output.writeAsBytes(await pdf.save());
+    await Share.shareFiles([output.path], text: 'PDFDocument');
     // Show toast message indicating PDF saved successfully
     Fluttertoast.showToast(
       msg: "PDF saved successfully at $filePath",

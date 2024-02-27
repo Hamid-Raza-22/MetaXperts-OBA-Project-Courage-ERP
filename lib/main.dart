@@ -41,7 +41,7 @@ Future<void> main() async {
   // await FlutterBackground.enableBackgroundExecution();
 
   // Initialize the service
-  await initializeServiceBackGroundData();
+  // await initializeServiceBackGroundData();
   await initializeServiceLocation();
 
   // Ensure Firebase is initialized before running the app
@@ -112,53 +112,54 @@ Future<void> initializeServiceLocation() async {
   );
 }
 
-Future<void> initializeServiceBackGroundData() async {
-  final service = FlutterBackgroundService();
-
-  await service.configure(
-    androidConfiguration: AndroidConfiguration(
-      onStart: onStart1,
-      autoStart: true,
-      isForegroundMode: false, // Change this to false
-    ),
-    iosConfiguration: IosConfiguration(
-      autoStart: true,
-      onForeground: onStart1,
-    ),
-  );
-}
+// Future<void> initializeServiceBackGroundData() async {
+//   final service1 = FlutterBackgroundService();
+//
+//   await service1.configure(
+//     androidConfiguration: AndroidConfiguration(
+//       onStart: onStart1,
+//       autoStart: true,
+//       isForegroundMode: false, // Change this to false
+//     ),
+//     iosConfiguration: IosConfiguration(
+//       autoStart: true,
+//       onForeground: onStart1,
+//     ),
+//   );
+// }
 
 @pragma('vm:entry-point')
-void onStart1(ServiceInstance service) async {
+void onStart1(ServiceInstance service1) async {
   DartPluginRegistrant.ensureInitialized();
 
   Timer.periodic(const Duration(minutes: 10), (timer) async {
-    if (service is AndroidServiceInstance) {
-      if (await service.isForegroundService()) {
+    if (service1 is AndroidServiceInstance) {
+      if (await service1.isForegroundService()) {
         backgroundTask();
       }
     }
     final deviceInfo = DeviceInfoPlugin();
-    String? device;
+    String? device1;
 
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
-      device = androidInfo.model;
+      device1 = androidInfo.model;
     }
 
     if (Platform.isIOS) {
       final iosInfo = await deviceInfo.iosInfo;
-      device = iosInfo.model;
+      device1 = iosInfo.model;
     }
 
-    service.invoke(
+    service1.invoke(
       'update',
       {
         "current_date": DateTime.now().toIso8601String(),
-        "device": device,
+        "device": device1,
       },
     );
-  });
+  }
+  );
 }
 
 
@@ -193,6 +194,35 @@ void onStart(ServiceInstance service) async {
     //stopListeningLocation();
     FlutterLocalNotificationsPlugin().cancelAll();
   });
+
+  Timer.periodic(const Duration(minutes: 10), (timer) async {
+    if (service is AndroidServiceInstance) {
+      if (await service.isForegroundService()) {
+        backgroundTask();
+      }
+    }
+    final deviceInfo = DeviceInfoPlugin();
+    String? device1;
+
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      device1 = androidInfo.model;
+    }
+
+    if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      device1 = iosInfo.model;
+    }
+
+    service.invoke(
+      'update',
+      {
+        "current_date": DateTime.now().toIso8601String(),
+        "device": device1,
+      },
+    );
+  }
+  );
 
   Workmanager().registerPeriodicTask("1", "simpleTask", frequency: Duration(minutes: 15));
 

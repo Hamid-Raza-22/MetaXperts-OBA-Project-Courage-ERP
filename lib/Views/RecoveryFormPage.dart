@@ -55,6 +55,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     _loadRecoveryFormCounter();
     //fetchShopNames();
    // fetchShopData();
+    print(RecoveryhighestSerial);
     fetchShopNamesAndTotals();
     fetchAccountsData();
     fetchShopData1();
@@ -201,7 +202,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     setState(() {
       // Update the current balance field with the calculated net balance
       recoveryFormCurrentBalance = netBalance;
-      globalnetBalance = netBalance;
+     // globalnetBalance = netBalance;
       _currentBalanceController.text = recoveryFormCurrentBalance.toString();
     });
   }
@@ -282,12 +283,12 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     String currentMonth = DateFormat('MMM').format(DateTime.now());
 
     if (this.recoveryFormCurrentUserId != userId) {
-      recoveryFormSerialCounter = 1;
+      recoveryFormSerialCounter = RecoveryhighestSerial!;
       this.recoveryFormCurrentUserId = userId;
     }
 
     if (this.recoveryFormCurrentMonth != currentMonth) {
-      recoveryFormSerialCounter = RecoveryhighestSerial!;
+      recoveryFormSerialCounter = 1;
       this.recoveryFormCurrentMonth = currentMonth;
     }
 

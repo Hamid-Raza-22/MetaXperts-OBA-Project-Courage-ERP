@@ -243,11 +243,24 @@ class DatabaseOutputs{
     final api = ApiServices();
     final dbnetbalance= DBHelper();
     final dbaccounts= DBHelper();
+    final dborderbookingstatus= DBHelper();
 
 
     var NetBalancedata = await dbnetbalance.getNetBalanceDB();
     var Accountsdata = await dbaccounts.getAccoutsDB();
+    var OrderBookingStatusdata= await dborderbookingstatus.getOrderBookingStatusDB();
 
+    if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
+      var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
+      if (results2) {
+        print("OrderBookingStatus Data inserted successfully.");
+      } else {
+        print("Error inserting data.");
+      }
+    } else {
+      print("Data is available.");
+    }
     if (Accountsdata == null || Accountsdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
       var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
@@ -525,6 +538,8 @@ class DatabaseOutputs{
 
     final dbnetbalance = DBHelper();
     final dbaccounts = DBHelper();
+    final dborderbookingstatus = DBHelper();
+
 
     var data = await db.getProductsDB();
     int co = 0;
@@ -549,6 +564,15 @@ class DatabaseOutputs{
       print("$co | ${i.toString()} \n");
     }
     print("TOTAL of Accounts is $co");
+
+    print("************Tables Order Booking Status**************");
+    co=0;
+    data = await dborderbookingstatus.getOrderBookingStatusDB();
+    for(var i in data!){
+      co++;
+      print("$co | ${i.toString()} \n");
+    }
+    print("TOTAL of OrderBooking Status is $co");
 
   }
 

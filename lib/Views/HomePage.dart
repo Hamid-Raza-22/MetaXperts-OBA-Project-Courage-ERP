@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   double? globalLongitude1;
   DBHelper dbHelper = DBHelper();
   bool isLoading = false; // Define isLoading variable
-
+  bool isLoadingReturn= false;
   final loc.Location location = loc.Location();
   StreamSubscription<loc.LocationData>? _locationSubscription;
   StreamSubscription<Position>? _positionStreamSubscription;
@@ -175,7 +175,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         service.startService();
         var id = await customAlphabet('1234567890', 10);
         await prefs.setString('clockInId', id);
-        attendanceViewModel.addAttendance(AttendanceModel(
+         await attendanceViewModel.addAttendance(AttendanceModel(
             id: prefs.getString('clockInId'),
             timeIn: _getFormattedtime(),
             date: _getFormattedDate(),
@@ -195,6 +195,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         dbmaster.postAttendanceTable();
 
       } else {
+
         service.invoke("stopService");
         attendanceViewModel.addAttendanceOut(AttendanceOutModel(
           id: prefs.getString('clockInId'),
@@ -735,6 +736,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () async{
+                              setState(() {
+                                isLoading = true; // assuming isLoading is a boolean state variable
+                              });
                               final bool isConnected = await InternetConnectionChecker().hasConnection;
 
                               if (!isClockedIn) {
@@ -767,13 +771,18 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 );
                               } else {
                                 DatabaseOutputs outputs = DatabaseOutputs();
-                                //outputs.checkFirstRun();
+                                await  outputs.checkFirstRunAccounts();
 
-                                Navigator.push(context, MaterialPageRoute(
+                               await Navigator.push(context, MaterialPageRoute(
                                     builder: (context) => ReturnFormPage()));
                               }
+                              setState(() {
+                                isLoading = false; // set loading state to false after execution
+                              });
                             },
-                            child: Column(
+                            child: isLoading
+                                ? CircularProgressIndicator() // Show a loading indicator
+                                : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -800,7 +809,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           child:ElevatedButton(
                             onPressed: () async {
                               setState(() {
-                                isLoading = true; // assuming isLoading is a boolean state variable
+                                isLoadingReturn = true; // assuming isLoading is a boolean state variable
                               });
 
                               // Delay for 5 seconds
@@ -838,17 +847,17 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 );
                               } else {
                                 DatabaseOutputs outputs = DatabaseOutputs();
-                                outputs.checkFirstRunAccounts();
+                               await  outputs.checkFirstRunAccounts();
 
-                                Navigator.push(context, MaterialPageRoute(
+                               await Navigator.push(context, MaterialPageRoute(
                                     builder: (context) => RecoveryFromPage()));
                               }
 
                               setState(() {
-                                isLoading = false; // set loading state to false after execution
+                                isLoadingReturn = false; // set loading state to false after execution
                               });
                             },
-                            child: isLoading
+                            child: isLoadingReturn
                                 ? CircularProgressIndicator() // Show a loading indicator
                                 : Column(
                               mainAxisAlignment: MainAxisAlignment.center,

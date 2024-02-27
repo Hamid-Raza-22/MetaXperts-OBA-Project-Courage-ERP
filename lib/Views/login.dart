@@ -246,8 +246,8 @@ class _LoginFormState extends State<LoginForm> {
                       bool isConnected = await InternetConnectionChecker().hasConnection;
                       if(isConnected){
                       _login();
-                      // DatabaseOutputs outputs = DatabaseOutputs();
-                      // outputs.checkFirstRun();
+                       DatabaseOutputs outputs = DatabaseOutputs();
+                       outputs.checkFirstRun();
                     }else{
                         Fluttertoast.showToast(
                           msg: "No internet connection.",

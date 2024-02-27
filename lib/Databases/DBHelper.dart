@@ -662,6 +662,7 @@ _onCreate(Database db, int version) async {
     final db = await initDatabase();
     await db.delete('netBalance');
     await db.delete('accounts');
+    await db.delete('orderBookingStatusData');
   }
 
   Future<bool> insertProductsData(List<dynamic> dataList) async {

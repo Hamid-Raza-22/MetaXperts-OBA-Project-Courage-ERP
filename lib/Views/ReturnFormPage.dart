@@ -83,7 +83,56 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     onCreatee();
     fetchShopData();
     fetchProductDataForSelectedShop(_selectedShopController.text);
+    fetchShopNamesAndTotals();
   }
+  Future<void> fetchShopNamesAndTotals() async {
+    DBHelper dbHelper = DBHelper();
+
+    // Calculate total debits, credits, and debits minus credits per shop
+    Map<String, dynamic> debitsAndCredits = await dbHelper.getDebitsAndCreditsTotal();
+    Map<String, double> debitsMinusCreditsPerShop = await dbHelper.getDebitsMinusCreditsPerShop();
+
+    // Extract shop names, debits, credits, and debits minus credits per shop
+    List<String> shopNames = debitsAndCredits['debits'].keys.toList();
+    Map<String, double> shopDebits = debitsAndCredits['debits'];
+    Map<String, double> shopCredits = debitsAndCredits['credits'];
+
+    // Print or use the shop names, debits, credits, and debits minus credits per shop as needed
+    print("Shop Names: $shopNames");
+    print("Shop Debits: $shopDebits");
+    print("Shop Credits: $shopCredits");
+    print("Shop Debits - Credits: $debitsMinusCreditsPerShop");
+
+    // You can update the state or perform other actions with the data here
+  }
+  Future<void> fetchNetBalanceForShop(String shopName) async {
+    DBHelper dbHelper = DBHelper();
+    double shopDebits = 0.0;
+    double shopCredits = 0.0;
+
+    // Fetch net balance for the selected shop
+    List<Map<String, dynamic>>? netBalanceData = await dbHelper.getNetBalanceDB();
+    for (var row in netBalanceData!) {
+      if (row['shop_name'] == shopName) {
+        shopDebits += double.parse(row['debit'] ?? '0');
+        shopCredits += double.parse(row['credit'] ?? '0');
+      }
+    }
+
+    // Calculate net balance (shop debits - shop credits)
+    double netBalance = shopDebits - shopCredits;
+
+    // Ensure net balance is not less than 0
+    netBalance = netBalance < 0 ? 0 : netBalance;
+
+    setState(() {
+      // Update the current balance field with the calculated net balance
+      // recoveryFormCurrentBalance = netBalance;
+      globalnetBalance = netBalance;
+      // _currentBalanceController.text = recoveryFormCurrentBalance.toString();
+    });
+  }
+
 
   double calculateTotalAmount() {
     double totalAmount = 0.0;
@@ -168,7 +217,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   Future<void> onCreatee() async {
     DatabaseOutputs db = DatabaseOutputs();
     await db.showOrderDetailsData();
-   //await db.showOrderDispacthed();
+    //await db.showOrderDispacthed();
   }
 
   @override
@@ -241,72 +290,80 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   Widget buildTypeaheadWithDateRow() {
     return Padding(
       padding: const EdgeInsets.all(5.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: Container(
-              height: 30,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.black45,
-                  width: 1.0,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-                color: Colors.white10,
+          // Date Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                'Date: ',
+                style: TextStyle(fontSize: 12),
               ),
-              child: TypeAheadField<String>(
-                suggestionsCallback: (pattern) async {
-                  return dropdownItems
-                      .where((option) =>
-                      option.toLowerCase().contains(pattern.toLowerCase()))
-                      .toList();
-                },
-                itemBuilder: (context, suggestion) {
-                  return ListTile(
-                    title: Text(
-                      suggestion,
-                      style: TextStyle(fontSize: 12),
+              Text(
+                _getCurrentDate(),
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+          SizedBox(height: 10), // Add spacing between date and shop name row
+          // Shop Name Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Container(
+                  height: 30,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.black45,
+                      width: 1.0,
                     ),
-                  );
-                },
-                onSuggestionSelected: (suggestion) {
-                  setState(() {
-                    _selectedShopController.text = suggestion;
-                    selectedorderno = getOrderNoForSelectedShop();
-                    print('order no: $selectedorderno');
-                    fetchProductDataForSelectedShop(suggestion);
-                    printOrderNoForSelectedShop();
-                  });
-                },
-                textFieldConfiguration: TextFieldConfiguration(
-                  controller: _selectedShopController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: '--Select Shop--',
-                    floatingLabelBehavior: FloatingLabelBehavior.never,
-                    filled: true,
-                    fillColor: Colors.white10,
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.white10,
+                  ),
+                  child: TypeAheadField<String>(
+                    suggestionsCallback: (pattern) async {
+                      return dropdownItems
+                          .where((option) =>
+                          option.toLowerCase().contains(pattern.toLowerCase()))
+                          .toList();
+                    },
+                    itemBuilder: (context, suggestion) {
+                      return ListTile(
+                        title: Text(
+                          suggestion,
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      );
+                    },
+                    onSuggestionSelected: (suggestion) {
+                      setState(() {
+                        _selectedShopController.text = suggestion;
+                        selectedorderno = getOrderNoForSelectedShop();
+                        print('order no: $selectedorderno');
+                        fetchProductDataForSelectedShop(suggestion);
+                        printOrderNoForSelectedShop();
+                        fetchNetBalanceForShop(suggestion!);
+
+                      });
+                    },
+                    textFieldConfiguration: TextFieldConfiguration(
+                      controller: _selectedShopController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: '--Select Shop--',
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        filled: true,
+                        fillColor: Colors.white10,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          SizedBox(width: 25),
-          Container(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  'Date: ',
-                  style: TextStyle(fontSize: 12),
-                ),
-                Text(
-                  _getCurrentDate(),
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
+              SizedBox(width: 25),
+            ],
           ),
         ],
       ),
@@ -383,9 +440,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                       });
                       await updateQuantityField(suggestion, index);
                       print(globalnetBalance);
-                       await updatePriceField(suggestion, index);
-                       await calculateTotalAmount();
-                       await netbalance();
+                      await updatePriceField(suggestion, index);
+                      await calculateTotalAmount();
+                      await netbalance();
                     },
                     textFieldConfiguration: TextFieldConfiguration(
                       decoration: InputDecoration(
@@ -546,12 +603,12 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
             // Your existing code for submission
             var id = await customAlphabet('1234567890', 5);
             returnformViewModel.addReturnForm(ReturnFormModel(
-              returnId: int.parse(id),
-              shopName: _selectedShopController.text,
-              date: _getCurrentDate(),
-              returnAmount: amountController.text,
-              bookerId: userId,
-              bookerName: userNames
+                returnId: int.parse(id),
+                shopName: _selectedShopController.text,
+                date: _getCurrentDate(),
+                returnAmount: amountController.text,
+                bookerId: userId,
+                bookerName: userNames
             ));
 
             String visitid = await returnformViewModel.fetchLastReturnFormId();
@@ -566,15 +623,15 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                   productName: firstTypeAheadControllers[i].text,
                   reason: secondTypeAheadControllers[i].text,
                   quantity: qtyControllers[i].text,
-                 bookerId: userId,
-                // returnAmount: amountController.text,
+                  bookerId: userId,
+                  // returnAmount: amountController.text,
                 ),
               );
             }
 
             DBHelper dbreturnform = DBHelper();
             await dbreturnform.postReturnFormTable();
-             await dbreturnform.postReturnFormDetails();
+            await dbreturnform.postReturnFormDetails();
 
             onCreatee();
 
