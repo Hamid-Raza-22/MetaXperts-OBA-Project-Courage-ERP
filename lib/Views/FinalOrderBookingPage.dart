@@ -33,10 +33,11 @@ class Productss extends GetxController {
   TextEditingController _totalController = TextEditingController();
 
   Future<void> fetchProducts() async {
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await productsViewModel.fetchProductsByBrand(globalselectedbrand);
     var products = productsViewModel.allProducts;
-
+    // Reset the total
     rows.clear();
     quantityControllers.clear();
     amountValues.clear();
@@ -86,8 +87,12 @@ class Productss extends GetxController {
       ]));
     }
   }
+   clearAmounts() {
+    amounts.clear(); // Clear all amounts
+  }
 
   void calculateTotal() {
+   // total.value = '0'; // Reset the total to 0
     double totalAmount = 0.0;
     for (var amount in amounts.values) {
       totalAmount += amount.value;
@@ -102,8 +107,6 @@ class Productss extends GetxController {
   }
 
 }
-
-
 
 class FinalOrderBookingPage extends StatefulWidget {
   @override
@@ -182,7 +185,9 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
  fetchAllProducts();
     super.initState();
     fetchAllProducts();
-    productsController.total.listen((total) {
+  // productsController.total.value = '0'; // Reset the total when the page is initialized
+
+ productsController.total.listen((total) {
    _totalController.text = total; // Update the total controller when the total changes
      });
     _searchController = TextEditingController();
@@ -190,7 +195,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     addNewRow();
     onCreatee();
     _loadCounter();
-    addListenerToController(_totalController, _calculateSubTotal);
+    //addListenerToController(_totalController, _calculateSubTotal);
     addListenerToController(_discountController, _calculateSubTotal);
     addListenerToController(_paymentController, _calculateBalance);
     addListenerToController(_subTotalController, _calculateBalance);
@@ -200,7 +205,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     productsController.fetchProducts();
     productsController.rows;
   }
-
 
   @override
   void dispose() {
@@ -441,7 +445,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               _ownerNameController.text.isNotEmpty &&
                               _phoneNoController.text.isNotEmpty &&
                               _brandNameController.text.isNotEmpty &&
-
                               _totalController.text.isNotEmpty &&
                               _creditLimitController.text.isNotEmpty &&
                               ['7 Days','15 Days', '30 Days', 'On Cash'].contains(_creditLimitController.text) &

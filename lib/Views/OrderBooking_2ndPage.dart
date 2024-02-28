@@ -22,6 +22,7 @@ import '../Models/OrderModels/OrderDetailsModel.dart';
 import '../Models/OrderModels/OrderMasterModel.dart';
 import '../View_Models/OrderViewModels/OrderDetailsViewModel.dart';
 import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
+import 'FinalOrderBookingPage.dart';
 
 // List<String> creditLimitOptions = ['Option 1', 'Option 2', 'Option 3'];
 
@@ -32,6 +33,8 @@ class OrderBooking_2ndPage extends StatefulWidget {
 }
 
 class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
+  final Productss productsController = Get.put(Productss());
+
   bool isDataSavedInApex = true;
   bool isReConfirmButtonPressed = false;
   bool isOrderConfirmed = false;
@@ -74,7 +77,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     final brand = data ['brand'];
     final ownerName= data['ownerName'];
     final phoneNo= data['phoneNo'];
-    final total = data ['total'];
+  //  final total = data ['total'];
     final date = data ['date'];
 
     final requiredDelivery = data['requiredDelivery'];
@@ -188,7 +191,6 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                 isReConfirmButtonPressed = true;
                                 // Your existing code for handling the "Re Confirm" button press
                                 isOrderConfirmed = true;
-                                generateAndSavePDF(orderMasterid, user_name, shopName, orderDate, selectedItems, quantities, rates, totalAmounts, totalAmount, creditLimit, requiredDelivery);
 
                                 await ordermasterViewModel.addOrderMaster(OrderMasterModel(
                                   orderId: OrderMasterid,
@@ -199,7 +201,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   date: date,
                                   userId: userId.toString(),
                                   userName: userNames.toString(),
-                                  total: total,
+                                  total: totalAmount,
                                   creditLimit: creditLimit,
                                   shopCity: selectedShopCity,
                                   // discount: discount,
@@ -255,6 +257,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                 if (isOrderConfirmed) {
                                   // Order is confirmed, generate and share the PDF
                                   generateAndSharePDF(orderMasterid, user_name, shopName, orderDate, selectedItems, quantities, rates, totalAmounts, totalAmount, creditLimit, requiredDelivery);
+
                                 } else {
                                   // Order is not confirmed, show a toast message
                                   Fluttertoast.showToast(
@@ -292,8 +295,9 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                       child: Container(
                         width: 100,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (isOrderConfirmed) {
+                            await productsController.clearAmounts();
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => HomePage(),
@@ -860,10 +864,6 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     // Save the PDF to the device's storage
     final file = File(filePath);
     await file.writeAsBytes(await pdf.save());
-    // Create a temporary file in the directory
-    final output = File('${directory?.path}/order_summary_$OrderMasterid.pdf');
-    await output.writeAsBytes(await pdf.save());
-    await Share.shareFiles([output.path], text: 'PDFDocument');
     // Show toast message indicating PDF saved successfully
     Fluttertoast.showToast(
       msg: "PDF saved successfully at $filePath",
