@@ -62,8 +62,8 @@ Future<void> postFile() async {
   request.files.add(gpxFile);
 
   // Add other fields if needed
-  request.fields['userId'] = userId;
-  request.fields['userName'] = userNames;
+  request.fields['userId'] = pref.getString('userId') ?? "";
+  request.fields['userName'] = pref.getString('userNames') ?? "";
   request.fields['fileName'] = "${_getFormattedDate1()}.gpx";
   request.fields['date'] = _getFormattedDate1();
   request.fields['totalDistance'] = "${totalDistance.toString()} KM"; // Add totalDistance as a field
@@ -75,7 +75,8 @@ Future<void> postFile() async {
       var result = String.fromCharCodes(responseData);
       print("Results: Post Successfully");
       //deleteGPXFile();
-      pref.setDouble("TotalDistance", 0.0);
+      pref.setDouble("TotalDistance", totalDistance);
+      print('Distance:$totalDistance');
     } else {
       print("Failed to upload file. Status code: ${response.statusCode}");
     }
@@ -89,4 +90,4 @@ String _getFormattedDate1() {
   final formatter = DateFormat('dd-MMM-yyyy  [hh:mm a] ');
   return formatter.format(now);
 }
-// Total distance is stored in the shared Prefernces "TotalDistance" when the user clock out.
+// Total distance is stored in the shared Prefernces "TotalDistance" when the user clock out.

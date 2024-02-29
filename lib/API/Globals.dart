@@ -1,7 +1,7 @@
 import 'dart:async';
-
 import 'package:intl/intl.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
+
 DBHelper dbHelper = DBHelper();
 String SellectedproductName= "";
 double? globalnetBalance;
@@ -34,4 +34,3 @@ String address = "";
 bool locationbool = true;
 //dynamic serialCounter ='';
 String globalcurrentMonth= DateFormat('MMM').format(DateTime.now());
-

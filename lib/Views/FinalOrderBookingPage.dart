@@ -301,7 +301,9 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     _phoneNoController.text = ownerContact!;
     return WillPopScope(
         onWillPop: () async {
+          await productsController.clearAmounts();
           productsController.rows.clear();
+
           // Navigate to the home page
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -370,7 +372,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                                               ),
                                             ),
                                           ),
-                                         Obx(() =>
+                                        // Obx(() =>
                                               SingleChildScrollView(
                                                     scrollDirection: Axis.horizontal,
                                                  child: DataTable(
@@ -385,7 +387,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                                               rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
                                             ),
                                           )
-                                         ),
+                                       //  ),
                                         ],
                                       ),
                                     ),

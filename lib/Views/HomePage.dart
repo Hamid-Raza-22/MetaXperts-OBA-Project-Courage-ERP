@@ -197,6 +197,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       } else {
 
         service.invoke("stopService");
+        await Future.delayed(Duration(seconds: 10));
+
         attendanceViewModel.addAttendanceOut(AttendanceOutModel(
           id: prefs.getString('clockInId'),
           timeOut: _getFormattedtime(),
@@ -1091,9 +1093,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
     return true;
   }
-
-
-
   void showLoadingIndicator(BuildContext context) {
     showDialog(
       context: context,

@@ -406,9 +406,6 @@ class _ShopVisitState extends State<ShopVisit> {
                             for (int i = 0; i < productsController.rows.length; i++) {
                               removeSavedValues(i);
                             }
-
-
-
                           }
                         },
                       ),
@@ -554,7 +551,6 @@ class _ShopVisitState extends State<ShopVisit> {
                                             ),
                                           ),
                                          // Add vertical scroll direction
-                                          Obx(() =>
                                                SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
                                               child: DataTable(
@@ -565,7 +561,6 @@ class _ShopVisitState extends State<ShopVisit> {
                                                 rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
                                               ),
                                             ),
-                                          ),
                                         ],
                                       ),
                                     ),

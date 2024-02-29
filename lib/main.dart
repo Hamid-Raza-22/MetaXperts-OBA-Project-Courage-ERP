@@ -127,41 +127,40 @@ Future<void> initializeServiceLocation() async {
 //     ),
 //   );
 // }
-
-@pragma('vm:entry-point')
-void onStart1(ServiceInstance service1) async {
-  DartPluginRegistrant.ensureInitialized();
-
-  Timer.periodic(const Duration(minutes: 10), (timer) async {
-    if (service1 is AndroidServiceInstance) {
-      if (await service1.isForegroundService()) {
-        backgroundTask();
-      }
-    }
-    final deviceInfo = DeviceInfoPlugin();
-    String? device1;
-
-    if (Platform.isAndroid) {
-      final androidInfo = await deviceInfo.androidInfo;
-      device1 = androidInfo.model;
-    }
-
-    if (Platform.isIOS) {
-      final iosInfo = await deviceInfo.iosInfo;
-      device1 = iosInfo.model;
-    }
-
-    service1.invoke(
-      'update',
-      {
-        "current_date": DateTime.now().toIso8601String(),
-        "device": device1,
-      },
-    );
-  }
-  );
-}
-
+//
+// @pragma('vm:entry-point')
+// void onStart1(ServiceInstance service1) async {
+//   DartPluginRegistrant.ensureInitialized();
+//
+//   Timer.periodic(const Duration(minutes: 10), (timer) async {
+//     if (service1 is AndroidServiceInstance) {
+//       if (await service1.isForegroundService()) {
+//         backgroundTask();
+//       }
+//     }
+//     final deviceInfo = DeviceInfoPlugin();
+//     String? device1;
+//
+//     if (Platform.isAndroid) {
+//       final androidInfo = await deviceInfo.androidInfo;
+//       device1 = androidInfo.model;
+//     }
+//
+//     if (Platform.isIOS) {
+//       final iosInfo = await deviceInfo.iosInfo;
+//       device1 = iosInfo.model;
+//     }
+//
+//     service1.invoke(
+//       'update',
+//       {
+//         "current_date": DateTime.now().toIso8601String(),
+//         "device": device1,
+//       },
+//     );
+//   }
+//   );
+// }
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {

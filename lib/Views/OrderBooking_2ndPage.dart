@@ -36,7 +36,7 @@ class OrderBooking_2ndPage extends StatefulWidget {
 
 class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
   final Productss productsController = Get.put(Productss());
-
+  List<Map<String, dynamic>> rowDataDetails = [];
   bool isDataSavedInApex = true;
   bool isReConfirmButtonPressed = false;
   bool isOrderConfirmed = false;
@@ -61,7 +61,13 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     await db.showShopVisit();
     await db.showStockCheckItems();
   }
+  @override
+  void dispose() {
+    // Clear the data
+    rowDataDetails.clear();
 
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
 
@@ -83,7 +89,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     final date = data ['date'];
 
     final requiredDelivery = data['requiredDelivery'];
-    final rowDataDetails = data['rowDataDetails'] as List<Map<String, dynamic>>;
+    rowDataDetails = data['rowDataDetails'] as List<Map<String, dynamic>>;
     print(creditLimit);
     // print(discount);
     // print(subTotal);
@@ -118,8 +124,8 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
               // Order is confirmed, prevent going back
               return false;
             } else {
-              // Order is not confirmed, allow going back
-              return true;
+
+                return true;
             }
           },
           child: SingleChildScrollView(
@@ -455,7 +461,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
        dynamic requiredDelivery) async {
     final pdf = pw.Document();
     final image = pw.Image(pw.MemoryImage(Uint8List.fromList((await rootBundle.load('assets/images/p1.png')).buffer.asUint8List())));
-    final totalQuantity = calculateTotalQuantity(quantities.cast<int>());
+    // final totalQuantity = calculateTotalQuantity(quantities);
 
     // Add content to the PDF document
     pdf.addPage(pw.Page(
@@ -609,7 +615,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text('Grand Total: ${totalQuantity.toString()} PCS', style: pw.TextStyle(fontSize: 15)),
+                         //  pw.Text('Grand Total: ${totalQuantity} PCS', style: pw.TextStyle(fontSize: 15)),
                          // pw.Text('Net Amount: ${subTotal.toString()}', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
                         ],
                       ),
