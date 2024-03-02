@@ -98,14 +98,14 @@ class _ShopVisitState extends State<ShopVisit> {
   List<String> selectedProductNames = [];
   // Add an instance of ProductsViewModel
   ProductsViewModel productsViewModel = Get.put(ProductsViewModel());
- // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
-  int serialCounter = highestSerial ?? 0;
+  // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
+  int ShopVisitsSerialCounter = highestSerial ?? 0;
 
- // int? serialCounter;
+  // int? serialCounter;
 
   double currentBalance = 0.0;
   String currentUserId = '';
-  String currentMonth = DateFormat('MMM').format(DateTime.now());
+  String shopVisitCurruntMonth = DateFormat('MMM').format(DateTime.now());
 
   get shopData => null;
 
@@ -140,7 +140,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
     super.initState();
     data();
-   // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
+    // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
 
     //selectedDropdownValue = dropdownItems[0]; // Default value
     _fetchBrandItemsFromDatabase();
@@ -152,7 +152,7 @@ class _ShopVisitState extends State<ShopVisit> {
     fetchProductsNamesByBrand();
     saveCurrentLocation();
     _checkUserIdAndFetchShopNames();
-   // productsController.controllers.clear();
+    // productsController.controllers.clear();
     // removeSavedValues(index);
     print(userId);
     print(highestSerial);
@@ -239,21 +239,27 @@ class _ShopVisitState extends State<ShopVisit> {
   }
 
   _loadCounter() async {
+    String currentMonth = DateFormat('MMM').format(DateTime.now());
+    if (this.shopVisitCurruntMonth != currentMonth) {
+      // Reset serial counter when the month changes
+      ShopVisitsSerialCounter = 1;
+      this.shopVisitCurruntMonth = currentMonth;
+    }
     //serialCounter=highestSerial;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-    //  serialCounter++;
-      serialCounter = (prefs.getInt('serialCounter') ?? highestSerial)! ;
-      currentMonth = prefs.getString('currentMonth') ?? currentMonth;
+      //  serialCounter++;
+      ShopVisitsSerialCounter = (prefs.getInt('serialCounter') ?? highestSerial)! ;
+      shopVisitCurruntMonth = prefs.getString('currentMonth') ?? shopVisitCurruntMonth;
       currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
     });
-    print('SR:$serialCounter');
+    print('SR:$ShopVisitsSerialCounter');
   }
 
   _saveCounter() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('serialCounter', serialCounter);
-    await prefs.setString('currentMonth', currentMonth);
+    await prefs.setInt('serialCounter', ShopVisitsSerialCounter);
+    await prefs.setString('currentMonth', shopVisitCurruntMonth);
     await prefs.setString('currentUserId', currentUserId); // Add this line
   }
 
@@ -262,19 +268,19 @@ class _ShopVisitState extends State<ShopVisit> {
 
     if (this.currentUserId != userId) {
       // Reset serial counter when the userId changes
-      serialCounter = highestSerial!;
+      ShopVisitsSerialCounter = highestSerial!;
       this.currentUserId = userId;
     }
 
-    if (this.currentMonth != currentMonth) {
+    if (this.shopVisitCurruntMonth != currentMonth) {
       // Reset serial counter when the month changes
-      serialCounter = 1;
-      this.currentMonth = currentMonth;
+      ShopVisitsSerialCounter = 1;
+      this.shopVisitCurruntMonth = currentMonth;
     }
 //set state
     String orderId =
-        "$userId-$currentMonth-${serialCounter.toString().padLeft(3, '0')}";
-    serialCounter++;
+        "$userId-$currentMonth-${ShopVisitsSerialCounter.toString().padLeft(3, '0')}";
+    ShopVisitsSerialCounter++;
     _saveCounter(); // Save the updated counter value, current month, and userId
     return orderId;
   }
@@ -406,6 +412,9 @@ class _ShopVisitState extends State<ShopVisit> {
                             for (int i = 0; i < productsController.rows.length; i++) {
                               removeSavedValues(i);
                             }
+
+
+
                           }
                         },
                       ),
@@ -550,17 +559,19 @@ class _ShopVisitState extends State<ShopVisit> {
                                               ),
                                             ),
                                           ),
-                                         // Add vertical scroll direction
-                                               SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: DataTable(
-                                                columns: [
-                                                  DataColumn(label: Text('Product')),
-                                                  DataColumn(label: Text('Quantity')),
-                                                ],
-                                                rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
-                                              ),
+                                          // Add vertical scroll direction
+                                          //  Obx(() =>
+                                          SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: DataTable(
+                                              columns: [
+                                                DataColumn(label: Text('Product')),
+                                                DataColumn(label: Text('Quantity')),
+                                              ],
+                                              rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
                                             ),
+                                          ),
+                                          // ),
                                         ],
                                       ),
                                     ),

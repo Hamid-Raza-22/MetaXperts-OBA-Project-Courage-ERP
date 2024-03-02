@@ -16,7 +16,7 @@ class DatabaseOutputs{
     }else{
       print("UPDATING.......................................");
       await update();
-     await initializeData();
+      await initializeData();
     }
   }
   Future<void> checkFirstRunAccounts() async {
@@ -67,7 +67,7 @@ class DatabaseOutputs{
     //   print("Data is available.");
     // }
   }
- Future<void>  initializeData() async {
+  Future<void>  initializeData() async {
     final api = ApiServices();
     final db = DBHelper();
     final dbowner = DBHelper();
@@ -99,7 +99,7 @@ class DatabaseOutputs{
     // var password = 'KG-oKSMmf4DhqtFNmVtpMw..';
 
     if (Logindata == null || Logindata.isEmpty ) {
-       // replace with your actual access token
+      // replace with your actual access token
       var response3 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
       var results3= await dblogin.insertLogin(response3);//return True or False
       if (results3) {
@@ -111,6 +111,17 @@ class DatabaseOutputs{
       print("Data is available.");
     }
 
+    if (Owerdata == null || Owerdata.isEmpty ) {
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
+      var results2 = await dbowner.insertOwnerData(response2);   //return True or False
+      if (results2) {
+        print("Owner Data inserted successfully.");
+      } else {
+        print("Error inserting data.");
+      }
+    } else {
+      print("Data is available.");
+    }
 
     if (Accountsdata == null || Accountsdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
@@ -201,29 +212,19 @@ class DatabaseOutputs{
       print("Data is available.");
     }
 
-    if (Owerdata == null || Owerdata.isEmpty ) {
-      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
-      var results2 = await dbowner.insertOwnerData(response2);   //return True or False
-      if (results2) {
-        print("Owner Data inserted successfully.");
-      } else {
-        print("Error inserting data.");
-      }
-    } else {
-      print("Data is available.");
-    }
 
-    if (Distributordata == null || Distributordata.isEmpty ) {
-      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/distributorlist/get/");
-      var results2 = await dbowner.insertDistributorData(response2);   //return True or False
-      if (results2) {
-        print("Distributors Data inserted successfully.");
-      } else {
-        print("Error inserting data.");
-      }
-    } else {
-      print("Data is available.");
-    }
+
+    // if (Distributordata == null || Distributordata.isEmpty ) {
+    //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/distributorlist/get/");
+    //   var results2 = await dbowner.insertDistributorData(response2);   //return True or False
+    //   if (results2) {
+    //     print("Distributors Data inserted successfully.");
+    //   } else {
+    //     print("Error inserting data.");
+    //   }
+    // } else {
+    //   print("Data is available.");
+    // }
 
     if (PCdata == null || PCdata.isEmpty ) {
       var response4 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
@@ -673,14 +674,14 @@ class DatabaseOutputs{
     print("TOTAL of Accounts is $co");
 
 
-  print("************Tables Distributors**************");
-  co=0;
-  data = await dbdistributor.getDistributorsDB();
-  for(var i in data!){
-  co++;
-  print("$co | ${i.toString()} \n");
-  }
-  print("TOTAL of Distributors is $co");
+    print("************Tables Distributors**************");
+    co=0;
+    data = await dbdistributor.getDistributorsDB();
+    for(var i in data!){
+      co++;
+      print("$co | ${i.toString()} \n");
+    }
+    print("TOTAL of Distributors is $co");
 
     print("************Tables Recovery Form Get**************");
     co=0;

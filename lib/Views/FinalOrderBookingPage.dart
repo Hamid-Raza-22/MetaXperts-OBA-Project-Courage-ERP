@@ -18,26 +18,30 @@ import '../Models/OrderModels/OrderDetailsModel.dart';
 import 'HomePage.dart';
 import 'OrderBooking_2ndPage.dart';
 import 'package:get/get.dart';
+import 'dart:async';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ...
-
-class Productss extends GetxController {
+class Productss extends ChangeNotifier {
   final productsViewModel = ProductsViewModel();
-  RxList<DataRow> rows = <DataRow>[].obs;
+  List<DataRow> rows = [];
   List<TextEditingController> quantityControllers = [];
-  final amounts = RxMap<ProductsModel, RxDouble>();
+  final amounts = <ProductsModel, RxDouble>{};
   final Map<String, String> args = Get.arguments ?? {};
-  RxString total = '0'.obs;
+  String total = '0';
   List<RxDouble> amountValues = [];
   TextEditingController _totalController = TextEditingController();
+  ValueNotifier<double> _totalValueNotifier = ValueNotifier<double>(0.0);
+
+  // Change fetchProducts method to return a stream of double
+  ValueNotifier<double> get totalValueNotifier => _totalValueNotifier;
 
   Future<void> fetchProducts() async {
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await productsViewModel.fetchProductsByBrand(globalselectedbrand);
     var products = productsViewModel.allProducts;
-    // Reset the total
+
     rows.clear();
     quantityControllers.clear();
     amountValues.clear();
@@ -50,9 +54,12 @@ class Productss extends GetxController {
       FocusNode focusNode = FocusNode();
       quantityControllers.add(controller);
 
-      RxDouble amount = RxDouble(0.0);
-      amounts[product] = amount;
-      amountValues.add(amount);
+      RxDouble? amount = amounts[product];
+      if (amount == null) {
+        amount = RxDouble(0.0);
+        amounts[product] = amount;
+        amountValues.add(amount);
+      }
 
       controller.addListener(() {
         double rate = double.parse(product.price ?? '0');
@@ -80,32 +87,33 @@ class Productss extends GetxController {
             controller.clear();
           },
         )),
-        // DataCell(Text(product.quantity ?? '0')),
         DataCell(Text(product.quantity ?? '$qty')),
-        DataCell(Text(product.price ?? '0')), // Set the saved quantity here
+        DataCell(Text(product.price ?? '0')),
         DataCell(Obx(() => Text(amounts[product]!.value.toString()))),
       ]));
     }
   }
-   clearAmounts() {
+
+  clearAmounts() {
     amounts.clear(); // Clear all amounts
   }
 
   void calculateTotal() {
-   // total.value = '0'; // Reset the total to 0
     double totalAmount = 0.0;
     for (var amount in amounts.values) {
       totalAmount += amount.value;
     }
-    total.value = totalAmount.toString();
+    total = totalAmount.toString();
+    _totalValueNotifier.value = totalAmount; // Update the value notifier
+    notifyListeners(); // Notify listeners of total change
   }
+
   bool isQuantityZeroAtIndex(int index) {
     if (index < 0 || index >= quantityControllers.length) {
       throw RangeError('Index out of range');
     }
     return int.tryParse(quantityControllers[index].text) == 0;
   }
-
 }
 
 class FinalOrderBookingPage extends StatefulWidget {
@@ -114,22 +122,17 @@ class FinalOrderBookingPage extends StatefulWidget {
 }
 
 class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
+  TextEditingController _totalController = TextEditingController();
   final ordermasterViewModel = Get.put(OrderMasterViewModel());
   final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
   int? ordermasterId;
   int? orderdetailsId;
-  final Productss productsController = Get.put(Productss());
-  bool _isNumeric(String str) {
-    if(str == null) {
-      return false;
-    }
-    return double.tryParse(str) != null;
-  }
+  final Productss productsController = Productss();
   TextEditingController _ShopNameController = TextEditingController();
   TextEditingController _ownerNameController = TextEditingController();
   TextEditingController _phoneNoController = TextEditingController();
   TextEditingController _brandNameController = TextEditingController();
-  TextEditingController _totalController = TextEditingController();
+
   TextEditingController _creditLimitController = TextEditingController();
   TextEditingController _discountController = TextEditingController();
   TextEditingController _subTotalController = TextEditingController();
@@ -143,16 +146,14 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   final productsViewModel = Get.put(ProductsViewModel());
   String selectedBrand = '';
   List<RowData> rowDataList = [];
-
   List<String> selectedProductNames = [];
   int serialNumber = 1;
   int serialCounter = 1;
   String currentMonth = DateFormat('MMM').format(DateTime.now());
   String currentUserId = '';
   String newOrderId='';
-  // Define your credit limit options
   List<String> creditLimitOptions = [];
-  String selectedCreditLimit = ''; // Set a default value
+  String selectedCreditLimit = '';
   List<DataRow> rows = [];
   List<DataRow> filteredRows = [];
   List<Map<String, dynamic>> rowDataDetails = [];
@@ -179,36 +180,35 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   }
 
   @override
-
-  @override
-   initState() {
- fetchAllProducts();
+  void initState() {
+    fetchAllProducts();
     super.initState();
     fetchAllProducts();
-  // productsController.total.value = '0'; // Reset the total when the page is initialized
+    productsController.addListener(_onProductChange);
 
- productsController.total.listen((total) {
-   _totalController.text = total; // Update the total controller when the total changes
-     });
     _searchController = TextEditingController();
     addNewRow();
     addNewRow();
     onCreatee();
     _loadCounter();
-    //addListenerToController(_totalController, _calculateSubTotal);
     addListenerToController(_discountController, _calculateSubTotal);
     addListenerToController(_paymentController, _calculateBalance);
     addListenerToController(_subTotalController, _calculateBalance);
   }
 
-   Future<void>fetchAllProducts() async {
-    productsController.fetchProducts();
-    productsController.rows;
+  void _onProductChange() {
+    setState(() {}); // Update UI when products change
+  }
+
+  Future<void> fetchAllProducts() async {
+    await productsController.fetchProducts();
+    setState(() {
+      rows = productsController.rows;
+    });
   }
 
   @override
   void dispose() {
-    // Dispose of controllers to avoid memory leaks
     _ShopNameController.dispose();
     _ownerNameController.dispose();
     _phoneNoController.dispose();
@@ -221,7 +221,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     _balanceController.dispose();
     _requiredDeliveryController.dispose();
 
-    // Dispose of controllers in rowDataList
     for (var rowData in rowDataList) {
       rowData.qtyController.dispose();
       rowData.rateController.dispose();
@@ -229,40 +228,13 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     }
     super.dispose();
   }
-  // void _calculateTotal() {
-  //
-  //
-  //   dynamic totalAmount = productsController._totalController.text;
-  //   List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
-  //   var t1= productsController.updateTotal();
-  //   for (int i = 0; i < rows.length; i++) {
-  //     DataRow row = rows[i];
-  //     String? qty =  productsController.quantityControllers[i].text;
-  //     String? rate = (row.cells[2].child as Text).data!;
-  //
-  //     if (qty != null && rate != null) {
-  //       try {
-  //         int qtyValue = int.tryParse(qty) ?? 0;
-  //         int rateValue = int.tryParse(rate) ?? 0;
-  //         totalAmount += qtyValue * rateValue;
-  //       } catch (e) {
-  //         // Handle parsing errors if needed
-  //       }
-  //     }
-  //   }
-  //
-  //   setState(() {
-  //     _totalController.text = totalAmount.toString();
-  //   });
-  // }
-
-
 
   void addListenerToController(TextEditingController controller, Function() listener) {
     controller.addListener(() {
       listener();
     });
   }
+
   Future<void> onCreatee() async {
     DatabaseOutputs db = DatabaseOutputs();
     await db.showOrderMaster();
@@ -273,320 +245,291 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get the passed data
-    final Map<String, String> args = Get.arguments ?? {};
     final shopData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    // final rowDataDetails = shopData['rowDataDetails'] as List<Map<String, dynamic>>;
-    //final quantities = <String>[];
 
     final shopName = shopData['shopName'];
     final ownerName = shopData['ownerName'];
     final selectedBrandName = shopData['selectedBrandName'];
     final ownerContact = shopData['ownerContact'];
-    final userName = shopData['userName'];
-    final qty =shopData['data'];
-    print(OrderMasterid);
-    print(shopName);
-    print(ownerName);
-    print(ownerContact);
-    print(selectedBrandName);
-    // for (final rowData in rowDataDetails) {
-    //   final quantity = rowData['quantity'] as String;
-    //   quantities.add(quantity);
-    // }
 
     _ShopNameController.text = shopName!;
     _ownerNameController.text = ownerName!;
     _brandNameController.text = selectedBrandName;
     _phoneNoController.text = ownerContact!;
-    return WillPopScope(
-        onWillPop: () async {
-          await productsController.clearAmounts();
-          productsController.rows.clear();
 
-          // Navigate to the home page
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => HomePage(),
-            ),
-          ); // Always return false to prevent going back
-          return false;
-        },
-        // You can use any widget here as a placeholder
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('Order Booking'),
-            centerTitle: true,
-            backgroundColor: Colors.white,
+    return WillPopScope(
+      onWillPop: () async {
+        await productsController.clearAmounts();
+        productsController.rows.clear();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
           ),
-          body: Stack(
-            children: <Widget>[
-              SingleChildScrollView(
-                padding: EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    buildTextFormField('Shop Name', _ShopNameController,readOnly: true),
-                    SizedBox(height: 10),
-                    buildTextFormField('Owner Name', _ownerNameController,readOnly: true),
-                    SizedBox(height: 10),
-                    buildTextFormField('Phone#', _phoneNoController,readOnly: true),
-                    SizedBox(height: 10),
-                    buildTextFormField('Brand', _brandNameController,readOnly: true),
-                    SizedBox(height: 10),
-                   // for (var i = 0; i < rowDataList.length; i++) buildRow(rowDataList[i], i + 1),
-                    SizedBox(height: 20),
-                    Column(
-                      children: [
-                        SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(5.0),
-                                child: Container(
-                                  height: 400, // Set the desired height
-                                  width: 300, // Set the desired width
-                                  child: Card(
-                                    elevation: 5,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
-                                      side: BorderSide(
-                                        color: Colors.black, // Change the color as needed
-                                        width: 1.0, // Change the width as needed
-                                      ),
+        );
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Order Booking'),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+        ),
+        body: Stack(
+          children: <Widget>[
+            SingleChildScrollView(
+              padding: EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  buildTextFormField('Shop Name', _ShopNameController, readOnly: true),
+                  SizedBox(height: 10),
+                  buildTextFormField('Owner Name', _ownerNameController, readOnly: true),
+                  SizedBox(height: 10),
+                  buildTextFormField('Phone#', _phoneNoController, readOnly: true),
+                  SizedBox(height: 10),
+                  buildTextFormField('Brand', _brandNameController, readOnly: true),
+                  SizedBox(height: 10),
+                  Column(
+                    children: [
+                      SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(5.0),
+                              child: Container(
+                                height: 400, // Set the desired height
+                                width: 300, // Set the desired width
+                                child: Card(
+                                  elevation: 5,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    side: BorderSide(
+                                      color: Colors.black,
+                                      width: 1.0,
                                     ),
-                                    child: SingleChildScrollView( // Add a vertical ScrollView
-                                      child: Column(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextField(
-                                              controller: _searchController,
-                                              onChanged: (query) {
-                                                filterData(query);
-                                              },
-                                              decoration: InputDecoration(
-                                                labelText: 'Search',
-                                                hintText: 'Type to search...',
-                                                prefixIcon: Icon(Icons.search),
-                                              ),
+                                  ),
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextField(
+                                            controller: _searchController,
+                                            onChanged: (query) {
+                                              filterData(query);
+                                            },
+                                            decoration: InputDecoration(
+                                              labelText: 'Search',
+                                              hintText: 'Type to search...',
+                                              prefixIcon: Icon(Icons.search),
                                             ),
                                           ),
-                                        // Obx(() =>
-                                              SingleChildScrollView(
-                                                    scrollDirection: Axis.horizontal,
-                                                 child: DataTable(
-                                              columns: [
-                                                // DataColumn(label: Text('Sr')),
-                                                   DataColumn(label: Text('Products')),
-                                                   DataColumn(label: Text('Quantity')),
-                                                   DataColumn(label: Text('In Stock', style: TextStyle(color: Colors.black))),
-                                                   DataColumn(label: Text('Rate')),
-                                                   DataColumn(label: Text('Amount')),
-                                              ],
-                                              rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
-                                            ),
-                                          )
-                                       //  ),
-                                        ],
-                                      ),
+                                        ),
+                                        SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: DataTable(
+                                            columns: [
+                                              DataColumn(label: Text('Products')),
+                                              DataColumn(label: Text('Quantity')),
+                                              DataColumn(label: Text('In Stock', style: TextStyle(color: Colors.black))),
+                                              DataColumn(label: Text('Rate')),
+                                              DataColumn(label: Text('Amount')),
+                                            ],
+                                            rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    // Align(
-                    //   alignment: Alignment.center,
-                    //   child: ElevatedButton(
-                    //     onPressed: () async{
-                    //       await fetchAllProducts();
-                    //
-                    //       addNewRow();
-                    //     },
-                    //     style: ElevatedButton.styleFrom(
-                    //       backgroundColor: Colors.deepOrange,
-                    //       foregroundColor: Colors.white,
-                    //       shape: RoundedRectangleBorder(
-                    //         borderRadius: BorderRadius.circular(5),
-                    //       ),
-                    //     ),
-                    //     child: Text('Add Products'),
-                    //   ),
-                    // ),
-                    buildTextFormField('Total', _totalController, readOnly: true),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  ValueListenableBuilder<double>(
+                    valueListenable: productsController.totalValueNotifier,
+                    builder: (context, value, child) {
+                      _totalController.text = value.toString();
+                      return buildTextFormField('Total', _totalController, readOnly: true);
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  // Replace the Credit Limit text field with a Dropdown
+                  buildDropdown('Credit Limit', _creditLimitController, creditLimitOptions, selectedCreditLimit),
 
+                  SizedBox(height: 10),
+                  // buildTextFormField('Discount', _discountController),
+                  // SizedBox(height: 10),
+                  // buildTextFormField('Net Amount', _subTotalController,readOnly: true),
+                  // SizedBox(height: 10),
 
-                    SizedBox(height: 10),
-                    // Replace the Credit Limit text field with a Dropdown
-                    buildDropdown('Credit Limit', _creditLimitController, creditLimitOptions, selectedCreditLimit),
-                    SizedBox(height: 10),
-                    // buildTextFormField('Discount', _discountController),
-                    // SizedBox(height: 10),
-                    // buildTextFormField('Net Amount', _subTotalController,readOnly: true),
-                    // SizedBox(height: 10),
-
-                    buildDateField('Required Delivery', _requiredDeliveryController),
-                    SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.center,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          bool isAnyQuantityZero = false;
+                  buildDateField('Required Delivery', _requiredDeliveryController),
+                  SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.center,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        bool isAnyQuantityZero = false;
                         for (int index = 0; index < productsController.quantityControllers.length; index++) {
                           if (productsController.isQuantityZeroAtIndex(index)) {
                             isAnyQuantityZero = true;
                             break;
                           }
                         }
-                          // Check if credit limit is in the list
-                          if (_ShopNameController.text.isNotEmpty &&
-                              _ownerNameController.text.isNotEmpty &&
-                              _phoneNoController.text.isNotEmpty &&
-                              _brandNameController.text.isNotEmpty &&
-                              _totalController.text.isNotEmpty &&
-                              _creditLimitController.text.isNotEmpty &&
-                              ['7 Days','15 Days', '30 Days', 'On Cash'].contains(_creditLimitController.text) &
-                              // _discountController.text.isNotEmpty &&
-                              // _subTotalController.text.isNotEmpty &&
-                              _requiredDeliveryController.text.isNotEmpty )
-                              // Add additional checks for other required fields
-                              // rowDataList.every((rowData) =>
-                              // rowData.selectedProduct != null &&
-                              //     rowData.qtyController.text.isNotEmpty &&
-                              //     rowData.rateController.text.isNotEmpty &&
-                              //     rowData.amountController.text.isNotEmpty))
-                          {
+                        // Check if credit limit is in the list
+                        if (_ShopNameController.text.isNotEmpty &&
+                            _ownerNameController.text.isNotEmpty &&
+                            _phoneNoController.text.isNotEmpty &&
+                            _brandNameController.text.isNotEmpty &&
+                            _totalController.text.isNotEmpty &&
+                            _creditLimitController.text.isNotEmpty &&
+                            ['7 Days','15 Days', '30 Days', 'On Cash'].contains(_creditLimitController.text) &
+                            // _discountController.text.isNotEmpty &&
+                            // _subTotalController.text.isNotEmpty &&
+                            _requiredDeliveryController.text.isNotEmpty )
+                          // Add additional checks for other required fields
+                          // rowDataList.every((rowData) =>
+                          // rowData.selectedProduct != null &&
+                          //     rowData.qtyController.text.isNotEmpty &&
+                          //     rowData.rateController.text.isNotEmpty &&
+                          //     rowData.amountController.text.isNotEmpty))
+                            {
 
 
 
-                            // All required fields are filled, proceed with confirmation logic
+                          // All required fields are filled, proceed with confirmation logic
 
-                            // String newOrderId = generateNewOrderId(userId.toString(), currentMonth);
+                          // String newOrderId = generateNewOrderId(userId.toString(), currentMonth);
 
-                            List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
+                          List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
 
-                            for (int i = 0; i < rows.length; i++) {
-                              DataRow row = rows[i];
-                              String selectedItem = (row.cells[0].child as Text).data!;
-                              String quantity = productsController.quantityControllers[i].text;
+                          for (int i = 0; i < rows.length; i++) {
+                            DataRow row = rows[i];
+                            String selectedItem = (row.cells[0].child as Text).data!;
+                            String quantity = productsController.quantityControllers[i].text;
 
-                              String rateString = (row.cells[3].child as Text).data!;
-                              int rate = 0;
-                              print('Rate String: $rateString');
+                            String rateString = (row.cells[3].child as Text).data!;
+                            int rate = 0;
+                            print('Rate String: $rateString');
 
-                              if (_isNumeric(rateString)) {
-                                rate = int.parse(rateString);
-                              } else {
-                                print('Error: Invalid number format: $rateString');
+                            bool _isNumeric(String str) {
+                              if (str == null) {
+                                return false;
                               }
-
-                              int totalAmount = productsController.amounts[productsController.productsViewModel.allProducts.firstWhere((product) => product.product_name == selectedItem)]!.value.toInt();
-
-
-
-                              if (int.parse(quantity) != 0) {
-                                rowDataDetails.add({
-                                  'selectedItem': selectedItem,
-                                  'quantity': quantity,
-                                  'rate': rate,
-                                  'totalAmount': totalAmount,
-                                });
-                                print('product: $selectedItem');
-                                print('Rate String: $rate');
-                                print('quatity: $quantity');
-                              }
-
-                            }
-                            // Check if there are any non-zero quantity items
-                            if (rowDataDetails.isEmpty) {
-                              Fluttertoast.showToast(
-                                msg: 'Please enter quantities greater than zero before proceeding.',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                              );
-
-                              return;
+                              return double.tryParse(str) != null;
                             }
 
+                            int totalAmount = productsController.amounts[productsController.productsViewModel.allProducts.firstWhere((product) => product.product_name == selectedItem)]!.value.toInt();
 
-                            Map<String, dynamic> dataToPass = {
-                              'shopName': _ShopNameController.text,
-                              'ownerName': _ownerNameController.text,
-                              'orderId': OrderMasterid,
-                              'orderDate': _getFormattedDate(),
-                              'phoneNo': _phoneNoController.text,
-                              'rowDataDetails': rowDataDetails,
-                              'brand': _brandNameController.text,
-                              'userName': userNames,
-                              'date': _getFormattedDate(),
-                              'total': _totalController.text,
-                              'creditLimit': _creditLimitController.text,
-                              // 'discount': _discountController.text,
-                              // 'subTotal': _subTotalController.text,
-                              'requiredDelivery': _requiredDeliveryController.text
-                            };
 
-                            // Navigate to another page after confirmation
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => OrderBooking_2ndPage(),
-                                settings: RouteSettings(arguments: dataToPass),
-                              ),
-                            );
 
-                          } else {
-                            // Show a message or handle the case where some fields are empty or invalid
+                            if (int.parse(quantity) != 0) {
+                              rowDataDetails.add({
+                                'selectedItem': selectedItem,
+                                'quantity': quantity,
+                                'rate': rate,
+                                'totalAmount': totalAmount,
+                              });
+                              print('product: $selectedItem');
+                              print('Rate String: $rate');
+                              print('quatity: $quantity');
+                            }
+
+                          }
+                          // Check if there are any non-zero quantity items
+                          if (rowDataDetails.isEmpty) {
                             Fluttertoast.showToast(
-                              msg: 'Please fill in all required fields correctly and select a valid credit limit before confirming.',
+                              msg: 'Please enter quantities greater than zero before proceeding.',
                               toastLength: Toast.LENGTH_SHORT,
                               gravity: ToastGravity.BOTTOM,
-                              timeInSecForIosWeb: 1,
                               backgroundColor: Colors.red,
                               textColor: Colors.white,
-                              fontSize: 16.0,
                             );
+
+                            return;
                           }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white, backgroundColor: Colors.green,
 
-                          elevation: 10,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          minimumSize: Size(200, 50),
+
+                          Map<String, dynamic> dataToPass = {
+                            'shopName': _ShopNameController.text,
+                            'ownerName': _ownerNameController.text,
+                            'orderId': OrderMasterid,
+                            'orderDate': _getFormattedDate(),
+                            'phoneNo': _phoneNoController.text,
+                            'rowDataDetails': rowDataDetails,
+                            'brand': _brandNameController.text,
+                            'userName': userNames,
+                            'date': _getFormattedDate(),
+                            'total': _totalController.text,
+                            'creditLimit': _creditLimitController.text,
+                            // 'discount': _discountController.text,
+                            // 'subTotal': _subTotalController.text,
+                            'requiredDelivery': _requiredDeliveryController.text
+                          };
+
+                          // Navigate to another page after confirmation
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => OrderBooking_2ndPage(),
+                              settings: RouteSettings(arguments: dataToPass),
+                            ),
+                          );
+
+                        } else {
+                          // Show a message or handle the case where some fields are empty or invalid
+                          Fluttertoast.showToast(
+                            msg: 'Please fill in all required fields correctly and select a valid credit limit before confirming.',
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white, backgroundColor: Colors.green,
+
+                        elevation: 10,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
                         ),
-                        child: Text('Confirm'),
+                        minimumSize: Size(200, 50),
                       ),
+                      child: Text('Confirm'),
                     ),
+                  ),
 
-                  ],
+                ],
 
-                ),
               ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Text(
-                    _getFormattedDate(),
-                    style: TextStyle(fontSize: 16, color: Colors.black),
+            ),
+            Stack(
+              children: [
+                Positioned(
+                  top: 0, // Align the top edge of the Positioned widget to the top edge of the Stack
+                  right: 0, // Align the right edge of the Positioned widget to the right edge of the Stack
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0), // Adjust padding as needed
+                    child: Text(
+                      _getFormattedDate(),
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        )
+              ],
+            )
+
+          ],
+        ),
+      ),
     );
   }
-
 
   // String currentMonth = DateFormat('MMM').format(DateTime.now());
   // You can maintain this as a global variable or retrieve it from somewhere
@@ -846,7 +789,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
       } else {
         final formattedDate = DateFormat('dd-MMM-yyyy').format(picked);
         controller.text = formattedDate;
-    }
+      }
     }
   }
   Widget buildRow(RowData rowData, int rowNumber) {
