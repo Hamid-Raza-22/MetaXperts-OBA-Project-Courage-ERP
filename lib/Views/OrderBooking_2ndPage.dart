@@ -85,7 +85,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     final brand = data ['brand'];
     final ownerName= data['ownerName'];
     final phoneNo= data['phoneNo'];
-  //  final total = data ['total'];
+    //  final total = data ['total'];
     final date = data ['date'];
 
     final requiredDelivery = data['requiredDelivery'];
@@ -98,19 +98,20 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
     final selectedItems = <String>[];
     final quantities = <String>[];
-    final rates = <dynamic>[];
+    final rates = <String>[];
     final totalAmounts = <int>[];
 
     for (final rowData in rowDataDetails) {
       final selectedItem = rowData['selectedItem'] as String;
       final quantity = rowData['quantity'] as String;
-      final rate = rowData['rate'] as int;
+      final rate = rowData['rate'] as String;
       final totalAmount = rowData['totalAmount'] as int;
 
       selectedItems.add(selectedItem);
       quantities.add(quantity);
       rates.add(rate);
       totalAmounts.add(totalAmount);
+      // print('Rates: $rates');
     }
 
     final totalAmount =
@@ -125,7 +126,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
               return false;
             } else {
 
-                return true;
+              return true;
             }
           },
           child: SingleChildScrollView(
@@ -217,11 +218,11 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   requiredDelivery: requiredDelivery,
                                 ));
 
-                            //    List<OrderDetailsModel> orderDetailsList = [];
+                                //    List<OrderDetailsModel> orderDetailsList = [];
 
-                                 saveRowDataDetailsToDatabase(rowDataDetails);
+                                saveRowDataDetailsToDatabase(rowDataDetails);
 
-                              //   DBHelper().addOrderDetails(orderDetailsList);
+                                //   DBHelper().addOrderDetails(orderDetailsList);
 
                                 DBHelper dbmaster = DBHelper();
 
@@ -305,7 +306,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (isOrderConfirmed) {
-                            await productsController.clearAmounts();
+                              await productsController.clearAmounts();
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => HomePage(),
@@ -347,7 +348,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
   // New method to save rowDataDetails to the order details database
   Future<void> saveRowDataDetailsToDatabase(List<Map<String, dynamic>> rowDataDetails) async {
-   // final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
+    // final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
 
     for (var rowData in rowDataDetails) {
       var id = await customAlphabet('1234567890', 5);
@@ -451,19 +452,20 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     );
   }
 
-  int calculateTotalQuantity(List<int> quantities) {
-    return quantities.fold<int>(0, (sum, quantity) => sum + quantity);
+  int calculateTotalQuantity(List<String> quantities) {
+    return quantities.fold<int>(0, (sum, quantity) => sum + int.parse(quantity));
   }
+
 
   Future<void> generateAndSharePDF(dynamic orderId, dynamic user_name, dynamic shopName,
       dynamic order_date, List<dynamic> selectedItems, List<dynamic> quantities,List<dynamic> rates,
       List<dynamic> totalAmounts, dynamic totalAmount, dynamic creditLimit,
-       dynamic requiredDelivery) async {
+      dynamic requiredDelivery) async {
     final pdf = pw.Document();
     final image = pw.Image(pw.MemoryImage(Uint8List.fromList((await rootBundle.load('assets/images/p1.png')).buffer.asUint8List())));
-    // final totalQuantity = calculateTotalQuantity(quantities);
+    final totalQuantity = calculateTotalQuantity(quantities.cast<String>());
 
-    // Add content to the PDF document
+    // Add content to the PDF documenti want to s
     pdf.addPage(pw.Page(
       pageFormat: pw.PdfPageFormat.a4,
       build: (pw.Context context){
@@ -615,8 +617,8 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                         //  pw.Text('Grand Total: ${totalQuantity} PCS', style: pw.TextStyle(fontSize: 15)),
-                         // pw.Text('Net Amount: ${subTotal.toString()}', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Grand Total: ${totalQuantity} PCS', style: pw.TextStyle(fontSize: 15)),
+                          // pw.Text('Net Amount: ${subTotal.toString()}', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
                         ],
                       ),
 
@@ -887,17 +889,17 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
   Widget buildElevatedButton(String txt, [Function()? onPressed]) {
     return ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-          elevation: 10,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          minimumSize: Size(200, 50),
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        elevation: 10,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
         ),
-        child: Text(txt),
-        );
-    }
+        minimumSize: Size(200, 50),
+      ),
+      child: Text(txt),
+    );
+  }
 }

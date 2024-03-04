@@ -190,7 +190,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     addNewRow();
     addNewRow();
     onCreatee();
-    _loadCounter();
+
     addListenerToController(_discountController, _calculateSubTotal);
     addListenerToController(_paymentController, _calculateBalance);
     addListenerToController(_subTotalController, _calculateBalance);
@@ -431,11 +431,11 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               rowDataDetails.add({
                                 'selectedItem': selectedItem,
                                 'quantity': quantity,
-                                'rate': rate,
+                                'rate': rateString,
                                 'totalAmount': totalAmount,
                               });
                               print('product: $selectedItem');
-                              print('Rate String: $rate');
+                              print('Rate String: $rateString ');
                               print('quatity: $quantity');
                             }
 
@@ -529,67 +529,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
         ),
       ),
     );
-  }
-
-  // String currentMonth = DateFormat('MMM').format(DateTime.now());
-  // You can maintain this as a global variable or retrieve it from somewhere
-  _loadCounter() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int loadedCounter = prefs.getInt('serialCounter') ?? 1;
-    String loadedMonth = prefs.getString('currentMonth') ?? currentMonth;
-    String loadedUserId = prefs.getString('currentUserId') ?? '';
-
-    print('Loaded Counter: $loadedCounter');
-    print('Loaded Month: $loadedMonth');
-    print('Loaded User ID: $loadedUserId');
-
-    if (loadedMonth != currentMonth && loadedUserId != currentUserId) {
-      // Reset the counter when the month changes
-      loadedCounter = 1;
-    }
-
-    // String newOrderId = "$loadedUserId-$loadedMonth-${loadedCounter.toString().padLeft(3, '0')}";
-    // orderMasterid = newOrderId;
-    // print(orderMasterid);
-
-    // Save the updated values to SharedPreferences
-    prefs.setInt('serialCounter', loadedCounter);
-    prefs.setString('currentMonth', loadedMonth);
-    prefs.setString('currentUserId', loadedUserId);
-
-    setState(() {
-      serialCounter = loadedCounter;
-      currentMonth = loadedMonth;
-      currentUserId = loadedUserId;
-    });
-  }
-
-
-  _saveCounter() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('serialCounter', serialCounter);
-    await prefs.setString('currentMonth', currentMonth);
-    await prefs.setString('currentUserId', currentUserId); // Add this line
-  }
-
-  String generateNewOrderId( String userId) {
-    if (this.currentUserId != userId) {
-      // Reset serial counter when the userId changes
-      serialCounter = 1;
-      this.currentUserId = userId;
-    }
-
-    if (this.currentMonth != currentMonth) {
-      // Reset serial counter when the month changes
-      serialCounter = 1;
-      this.currentMonth = currentMonth;
-    }
-
-    String orderId =
-        "$userId-$currentMonth-${serialCounter.toString().padLeft(3, '0')}";
-    serialCounter++;
-    _saveCounter(); // Save the updated counter value, current month, and userId
-    return orderId;
   }
 
 

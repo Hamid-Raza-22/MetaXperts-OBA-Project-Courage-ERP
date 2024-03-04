@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../API/DatabaseOutputs.dart';
 import 'login.dart';
 //import 'package:google_map_live/login.dart';
 
@@ -18,6 +19,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    DatabaseOutputs outputs = DatabaseOutputs();
+    outputs.initializeData();
     Timer(const Duration(seconds: 2), () async {
       bool isLoggedIn = await _checkLoginStatus();
 
@@ -25,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
         // Redirect to the home page if the user is already logged in
         Navigator.of(context).push(
           MaterialPageRoute(
-              builder: (context) => HomePage(),
-             // settings: RouteSettings(arguments: dataToPass)
+            builder: (context) => HomePage(),
+            // settings: RouteSettings(arguments: dataToPass)
           ),
         );
       } else {
