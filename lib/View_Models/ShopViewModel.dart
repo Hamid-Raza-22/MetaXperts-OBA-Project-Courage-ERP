@@ -21,12 +21,6 @@ class ShopViewModel extends GetxController{
     var shop = await shopRepository.getShop();
     allShop.value= shop;
 
-
-  }
-
-  Future<String> fetchLastShopId() async{
-    String shopvisit = await shopRepository.getLastid();
-    return shopvisit;
   }
 
   Future<void> addShop(ShopModel shopModel) async {
@@ -55,6 +49,11 @@ class ShopViewModel extends GetxController{
     shopRepository.delete(id);
     fetchAllShop();
 
+  }
+
+  Future<String> fetchLastShopId() async{
+    String shopvisit = await shopRepository.getLastid();
+    return shopvisit;
   }
 }
 

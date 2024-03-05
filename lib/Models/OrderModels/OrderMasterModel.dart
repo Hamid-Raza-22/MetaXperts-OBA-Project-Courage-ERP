@@ -84,17 +84,7 @@ class OrderMasterModel {
     };
   }
 }
-//
-//   Map<String, dynamic> toNewMap() {
-//     return {
-//       'shopName': shopName,
-//       'ownerName': ownerName,
-//       'phoneNo': phoneNo,
-//       'brand': brand,
-//     };
-//   }
-// }
-//import 'package:order_booking_shop/Models/ProductsModel.dart';
+
 
 class GetOrderMasterModel {
 

@@ -501,17 +501,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                         onPressed: () async {
                           // Check internet connection before refresh
                           final bool isConnected = await InternetConnectionChecker().hasConnection;
-                          if (!isConnected) {
-                            // No internet connection
-                            Fluttertoast.showToast(
-                              msg: "No internet connection.",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                              fontSize: 16.0,
-                            );
-                          } else {
+                          if (isConnected) {
                             // Internet connection is available
                             DatabaseOutputs outputs = DatabaseOutputs();
                             // Run both functions in parallel
@@ -524,6 +514,16 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                             ]);
                             // After 10 seconds, hide the loading indicator and perform the refresh logic
                             Navigator.of(context, rootNavigator: true).pop();
+                          } else {
+                            // No internet connection
+                            Fluttertoast.showToast(
+                              msg: "No internet connection.",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
+                              fontSize: 16.0,
+                            );
                           }
                         },
                       ),
@@ -638,7 +638,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text('Clock In Required'),
-                                  content: Text('Turn on location.'),
+                                  content: Text('Please clock in before adding a shop.'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
@@ -745,7 +745,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text('Clock In Required'),
-                                  content: Text('Please clock in before accessing the Recovery.'),
+                                  content: Text('Please clock in before accessing the Return Page.'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
@@ -759,7 +759,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text('Internet Data Required'),
-                                  content: Text('Please check your internet connection before accessing the Recovery.'),
+                                  content: Text('Please check your internet connection before accessing the Return Page.'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(context),
