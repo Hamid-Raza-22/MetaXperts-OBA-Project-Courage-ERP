@@ -381,15 +381,15 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       globalLatitude1 = position.latitude;
       globalLongitude1 = position.longitude;
       // Show a toast
-      Fluttertoast.showToast(
-        msg: 'Location captured!',
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.blue,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+      // Fluttertoast.showToast(
+      //   msg: 'Location captured!',
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   gravity: ToastGravity.BOTTOM,
+      //   timeInSecForIosWeb: 1,
+      //   backgroundColor: Colors.blue,
+      //   textColor: Colors.white,
+      //   fontSize: 16.0,
+      // );
     } catch (e) {
       print('Error getting current location: $e');
     }
@@ -472,7 +472,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Timer Adil12: ${_formatDuration(newsecondpassed.toString())}',
+                    'Timer: ${_formatDuration(newsecondpassed.toString())}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16.0,
