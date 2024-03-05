@@ -307,7 +307,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               padding: EdgeInsets.all(5.0),
                               child: Container(
                                 height: 400, // Set the desired height
-                                width: 300, // Set the desired width
+                                width: MediaQuery.of(context).size.width,
                                 child: Card(
                                   elevation: 5,
                                   shape: RoundedRectangleBorder(

@@ -194,10 +194,13 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                         children: [
                           Container(
                             width: 170,
-                            child: buildElevatedButton('Re Confirm', () async {
-                              if (!isReConfirmButtonPressed) {
-                                // Mark the button as pressed
-                                isReConfirmButtonPressed = true;
+                            child: ElevatedButton(
+                              onPressed: isReConfirmButtonPressed
+                                  ? null // Disable the button if isReConfirmButtonPressed is true
+                                  : () async {
+                                setState(() {
+                                  isReConfirmButtonPressed = true; // Mark the button as pressed
+                                });
                                 // Your existing code for handling the "Re Confirm" button press
                                 isOrderConfirmed = true;
 
@@ -213,16 +216,10 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   total: totalAmount,
                                   creditLimit: creditLimit,
                                   shopCity: selectedShopCity,
-                                  // discount: discount,
-                                  // subTotal: subTotal,
                                   requiredDelivery: requiredDelivery,
                                 ));
 
-                                //    List<OrderDetailsModel> orderDetailsList = [];
-
                                 saveRowDataDetailsToDatabase(rowDataDetails);
-
-                                //   DBHelper().addOrderDetails(orderDetailsList);
 
                                 DBHelper dbmaster = DBHelper();
 
@@ -236,19 +233,15 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   backgroundColor: Colors.green,
                                   textColor: Colors.white,
                                 );
-                              } else {
-                                Fluttertoast.showToast(
-                                  msg: "Order has already been confirmed.",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  backgroundColor: Colors.red,
-                                  textColor: Colors.white,
-                                );
-                              }
-                            }),
-                            decoration: BoxDecoration(
-                              color: Colors.lightGreen[100], // Set the color of the button
-                              borderRadius: BorderRadius.circular(8), // Optional: Set border radius
+                              },
+                              child: Text('Re Confirm'),
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.green, // Set the color of the button
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8), // Optional: Set border radius
+                                ),
+                              ),
                             ),
                           ),
                         ],

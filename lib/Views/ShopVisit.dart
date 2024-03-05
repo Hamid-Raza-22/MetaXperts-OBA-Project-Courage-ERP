@@ -532,14 +532,14 @@ class _ShopVisitState extends State<ShopVisit> {
                                 padding: EdgeInsets.all(5.0),
                                 child: Container(
                                   height: 400, // Set the desired height
-                                  width: 300, // Set the desired width
+                                  width: MediaQuery.of(context).size.width,
                                   child:Card(
                                     elevation: 5,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
                                       side: BorderSide(
                                         color: Colors.black, // Change the color as needed
-                                        width: 1.0, // Change the width as needed
+                                        width: 1.0,
                                       ),
                                     ),
                                     child: SingleChildScrollView( // Add a vertical ScrollView
