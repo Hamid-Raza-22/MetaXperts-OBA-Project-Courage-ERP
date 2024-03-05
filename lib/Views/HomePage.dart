@@ -472,7 +472,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Timer Adil: ${_formatDuration(newsecondpassed.toString())}',
+                    'Timer Adil1: ${_formatDuration(newsecondpassed.toString())}',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16.0,
