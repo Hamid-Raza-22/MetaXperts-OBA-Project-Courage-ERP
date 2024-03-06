@@ -12,6 +12,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../API/DatabaseOutputs.dart';
 import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
@@ -175,6 +176,13 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         service.startService();
         var id = await customAlphabet('1234567890', 10);
         await prefs.setString('clockInId', id);
+        _saveCurrentTime();
+        _saveClockStatus(true);
+        //_getLocation();
+        //getLocation();
+        _clockRefresh();
+        isClockedIn = true;
+        await Future.delayed(Duration(seconds: 5));
         await attendanceViewModel.addAttendance(AttendanceModel(
             id: prefs.getString('clockInId'),
             timeIn: _getFormattedtime(),
@@ -193,8 +201,12 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         isClockedIn = true;
         DBHelper dbmaster = DBHelper();
         dbmaster.postAttendanceTable();
+        currentPostId = Uuid().v1();
+        print('HomePage:$currentPostId');
 
       } else {
+        // Generate a unique ID for the current post
+
         service.invoke("stopService");
         await Future.delayed(Duration(seconds: 10));
         attendanceViewModel.addAttendanceOut(AttendanceOutModel(
@@ -381,15 +393,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       globalLatitude1 = position.latitude;
       globalLongitude1 = position.longitude;
       // Show a toast
-      // Fluttertoast.showToast(
-      //   msg: 'Location captured!',
-      //   toastLength: Toast.LENGTH_SHORT,
-      //   gravity: ToastGravity.BOTTOM,
-      //   timeInSecForIosWeb: 1,
-      //   backgroundColor: Colors.blue,
-      //   textColor: Colors.white,
-      //   fontSize: 16.0,
-      // );
     } catch (e) {
       print('Error getting current location: $e');
     }
@@ -507,10 +510,10 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                             // Run both functions in parallel
                             showLoadingIndicator(context);
                             await Future.wait([
+                              Future.delayed(Duration(seconds: 10)),
                               backgroundTask(),
                               postFile(),
                               outputs.checkFirstRun(),
-                              Future.delayed(Duration(seconds: 10)),
                             ]);
                             // After 10 seconds, hide the loading indicator and perform the refresh logic
                             Navigator.of(context, rootNavigator: true).pop();

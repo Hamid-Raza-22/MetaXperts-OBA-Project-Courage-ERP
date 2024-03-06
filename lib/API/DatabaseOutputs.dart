@@ -123,30 +123,30 @@ class DatabaseOutputs{
       print("Data is available.");
     }
 
-    if (Accountsdata == null || Accountsdata.isEmpty ) {
-      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
-      var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
-      if (results2) {
-        print("Accounts Data inserted successfully.");
-      } else {
-        print("Error inserting data.");
-      }
-    } else {
-      print("Data is available.");
-    }
-
-
-    if (NetBalancedata == null || NetBalancedata.isEmpty ) {
-      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
-      var results2 = await dbnetbalance.insertNetBalanceData(response2);   //return True or False
-      if (results2) {
-        print(" Net Balance Data inserted successfully.");
-      } else {
-        print("Error inserting data.");
-      }
-    } else {
-      print("Data is available.");
-    }
+    // if (Accountsdata == null || Accountsdata.isEmpty ) {
+    //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
+    //   var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
+    //   if (results2) {
+    //     print("Accounts Data inserted successfully.");
+    //   } else {
+    //     print("Error inserting data.");
+    //   }
+    // } else {
+    //   print("Data is available.");
+    // }
+    //
+    //
+    // if (NetBalancedata == null || NetBalancedata.isEmpty ) {
+    //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
+    //   var results2 = await dbnetbalance.insertNetBalanceData(response2);   //return True or False
+    //   if (results2) {
+    //     print(" Net Balance Data inserted successfully.");
+    //   } else {
+    //     print("Error inserting data.");
+    //   }
+    // } else {
+    //   print("Data is available.");
+    // }
 
 
     if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
 
 DBHelper dbHelper = DBHelper();
+String currentPostId= "";
 String SellectedproductName= "";
 double? globalnetBalance;
 String selectedShopCity= '';
