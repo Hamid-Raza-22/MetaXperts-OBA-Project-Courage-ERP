@@ -168,6 +168,64 @@ class ApiServices extends BaseApiServices {
       return false;
     }
   }
+  Future<bool> masterPostWithGPX(Map<dynamic, dynamic> data, dynamic url,Uint8List? body) async {
+    if (kDebugMode) {
+      print(url);
+      print(data);
+    }
 
+    try {
+      // Get the OAuth2 client
+      var client = await getClient();
+
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+
+      // Add fields from the data map
+      data.forEach((key, value) {
+        request.fields[key.toString()] = value.toString();
+      });
+
+      // Add image if provided
+      if (body != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'body',
+            body,
+            filename: 'shop_image.gpx', // Adjust the filename as needed
+          ),
+        );
+      }
+
+
+      // var gpxFile = await http.MultipartFile.fromPath('body', body.path);
+      //  request.files.add(gpxFile);
+
+      // Use the client to send the request
+      final streamedResponse = await client.send(request);
+
+      // Get the response
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        // Successful response, you might want to handle the response further
+        var result = response.body;
+        print('Image uploaded successfully. Response: $result');
+
+        if (kDebugMode) {
+          print(result);
+        }
+        return true;
+      } else {
+        // Unsuccessful response
+        print("ERROR ${response.statusCode.toString()}");
+        return false;
+      }
+
+    } catch (e) {
+      // Exception during the API request
+      print(e.toString());
+      return false;
+    }
+  }
 
 }

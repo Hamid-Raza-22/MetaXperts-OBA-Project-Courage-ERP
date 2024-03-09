@@ -28,8 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
         // Redirect to the home page if the user is already logged in
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => HomePage(),
-            // settings: RouteSettings(arguments: dataToPass)
+              builder: (context) => HomePage(),
+             // settings: RouteSettings(arguments: dataToPass)
           ),
         );
       } else {

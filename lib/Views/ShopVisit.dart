@@ -98,10 +98,10 @@ class _ShopVisitState extends State<ShopVisit> {
   List<String> selectedProductNames = [];
   // Add an instance of ProductsViewModel
   ProductsViewModel productsViewModel = Get.put(ProductsViewModel());
-  // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
+ // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
   int ShopVisitsSerialCounter = highestSerial ?? 0;
 
-  // int? serialCounter;
+ // int? serialCounter;
 
   double currentBalance = 0.0;
   String currentUserId = '';
@@ -140,7 +140,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
     super.initState();
     data();
-    // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
+   // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
 
     //selectedDropdownValue = dropdownItems[0]; // Default value
     _fetchBrandItemsFromDatabase();
@@ -152,7 +152,7 @@ class _ShopVisitState extends State<ShopVisit> {
     fetchProductsNamesByBrand();
     saveCurrentLocation();
     _checkUserIdAndFetchShopNames();
-    // productsController.controllers.clear();
+   // productsController.controllers.clear();
     // removeSavedValues(index);
     print(userId);
     print(highestSerial);
@@ -248,7 +248,7 @@ class _ShopVisitState extends State<ShopVisit> {
     //serialCounter=highestSerial;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      //  serialCounter++;
+    //  serialCounter++;
       ShopVisitsSerialCounter = (prefs.getInt('serialCounter') ?? highestSerial)! ;
       shopVisitCurruntMonth = prefs.getString('currentMonth') ?? shopVisitCurruntMonth;
       currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
@@ -532,14 +532,14 @@ class _ShopVisitState extends State<ShopVisit> {
                                 padding: EdgeInsets.all(5.0),
                                 child: Container(
                                   height: 400, // Set the desired height
-                                  width: MediaQuery.of(context).size.width,
+                                  width: 300, // Set the desired width
                                   child:Card(
                                     elevation: 5,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
                                       side: BorderSide(
                                         color: Colors.black, // Change the color as needed
-                                        width: 1.0,
+                                        width: 1.0, // Change the width as needed
                                       ),
                                     ),
                                     child: SingleChildScrollView( // Add a vertical ScrollView
@@ -559,18 +559,18 @@ class _ShopVisitState extends State<ShopVisit> {
                                               ),
                                             ),
                                           ),
-                                          // Add vertical scroll direction
-                                          //  Obx(() =>
-                                          SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: DataTable(
-                                              columns: [
-                                                DataColumn(label: Text('Product')),
-                                                DataColumn(label: Text('Quantity')),
-                                              ],
-                                              rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
+                                         // Add vertical scroll direction
+                                         //  Obx(() =>
+                                               SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: DataTable(
+                                                columns: [
+                                                  DataColumn(label: Text('Product')),
+                                                  DataColumn(label: Text('Quantity')),
+                                                ],
+                                                rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
+                                              ),
                                             ),
-                                          ),
                                           // ),
                                         ],
                                       ),

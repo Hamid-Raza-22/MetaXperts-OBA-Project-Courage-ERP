@@ -183,7 +183,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         _clockRefresh();
         isClockedIn = true;
         await Future.delayed(Duration(seconds: 5));
-        await attendanceViewModel.addAttendance(AttendanceModel(
+         await attendanceViewModel.addAttendance(AttendanceModel(
             id: prefs.getString('clockInId'),
             timeIn: _getFormattedtime(),
             date: _getFormattedDate(),
@@ -193,12 +193,12 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
             bookerName: userNames
         ));
         //startTimer();
-        _saveCurrentTime();
-        _saveClockStatus(true);
-        //_getLocation();
-        //getLocation();
-        _clockRefresh();
-        isClockedIn = true;
+        // _saveCurrentTime();
+        // _saveClockStatus(true);
+        // //_getLocation();
+        // //getLocation();
+        // _clockRefresh();
+        // isClockedIn = true;
         DBHelper dbmaster = DBHelper();
         dbmaster.postAttendanceTable();
         currentPostId = Uuid().v1();
@@ -206,24 +206,26 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
       } else {
         // Generate a unique ID for the current post
-
         service.invoke("stopService");
-        await Future.delayed(Duration(seconds: 10));
+       await Future.delayed(Duration(seconds: 10));
+        postFile();
+        await Future.delayed(Duration(seconds: 4));
         attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-            id: prefs.getString('clockInId'),
-            timeOut: _getFormattedtime(),
-            totalTime: _formatDuration(newsecondpassed.toString()),
-            date: _getFormattedDate(),
-            userId: userId.toString(),
-            latOut: globalLatitude1,
-            lngOut: globalLongitude1,
-            totalDistance: prefs.getDouble("TotalDistance").toString()
+          id: prefs.getString('clockInId'),
+          timeOut: _getFormattedtime(),
+          totalTime: _formatDuration(newsecondpassed.toString()),
+          date: _getFormattedDate(),
+          userId: userId.toString(),
+          latOut: globalLatitude1,
+          lngOut: globalLongitude1,
+          totalDistance: prefs.getDouble("TotalDistance").toString()
           // posted: postedController
         ));
         isClockedIn = false;
         _saveClockStatus(false);
         DBHelper dbmaster = DBHelper();
         dbmaster.postAttendanceOutTable();
+
         _stopTimer();
         setState(() async {
           _clockRefresh();
@@ -232,6 +234,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           //await saveGPXFile();
           await prefs.remove('clockInId');
         });
+
       }
     });
     await Future.delayed(Duration(seconds: 3));
@@ -465,347 +468,347 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar:AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.green,
-          toolbarHeight: 80.0,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
+            automaticallyImplyLeading: false,
+            backgroundColor: Colors.green,
+            toolbarHeight: 80.0,
+            title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Timer: ${_formatDuration(newsecondpassed.toString())}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.0,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Material(
-                    elevation: 10.0,  // Set the elevation here
-                    shape: CircleBorder(),
-                    color: Colors.deepOrangeAccent,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.deepOrangeAccent,
-                          width: 0.1,
-                        ),
-                        //borderRadius: BorderRadius.circular(1),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.refresh),
-                        color: Colors.white,iconSize: 20,
-                        onPressed: () async {
-                          // Check internet connection before refresh
-                          final bool isConnected = await InternetConnectionChecker().hasConnection;
-                          if (isConnected) {
-                            // Internet connection is available
-                            DatabaseOutputs outputs = DatabaseOutputs();
-                            // Run both functions in parallel
-                            showLoadingIndicator(context);
-                            await Future.wait([
-                              Future.delayed(Duration(seconds: 10)),
-                              backgroundTask(),
-                              postFile(),
-                              outputs.checkFirstRun(),
-                            ]);
-                            // After 10 seconds, hide the loading indicator and perform the refresh logic
-                            Navigator.of(context, rootNavigator: true).pop();
-                          } else {
-                            // No internet connection
-                            Fluttertoast.showToast(
-                              msg: "No internet connection.",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                              fontSize: 16.0,
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  )
-
-
-                  // PopupMenuButton<int>(
-                  //   icon: Icon(Icons.more_vert),
-                  //   color: Colors.white,
-                  //   onSelected: (value) async {
-                  //     switch (value) {
-                  //       case 1:
-                  //       // Check internet connection before refresh
-                  //         final bool isConnected = await InternetConnectionChecker().hasConnection;
-                  //         if (!isConnected) {
-                  //           // No internet connection
-                  //           Fluttertoast.showToast(
-                  //             msg: "No internet connection.",
-                  //             toastLength: Toast.LENGTH_SHORT,
-                  //             gravity: ToastGravity.BOTTOM,
-                  //             backgroundColor: Colors.red,
-                  //             textColor: Colors.white,
-                  //             fontSize: 16.0,
-                  //           );
-                  //         } else {
-                  //           // Internet connection is available
-                  //           DatabaseOutputs outputs = DatabaseOutputs();
-                  //           // Run both functions in parallel
-                  //           showLoadingIndicator(context);
-                  //           await Future.wait([
-                  //             backgroundTask(),
-                  //             postFile(),
-                  //             outputs.checkFirstRun(),
-                  //             Future.delayed(Duration(seconds: 10)),
-                  //           ]);
-                  //           // After 10 seconds, hide the loading indicator and perform the refresh logic
-                  //           Navigator.of(context, rootNavigator: true).pop();
-                  //         }
-                  //         break;
-                  //
-                  //       case 2:
-                  //       // Handle the action for the second menu item (Log Out)
-                  //         if (isClockedIn) {
-                  //           // Check if the user is clocked in
-                  //           Fluttertoast.showToast(
-                  //             msg: "Please clock out before logging out.",
-                  //             toastLength: Toast.LENGTH_SHORT,
-                  //             gravity: ToastGravity.BOTTOM,
-                  //             backgroundColor: Colors.red,
-                  //             textColor: Colors.white,
-                  //             fontSize: 16.0,
-                  //           );
-                  //         } else {
-                  //           await _logOut();
-                  //           // If the user is not clocked in, proceed with logging out
-                  //           Navigator.pushReplacement(
-                  //             // Replace the current page with the login page
-                  //             context,
-                  //             MaterialPageRoute(
-                  //               builder: (context) => LoginForm(),
-                  //             ),
-                  //           );
-                  //         }
-                  //         break;
-                  //     }
-                  //   },
-                  //   itemBuilder: (BuildContext context) {
-                  //     return [
-                  //       PopupMenuItem<int>(
-                  //         value: 1,
-                  //         child: Text('Refresh'),
-                  //       ),
-                  //       PopupMenuItem<int>(
-                  //         value: 2,
-                  //         child: Text('Log Out'),
-                  //       ),
-                  //     ];
-                  //   },
-                  // ),
-                ],
-              ),
-            ],
-          ),
-        ), body: SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-          ),
-          child: Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Container(
-                        height: 150,
-                        width: 150,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (isClockedIn) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ShopPage(),
-                                ),
-                              );
-                            } else {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Clock In Required'),
-                                  content: Text('Please clock in before adding a shop.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('OK'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                MyIcons.addShop,
-                                color: Colors.white,
-                                size: 50,
-                              ),
-                              SizedBox(height: 10),
-                              Text('Add Shop'),
-                            ],
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                        ],
-                      ),
-                      SizedBox(width: 10),
-                      Container(
-                        height: 150,
-                        width: 150,
-                        child: ElevatedButton(
-                          onPressed: () {
-
-                            if (isClockedIn) {    Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ShopVisit(onBrandItemsSelected: (String) {}),
-                              ),
-                            );
-                            } else {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Clock In Required'),
-                                  content: Text('Please clock in before visiting a shop.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('OK'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.store,
-                                color: Colors.white,
-                                size: 50,
-                              ),
-                              SizedBox(height: 10),
-                              Text('Shop Visit'),
-                            ],
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
+                      Text(
+                        'Timer: ${_formatDuration(newsecondpassed.toString())}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
                         ),
                       ),
                     ],
                   ),
-
-                  SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        height: 150,
-                        width: 150,
-                        child: ElevatedButton(
-                          onPressed: () async{
-                            setState(() {
-                              isLoading = true; // assuming isLoading is a boolean state variable
-                            });
-                            final bool isConnected = await InternetConnectionChecker().hasConnection;
-
-                            if (!isClockedIn) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Clock In Required'),
-                                  content: Text('Please clock in before accessing the Return Page.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('OK'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            } else if (!isConnected) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Internet Data Required'),
-                                  content: Text('Please check your internet connection before accessing the Return Page.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: Text('OK'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            } else {
-                              DatabaseOutputs outputs = DatabaseOutputs();
-                              await  outputs.checkFirstRunAccounts();
-
-                              await Navigator.push(context, MaterialPageRoute(
-                                  builder: (context) => ReturnFormPage()));
-                            }
-                            setState(() {
-                              isLoading = false; // set loading state to false after execution
-                            });
-                          },
-                          child: isLoading
-                              ? CircularProgressIndicator() // Show a loading indicator
-                              : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                MyIcons.returnForm,
-                                color: Colors.white,
-                                size: 50,
-                              ),
-                              SizedBox(height: 10),
-                              Text('Return Form'),
-                            ],
+                      Material(
+                        elevation: 10.0,  // Set the elevation here
+                        shape: CircleBorder(),
+                        color: Colors.deepOrangeAccent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.deepOrangeAccent,
+                              width: 0.1,
+                            ),
+                            //borderRadius: BorderRadius.circular(1),
                           ),
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          child: IconButton(
+                            icon: Icon(Icons.refresh),
+                            color: Colors.white,iconSize: 20,
+                            onPressed: () async {
+                              // Check internet connection before refresh
+                              final bool isConnected = await InternetConnectionChecker().hasConnection;
+                              if (isConnected) {
+                                // Internet connection is available
+                                DatabaseOutputs outputs = DatabaseOutputs();
+                                // Run both functions in parallel
+                                showLoadingIndicator(context);
+                                await Future.wait([
+                                  Future.delayed(Duration(seconds: 10)),
+                                  backgroundTask(),
+
+                                  outputs.checkFirstRun(),
+                                ]);
+                                // After 10 seconds, hide the loading indicator and perform the refresh logic
+                                Navigator.of(context, rootNavigator: true).pop();
+                              } else {
+                                // No internet connection
+                                Fluttertoast.showToast(
+                                  msg: "No internet connection.",
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                  fontSize: 16.0,
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      )
+
+
+                      // PopupMenuButton<int>(
+                      //   icon: Icon(Icons.more_vert),
+                      //   color: Colors.white,
+                      //   onSelected: (value) async {
+                      //     switch (value) {
+                      //       case 1:
+                      //       // Check internet connection before refresh
+                      //         final bool isConnected = await InternetConnectionChecker().hasConnection;
+                      //         if (!isConnected) {
+                      //           // No internet connection
+                      //           Fluttertoast.showToast(
+                      //             msg: "No internet connection.",
+                      //             toastLength: Toast.LENGTH_SHORT,
+                      //             gravity: ToastGravity.BOTTOM,
+                      //             backgroundColor: Colors.red,
+                      //             textColor: Colors.white,
+                      //             fontSize: 16.0,
+                      //           );
+                      //         } else {
+                      //           // Internet connection is available
+                      //           DatabaseOutputs outputs = DatabaseOutputs();
+                      //           // Run both functions in parallel
+                      //           showLoadingIndicator(context);
+                      //           await Future.wait([
+                      //             backgroundTask(),
+                      //             postFile(),
+                      //             outputs.checkFirstRun(),
+                      //             Future.delayed(Duration(seconds: 10)),
+                      //           ]);
+                      //           // After 10 seconds, hide the loading indicator and perform the refresh logic
+                      //           Navigator.of(context, rootNavigator: true).pop();
+                      //         }
+                      //         break;
+                      //
+                      //       case 2:
+                      //       // Handle the action for the second menu item (Log Out)
+                      //         if (isClockedIn) {
+                      //           // Check if the user is clocked in
+                      //           Fluttertoast.showToast(
+                      //             msg: "Please clock out before logging out.",
+                      //             toastLength: Toast.LENGTH_SHORT,
+                      //             gravity: ToastGravity.BOTTOM,
+                      //             backgroundColor: Colors.red,
+                      //             textColor: Colors.white,
+                      //             fontSize: 16.0,
+                      //           );
+                      //         } else {
+                      //           await _logOut();
+                      //           // If the user is not clocked in, proceed with logging out
+                      //           Navigator.pushReplacement(
+                      //             // Replace the current page with the login page
+                      //             context,
+                      //             MaterialPageRoute(
+                      //               builder: (context) => LoginForm(),
+                      //             ),
+                      //           );
+                      //         }
+                      //         break;
+                      //     }
+                      //   },
+                      //   itemBuilder: (BuildContext context) {
+                      //     return [
+                      //       PopupMenuItem<int>(
+                      //         value: 1,
+                      //         child: Text('Refresh'),
+                      //       ),
+                      //       PopupMenuItem<int>(
+                      //         value: 2,
+                      //         child: Text('Log Out'),
+                      //       ),
+                      //     ];
+                      //   },
+                      // ),
+                    ],
+                  ),
+                ],
+                ),
+            ), body: SingleChildScrollView(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 150,
+                          width: 150,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (isClockedIn) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ShopPage(),
+                                  ),
+                                );
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Clock In Required'),
+                                    content: Text('Please clock in before adding a shop.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  MyIcons.addShop,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                                SizedBox(height: 10),
+                                Text('Add Shop'),
+                              ],
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white, backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      Container(
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                          ],
+                        ),
+                        SizedBox(width: 10),
+                        Container(
+                          height: 150,
+                          width: 150,
+                          child: ElevatedButton(
+                            onPressed: () {
+
+                              if (isClockedIn) {    Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ShopVisit(onBrandItemsSelected: (String) {}),
+                                  ),
+                                );
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Clock In Required'),
+                                    content: Text('Please clock in before visiting a shop.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                             },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.store,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                                SizedBox(height: 10),
+                                Text('Shop Visit'),
+                              ],
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white, backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 150,
+                          width: 150,
+                          child: ElevatedButton(
+                            onPressed: () async{
+                              setState(() {
+                                isLoading = true; // assuming isLoading is a boolean state variable
+                              });
+                              final bool isConnected = await InternetConnectionChecker().hasConnection;
+
+                              if (!isClockedIn) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Clock In Required'),
+                                    content: Text('Please clock in before accessing the Return Page.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else if (!isConnected) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Internet Data Required'),
+                                    content: Text('Please check your internet connection before accessing the Return Page.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                DatabaseOutputs outputs = DatabaseOutputs();
+                                await  outputs.checkFirstRunAccounts();
+
+                               await Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => ReturnFormPage()));
+                              }
+                              setState(() {
+                                isLoading = false; // set loading state to false after execution
+                              });
+                            },
+                            child: isLoading
+                                ? CircularProgressIndicator() // Show a loading indicator
+                                : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  MyIcons.returnForm,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                                SizedBox(height: 10),
+                                Text('Return Form'),
+                              ],
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white, backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Container(
                           height: 150,
                           width: 150,
                           child:ElevatedButton(
@@ -815,7 +818,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                               });
 
                               // Delay for 5 seconds
-                              // await Future.delayed(Duration(seconds: 5));
+                             // await Future.delayed(Duration(seconds: 5));
 
                               final bool isConnected = await InternetConnectionChecker().hasConnection;
 
@@ -849,9 +852,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 );
                               } else {
                                 DatabaseOutputs outputs = DatabaseOutputs();
-                                await  outputs.checkFirstRunAccounts();
+                               await  outputs.checkFirstRunAccounts();
 
-                                await Navigator.push(context, MaterialPageRoute(
+                               await Navigator.push(context, MaterialPageRoute(
                                     builder: (context) => RecoveryFromPage()));
                               }
 
@@ -882,69 +885,69 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                             ),
                           )
 
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        height: 150,
-                        width: 150,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // if (isClockedIn) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OrderBookingStatus(),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 150,
+                          width: 150,
+                          child: ElevatedButton(
+                            onPressed: () {
+                             // if (isClockedIn) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OrderBookingStatus(),
+                                  ),
+                                );
+                              // } else {
+                              //   showDialog(
+                              //     context: context,
+                              //     builder: (context) => AlertDialog(
+                              //       title: Text('Clock In Required'),
+                              //       content: Text('Please clock in before checking Order Booking Status.'),
+                              //       actions: [
+                              //         TextButton(
+                              //           onPressed: () => Navigator.pop(context),
+                              //           child: Text('OK'),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   );
+                              // }
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  MyIcons.orderBookingStatus,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                                SizedBox(height: 10),
+                                Text('Order Booking Status'),
+                              ],
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white, backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                            );
-                            // } else {
-                            //   showDialog(
-                            //     context: context,
-                            //     builder: (context) => AlertDialog(
-                            //       title: Text('Clock In Required'),
-                            //       content: Text('Please clock in before checking Order Booking Status.'),
-                            //       actions: [
-                            //         TextButton(
-                            //           onPressed: () => Navigator.pop(context),
-                            //           child: Text('OK'),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   );
-                            // }
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                MyIcons.orderBookingStatus,
-                                color: Colors.white,
-                                size: 50,
-                              ),
-                              SizedBox(height: 10),
-                              Text('Order Booking Status'),
-                            ],
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white, backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 30),
-                ]
+                      ],
+                    ),
+                    SizedBox(height: 30),
+                  ]
+              ),
             ),
           ),
         ),
-      ),
         //
         floatingActionButton: Align(
           alignment: Alignment.bottomCenter,
@@ -978,6 +981,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       ),
     );
   }
+
   // Future<void> postFile() async {
   //   SharedPreferences pref = await SharedPreferences.getInstance();
   //   double totalDistance = pref.getDouble("TotalDistance") ?? 0.0;
@@ -1148,6 +1152,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     await postReturnFormTable();
     await postReturnFormDetails();
     await postRecoveryFormTable();
+    await postLocationData();
   }
 
   Future<void> postShopVisitData() async {
@@ -1163,6 +1168,10 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   Future<void> postAttendanceOutTable() async {
     DBHelper dbHelper = DBHelper();
     await dbHelper.postAttendanceOutTable();
+  }
+  Future<void> postLocationData() async {
+    DBHelper dbHelper = DBHelper();
+    await dbHelper.postlocationdata();
   }
 
   Future<void> postAttendanceTable() async {

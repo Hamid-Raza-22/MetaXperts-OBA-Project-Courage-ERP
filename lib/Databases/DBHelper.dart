@@ -2,14 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:intl/intl.dart';
 import 'package:order_booking_shop/API/Globals.dart';
- import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:io' as io;
 import 'dart:async';
 import '../API/ApiServices.dart';
 import '../Models/AttendanceModel.dart';
+import '../Models/LocationModel.dart';
 import '../Models/OrderModels/OrderDetailsModel.dart';
 import '../Models/OrderModels/OrderMasterModel.dart';
 import '../Models/RecoveryFormModel.dart';
@@ -58,7 +60,9 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
     await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT, designation TEXT,images BLOB)");
     await db.execute("CREATE TABLE recoveryFormGet (recovery_id TEXT, user_id TEXT)");
+    await db.execute("CREATE TABLE location(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, fileName TEXT,userId TEXT,totalDistance TEXT,userName TEXT, posted INTEGER DEFAULT 0,body BLOB)");
 }
+
   Future<void> getHighestSerialNo() async {
     int serial;
 
@@ -1231,12 +1235,6 @@ _onCreate(Database db, int version) async {
 
         final List<Map<String, dynamic>> products = await db.rawQuery(query);
 
-        // Fetch the body data separately
-        // for (Map<String, dynamic> product in products) {
-        //   final Uint8List body = await fetchBodyData(product['id']);
-        //   product['body'] = body;
-        // }
-
         return products;
       } else {
         // Handle the case where the database is null
@@ -1248,30 +1246,6 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  // Future<Uint8List> fetchBodyData(String id) async {
-  //   final db = await _db;
-  //   try {
-  //     if (db != null) {
-  //       final List<Map<String, dynamic>> result = await db.query(
-  //         'shopVisit',
-  //         columns: ['body'],
-  //         where: 'id = ?',
-  //         whereArgs: [id],
-  //       );
-  //
-  //       if (result.isNotEmpty) {
-  //         return Uint8List.fromList(base64Decode(result[0]['body'].toString()));
-  //       }
-  //     }
-  //
-  //     // Handle the case where data is not found
-  //     return Uint8List(0);
-  //   } catch (e) {
-  //     // Handle the error or rethrow it
-  //     print('Error fetching body data: $e');
-  //     rethrow;
-  //   }
-  // }
 
   Future<List<Map<String, dynamic>>> getStockCheckItems() async {
     final db = await _db;
@@ -1288,42 +1262,13 @@ _onCreate(Database db, int version) async {
       rethrow;
     }
   }
-  //
-  // Future<void> addShopVisit(ShopVisitModel shopVisit) async {
-  //   final db = await _db;
-  //   try {
-  //     await db?.insert(
-  //       'shopVisit',
-  //       shopVisit.toMap(),
-  //       conflictAlgorithm: ConflictAlgorithm.replace,
-  //     );
-  //
-  //     // Check if 'imagePath' is not null or empty
-  //     if (shopVisit.imagePath != null && shopVisit.imagePath!.isNotEmpty) {
-  //       // Read the image file and convert it to bytes
-  //       File imageFile = File(shopVisit.imagePath! as String);
-  //       List<int> imageBytesList = await imageFile.readAsBytes();
-  //       Uint8List imagePathBytes = Uint8List.fromList(imageBytesList);
-  //
-  //       // Update the 'imagePath' field in the database with image bytes
-  //       await db?.update(
-  //         'shopVisit',
-  //         {'imagePath': imagePathBytes},
-  //         where: 'id = ?',
-  //         whereArgs: [shopVisit.id],
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print('Error adding shop visit: $e');
-  //   }
-  // }
+
   Future<void> postShopVisitData() async {
     final Database db = await initDatabase();
     final ApiServices api = ApiServices();
 
     final directory = await getApplicationDocumentsDirectory();
     final filePath = '${directory.path}/captured_image.jpg';
-
 
     try {
       final products = await db.rawQuery('''SELECT *, 
@@ -1333,11 +1278,8 @@ _onCreate(Database db, int version) async {
       CASE WHEN productReviewed = 1 THEN 'True' ELSE 'False' END AS productReviewed
       FROM shopVisit
       ''');
-
       await db.rawQuery('VACUUM');
       if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-
-
       for (Map<dynamic, dynamic> i in products) {
         print("FIRST ${i}");
 
@@ -1370,7 +1312,6 @@ _onCreate(Database db, int version) async {
         Uint8List imageBytes;
         final directory = await getApplicationDocumentsDirectory();
         final filePath = File('${directory.path}/captured_image.jpg');
-
         if (filePath.existsSync()) {
           // File exists, proceed with reading the file
           List<int> imageBytesList = await filePath.readAsBytes();
@@ -1379,12 +1320,8 @@ _onCreate(Database db, int version) async {
           print("File does not exist at the specified path: ${filePath.path}");
           continue; // Skip to the next iteration if the file doesn't exist
         }
-
-
         // Print information before making the API request
         print("Making API request for shop visit ID: ${v.id}");
-
-
         var result = await api.masterPostWithImage(
           v.toMap(),
           'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/report/post/',
@@ -1393,11 +1330,9 @@ _onCreate(Database db, int version) async {
         if (result == true) {
           await db.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
           print("Successfully posted data for shop visit ID: ${v.id}");
-
          }
         else {
           print("Failed to post data for shop visit ID: ${v.id}");
-
       }
       }
 
@@ -1407,7 +1342,68 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
+  Future<void> postlocationdata() async {
+    final Database db = await initDatabase();
+    final ApiServices api = ApiServices();
 
+    try {
+      final products = await db.rawQuery('SELECT * FROM location WHERE posted = 0');
+      await db.rawQuery('VACUUM');
+      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+        for (Map<dynamic, dynamic> i in products) {
+          print("FIRST ${i}");
+
+          LocationModel v = LocationModel(
+            id: i['id'].toString(),
+            date: i['date'].toString(),
+            userId: i['userId'].toString(),
+            userName: i['userName'].toString(),
+            fileName: i['fileName'].toString(),
+            totalDistance: i['totalDistance'].toString(),
+            body: i['body'] != null && i['body'].toString().isNotEmpty
+                ? Uint8List.fromList(base64Decode(i['body'].toString()))
+                : Uint8List(0),
+          );
+
+          // Print image path before trying to create the file
+          print("Image Path from Database: ${i['body']}");
+          final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+
+          // Declare imageBytes outside the if block
+
+          Uint8List gpxBytes;
+          final downloadDirectory = await getDownloadsDirectory();
+           final filePath = File('${downloadDirectory?.path}/track$date.gpx');
+          if (filePath.existsSync()) {
+            // File exists, proceed with reading the file
+            List<int> imageBytesList = await filePath.readAsBytes();
+            gpxBytes = Uint8List.fromList(imageBytesList);
+          } else {
+            print("File does not exist at the specified path: ${filePath.path}");
+            continue; // Skip to the next iteration if the file doesn't exist
+          }
+          // Print information before making the API request
+          print("Making API request for shop visit ID: ${v.id}");
+          var result = await api.masterPostWithGPX(
+            v.toMap(),
+            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/',
+            gpxBytes,
+          );
+          if (result == true) {
+            await db.rawUpdate("UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
+            print("Successfully posted data for shop visit ID: ${v.id}");
+          }
+          else {
+            print("Failed to post data for shop visit ID: ${v.id}");
+          }
+        }
+
+      }
+    } catch (e) {
+      print("Error processing shop visit data: $e");
+      return null;
+    }
+  }
   Future<void> postStockCheckItems() async {
     final Database db = await initDatabase();
     final ApiServices api = ApiServices();

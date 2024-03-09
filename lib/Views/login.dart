@@ -245,10 +245,10 @@ class _LoginFormState extends State<LoginForm> {
                     onPressed: () async {
                       bool isConnected = await InternetConnectionChecker().hasConnection;
                       if(isConnected){
-                        _login();
-                        // DatabaseOutputs outputs = DatabaseOutputs();
-                        // outputs.checkFirstRun();
-                      }else{
+                      _login();
+                       // DatabaseOutputs outputs = DatabaseOutputs();
+                       // outputs.checkFirstRun();
+                    }else{
                         Fluttertoast.showToast(
                           msg: "No internet connection.",
                           toastLength: Toast.LENGTH_SHORT,
@@ -258,7 +258,7 @@ class _LoginFormState extends State<LoginForm> {
                           fontSize: 16.0,
                         );
                       }
-                    },
+                      },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.black,

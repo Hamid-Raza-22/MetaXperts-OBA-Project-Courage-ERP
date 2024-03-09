@@ -32,16 +32,16 @@ import 'package:location00/location00.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // AndroidAlarmManager.initialize();
-  //
-  // // Initialize the FlutterBackground plugin
-  // await FlutterBackground.initialize();
-  //
-  // // Enable background execution
-  // await FlutterBackground.enableBackgroundExecution();
+  AndroidAlarmManager.initialize();
+ //
+  // Initialize the FlutterBackground plugin
+  await FlutterBackground.initialize();
 
-  // Initialize the service
-  // await initializeServiceBackGroundData();
+  // Enable background execution
+  await FlutterBackground.enableBackgroundExecution();
+ //
+ // // Initialize the service
+ // // await initializeServiceBackGroundData();
   await initializeServiceLocation();
 
   // Ensure Firebase is initialized before running the app
@@ -127,40 +127,41 @@ Future<void> initializeServiceLocation() async {
 //     ),
 //   );
 // }
-//
-// @pragma('vm:entry-point')
-// void onStart1(ServiceInstance service1) async {
-//   DartPluginRegistrant.ensureInitialized();
-//
-//   Timer.periodic(const Duration(minutes: 10), (timer) async {
-//     if (service1 is AndroidServiceInstance) {
-//       if (await service1.isForegroundService()) {
-//         backgroundTask();
-//       }
-//     }
-//     final deviceInfo = DeviceInfoPlugin();
-//     String? device1;
-//
-//     if (Platform.isAndroid) {
-//       final androidInfo = await deviceInfo.androidInfo;
-//       device1 = androidInfo.model;
-//     }
-//
-//     if (Platform.isIOS) {
-//       final iosInfo = await deviceInfo.iosInfo;
-//       device1 = iosInfo.model;
-//     }
-//
-//     service1.invoke(
-//       'update',
-//       {
-//         "current_date": DateTime.now().toIso8601String(),
-//         "device": device1,
-//       },
-//     );
-//   }
-//   );
-// }
+
+@pragma('vm:entry-point')
+void onStart1(ServiceInstance service1) async {
+  DartPluginRegistrant.ensureInitialized();
+
+  Timer.periodic(const Duration(minutes: 10), (timer) async {
+    if (service1 is AndroidServiceInstance) {
+      if (await service1.isForegroundService()) {
+        backgroundTask();
+      }
+    }
+    final deviceInfo = DeviceInfoPlugin();
+    String? device1;
+
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      device1 = androidInfo.model;
+    }
+
+    if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      device1 = iosInfo.model;
+    }
+
+    service1.invoke(
+      'update',
+      {
+        "current_date": DateTime.now().toIso8601String(),
+        "device": device1,
+      },
+    );
+  }
+  );
+}
+
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
@@ -188,7 +189,6 @@ void onStart(ServiceInstance service) async {
     locationService.stopListening();
     locationService.deleteDocument();
     Workmanager().cancelAll();
-    await postFile();
     service.stopSelf();
     //stopListeningLocation();
     FlutterLocalNotificationsPlugin().cancelAll();
@@ -329,6 +329,7 @@ Future<void> synchronizeData() async {
   print('Synchronizing data in the background.');
   await postAttendanceTable();
   await postAttendanceOutTable();
+  await postLocationData();
   await postShopTable();
   await postShopVisitData();
   await postStockCheckItems();
@@ -337,8 +338,12 @@ Future<void> synchronizeData() async {
   await postReturnFormTable();
   await postReturnFormDetails();
   await postRecoveryFormTable();
-}
 
+}
+Future<void> postLocationData() async {
+  DBHelper dbHelper = DBHelper();
+  await dbHelper.postlocationdata();
+}
 Future<void> postShopVisitData() async {
   DBHelper dbHelper = DBHelper();
   await dbHelper.postShopVisitData();

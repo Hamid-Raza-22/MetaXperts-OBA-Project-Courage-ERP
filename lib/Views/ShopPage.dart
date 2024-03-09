@@ -75,8 +75,8 @@ class CNICFormatter extends TextInputFormatter {
 
 class _ShopPageState extends State<ShopPage> {
 
+  final shopViewModel = Get.put(ShopViewModel());
 
-  int? shopId;
   final shopNameController = TextEditingController();
   final cityController = TextEditingController();
   final distributorNameController = TextEditingController();
@@ -87,7 +87,7 @@ class _ShopPageState extends State<ShopPage> {
   final alternativePhoneNoController = TextEditingController();
   static double? globalLatitude;
   static double? globalLongitude;
-  final shopViewModel = Get.put(ShopViewModel());
+  int? shopId;
   String currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   bool isLocationAdded = false;
   // Future<void> _openLocationScreen() async {

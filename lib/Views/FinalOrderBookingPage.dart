@@ -281,15 +281,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.only(right: 10.0), // Adjusted padding to align right
-                    child: Text(
-                      DateFormat( 'dd-MMM-yyyy').format(DateTime.now()), // Format the current date with numeric month
-                      style: TextStyle(fontSize: 16.0, color: Colors.black),
-                      textAlign: TextAlign.right, // Align the text to the right
-                    ),
-                  ),
-
                   buildTextFormField('Shop Name', _ShopNameController, readOnly: true),
                   SizedBox(height: 10),
                   buildTextFormField('Owner Name', _ownerNameController, readOnly: true),
@@ -307,7 +298,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               padding: EdgeInsets.all(5.0),
                               child: Container(
                                 height: 400, // Set the desired height
-                                width: MediaQuery.of(context).size.width,
+                                width: 300, // Set the desired width
                                 child: Card(
                                   elevation: 5,
                                   shape: RoundedRectangleBorder(
@@ -518,7 +509,21 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
               ),
             ),
-
+            Stack(
+              children: [
+                Positioned(
+                  top: 0, // Align the top edge of the Positioned widget to the top edge of the Stack
+                  right: 0, // Align the right edge of the Positioned widget to the right edge of the Stack
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0), // Adjust padding as needed
+                    child: Text(
+                      _getFormattedDate(),
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                    ),
+                  ),
+                ),
+              ],
+            )
 
           ],
         ),
@@ -1059,11 +1064,11 @@ class RowData {
   String itemsDropdownValue;
   ProductsModel? selectedProduct;
   RowData({
-    required this.serialNumber,
-    required this.qtyController,
-    required this.rateController,
-    required this.amountController,
-    required this.itemsDropdownValue,
-    required this.selectedProduct,
+  required this.serialNumber,
+  required this.qtyController,
+  required this.rateController,
+  required this.amountController,
+  required this.itemsDropdownValue,
+  required this.selectedProduct,
   });
 }

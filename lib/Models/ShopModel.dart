@@ -22,8 +22,8 @@ class ShopModel {
     this.ownerCNIC,
     this.phoneNo,
     this.alternativePhoneNo,
-    this.latitude,
-    this.longitude,
+     this.latitude,
+     this.longitude,
     this.userId
   });
 
