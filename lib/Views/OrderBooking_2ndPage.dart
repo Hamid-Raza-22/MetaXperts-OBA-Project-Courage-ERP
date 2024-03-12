@@ -194,9 +194,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                               onPressed: isReConfirmButtonPressed
                                   ? null // Disable the button if isReConfirmButtonPressed is true
                                   : () async {
-                                setState(() {
-                                  isReConfirmButtonPressed = true; // Mark the button as pressed
-                                });
+
                                 // Your existing code for handling the "Re Confirm" button press
                                 isOrderConfirmed = true;
 
@@ -219,8 +217,8 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
                                 DBHelper dbmaster = DBHelper();
 
-                                 dbmaster.postMasterTable();
-                                dbmaster.postOrderDetails();
+                                await dbmaster.postMasterTable();
+                               await dbmaster.postOrderDetails();
 
                                 Fluttertoast.showToast(
                                   msg: "Order confirmed!",
@@ -229,6 +227,9 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   backgroundColor: Colors.green,
                                   textColor: Colors.white,
                                 );
+                                setState(() {
+                                  isReConfirmButtonPressed = true; // Mark the button as pressed
+                                });
                               },
                               child: Text('Re Confirm'),
                               style: ElevatedButton.styleFrom(

@@ -513,9 +513,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 // Run both functions in parallel
                                 showLoadingIndicator(context);
                                 await Future.wait([
-                                  Future.delayed(Duration(seconds: 10)),
+                                 // Future.delayed(Duration(seconds: 6)),
                                   backgroundTask(),
-
                                   outputs.checkFirstRun(),
                                 ]);
                                 // After 10 seconds, hide the loading indicator and perform the refresh logic
@@ -687,7 +686,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           child: ElevatedButton(
                             onPressed: () {
 
-                              if (isClockedIn) {    Navigator.push(
+                              if (isClockedIn) {
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ShopVisit(onBrandItemsSelected: (String) {}),
@@ -1110,7 +1110,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
             children: [
               CircularProgressIndicator(),
               SizedBox(width: 20),
-              Text("Refreshing..."),
+              Text("Please Wait..."),
             ],
           ),
         );

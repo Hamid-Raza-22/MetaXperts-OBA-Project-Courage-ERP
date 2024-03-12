@@ -127,13 +127,13 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
     });
   }
   Future<List<Map<String, dynamic>>> fetchOrderBookingStatusData() async {
-    List<Map<String, dynamic>> data = await dbHelper.getOrderMasterDB() ?? [];
-    List<Map<String, dynamic>> datastatus = await dbHelper.getOrderBookingStatusDB()?? [];
+    //List<Map<String, dynamic>> data = await dbHelper.getOrderMasterDB() ?? [];
+    List<Map<String, dynamic>> data = await dbHelper.getOrderBookingStatusDB()?? [];
 
 
     // Apply the filters
     if (selectedOrderNoFilter.isNotEmpty) {
-      data = data.where((row) => row['orderId'] == selectedOrderNoFilter).toList();
+      data = data.where((row) => row['order_no'] == selectedOrderNoFilter).toList();
     }
 // Filter by date range
     if (startDateController.text.isNotEmpty && endDateController.text.isNotEmpty) {
@@ -141,7 +141,7 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
       DateTime endDate = DateFormat('dd-MMM-yyyy').parse(endDateController.text);
 
       data = data.where((row) {
-        DateTime orderDate = DateFormat('dd-MMM-yyyy').parse(row['date']);
+        DateTime orderDate = DateFormat('dd-MMM-yyyy').parse(row['order_date']);
         return orderDate.isAfter(startDate.subtract(Duration(days: 1))) &&
             orderDate.isBefore(endDate.add(Duration(days: 1)));
       }).toList();
@@ -149,12 +149,12 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
 
 
     if (selectedShopFilter.isNotEmpty) {
-      data = data.where((row) => row['shopName'] == selectedShopFilter).toList();
+      data = data.where((row) => row['shop_name'] == selectedShopFilter).toList();
     }
 
     if (selectedStatusFilter.isNotEmpty) {
       // Check if the status filter is "All", if not, filter by status
-      datastatus = datastatus.where((row) => row['status'] == selectedStatusFilter).toList();
+      data = data.where((row) => row['status'] == selectedStatusFilter).toList();
     }
 
     // Check if shop field is empty, reset shop filter
@@ -184,14 +184,14 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
       final Database? db = await DBHelper().db;
 
       // Query the database for the status in the orderBookingStatusData table where the order_no equals the current order's id.
-      List<Map<String, dynamic>> statusRows = await db!.query('orderBookingStatusData', where: 'order_no = ?', whereArgs: [map['orderId']]);
+      List<Map<String, dynamic>> statusRows = await db!.query('orderBookingStatusData', where: 'order_no = ?', whereArgs: [map['order_no']]);
       print('Status Rows: $statusRows'); // Debug print
 
       String status = statusRows.isNotEmpty ? statusRows.first['status'] : 'N/A';
       print('Status: $status'); // Debug print
 
-      bool highlightRow = map['orderId'] == selectedOrderNoFilter ||
-          map['shopName'] == selectedShopFilter ||
+      bool highlightRow = map['order_no'] == selectedOrderNoFilter ||
+          map['shop_name'] == selectedShopFilter ||
           status == selectedStatusFilter;
 
       return DataRow(
@@ -202,10 +202,10 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
           return Colors.transparent;  // Use the default color for other statuses
         }),
         cells: [
-          DataCell(Text(map['orderId'].toString())),
-          DataCell(Text(map['date'].toString())),
-          DataCell(Text(map['shopName'].toString())),
-          DataCell(Text(map['total'].toString())),
+          DataCell(Text(map['order_no'].toString())),
+          DataCell(Text(map['order_date'].toString())),
+          DataCell(Text(map['shop_name'].toString())),
+          DataCell(Text(map['amount'].toString())),
           DataCell(
             status == 'N/A'
                 ? Icon(Icons.sync, color: Colors.green) // Sync logo for 'N/A' status
@@ -218,7 +218,7 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
                 final Database? db = await DBHelper().db;
 
                 // Query the database for all rows in the order_details table where the order_details_id equals the current order's id.
-                List<Map<String, dynamic>> queryRows = await db!.query('order_details', where: 'order_master_id = ?', whereArgs: [map['orderId']]);
+                List<Map<String, dynamic>> queryRows = await db!.query('orderDetailsData', where: 'order_no = ?', whereArgs: [map['order_no']]);
 
                 // Now you have the data, you can display it in the dialog.
                 showDialog(
@@ -236,9 +236,9 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
                                 TextSpan(text: 'Sr. No: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                 TextSpan(text: '${index + 1}\n'), // Add serial number here
                                 TextSpan(text: 'Product Name: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                TextSpan(text: '${queryRows[index]['productName']}\n'),
+                                TextSpan(text: '${queryRows[index]['product_name']}\n'),
                                 TextSpan(text: 'Quantity: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                TextSpan(text: '${queryRows[index]['quantity']}\n'),
+                                TextSpan(text: '${queryRows[index]['quantity_booked']}\n'),
                                 TextSpan(text: 'Unit Price: ', style: TextStyle(fontWeight: FontWeight.bold)),
                                 TextSpan(text: '${queryRows[index]['price']}\n'),
                               ],

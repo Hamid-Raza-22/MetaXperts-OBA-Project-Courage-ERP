@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:nanoid/async.dart';
 import 'package:order_booking_shop/API/Globals.dart';
@@ -54,7 +55,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   List<TextEditingController> secondTypeAheadControllers = [];
   int? returnformid;
   bool isReConfirmButtonPressed = false;
-
+  String selectedShopBrand = '';
+  String selectedShopCityR = '';
   int? returnformdetailsid;
   List<String> dropdownItems = [];
   List<Map<String, dynamic>> shopOwners = [];
@@ -196,7 +198,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
   void fetchShopData() async {
     List<String> shopNames = await dbHelper.getOrderMasterShopNames();
-    shopOwners = (await dbHelper.getOrderMasterdataDB())!;
+    shopOwners = (await dbHelper.getOrderBookingStatusDB())!;
     setState(() {
       dropdownItems = shopNames.toSet().toList();
     });
@@ -349,7 +351,17 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         printOrderNoForSelectedShop();
                         fetchNetBalanceForShop(suggestion!);
 
+
                       });
+                      for (var owner in shopOwners) {
+                        if (owner['shop_name'] == suggestion) {
+                          setState(() {
+                            selectedShopBrand = owner['brand'];
+                            selectedShopCityR= owner['city'];
+                            print(selectedShopCityR);
+                          });
+                        }
+                      }
                     },
                     textFieldConfiguration: TextFieldConfiguration(
                       controller: _selectedShopController,
@@ -600,7 +612,17 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           isReConfirmButtonPressed
               ? null // Disable the button if isReConfirmButtonPressed is true
               : () async {
+            final bool isConnected = await InternetConnectionChecker().hasConnection;
 
+            if (!isConnected) {
+              Fluttertoast.showToast(
+                msg: 'No Internet',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+              );              return; // Exit the function early if internet connection is not available
+            }
             await calculateTotalAmount();
             double? amount = double.tryParse(amountController.text);
             // Check if all type-ahead dropdowns and text fields are filled
@@ -613,7 +635,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                 break;
               }
             }
-            if (isFormValid() && allFieldsFilled && globalnetBalance!>=amount!) {
+            if (  isFormValid() && allFieldsFilled && globalnetBalance!>=amount!) {
 
               // Your existing code for submission
               var id = await customAlphabet('1234567890', 5);
@@ -623,7 +645,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                   date: _getCurrentDate(),
                   returnAmount: amountController.text,
                   bookerId: userId,
-                  bookerName: userNames
+                  bookerName: userNames,
+                  city: selectedShopCityR,
+                  brand: selectedShopBrand
               ));
 
               String visitid = await returnformViewModel.fetchLastReturnFormId();
@@ -645,8 +669,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
               }
 
               DBHelper dbreturnform = DBHelper();
-              dbreturnform.postReturnFormTable();
-              dbreturnform.postReturnFormDetails();
+              await dbreturnform.postReturnFormTable();
+              await dbreturnform.postReturnFormDetails();
 
               onCreatee();
               setState(() {

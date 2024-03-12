@@ -10,6 +10,8 @@ class  RecoveryFormModel {
   dynamic?netBalance;
   dynamic?userId;
   dynamic? bookerName;
+  dynamic city;
+  dynamic brand;
 
   RecoveryFormModel({
 
@@ -19,7 +21,9 @@ class  RecoveryFormModel {
     this.cashRecovery,
     this.netBalance,
     this.userId,
-    this.bookerName
+    this.bookerName,
+    this.city,
+    this.brand
 
   });
 
@@ -32,7 +36,11 @@ class  RecoveryFormModel {
       cashRecovery: json['cashRecovery'],
       netBalance: json['netBalance'],
       userId: json['userId'],
-      bookerName: json['bookerName']
+      bookerName: json['bookerName'],
+      city: json['city'],
+      brand: json['brand'],
+
+
 
 
     );
@@ -47,7 +55,9 @@ class  RecoveryFormModel {
       'cashRecovery': cashRecovery,
       'netBalance':netBalance,
       'userId': userId,
-      'bookerName': bookerName
+      'bookerName': bookerName,
+      'city':city,
+      'brand':brand
 
     };
   }

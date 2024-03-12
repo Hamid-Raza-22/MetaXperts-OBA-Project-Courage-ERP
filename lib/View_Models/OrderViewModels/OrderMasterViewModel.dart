@@ -49,9 +49,9 @@ class OrderMasterViewModel extends GetxController{
     'order_no': ordermasterModel.orderId,
       'order_date':ordermasterModel.date,
     'shop_name': ordermasterModel.shopName,
-    'owner_name': ordermasterModel.ownerName,
-    'phone_no': ordermasterModel.phoneNo,
-      'amount':ordermasterModel.total
+      'user_id':userId,
+      'amount':ordermasterModel.total,
+      'status':pending
     });
     fetchAllOrderMaster();
   }

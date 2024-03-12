@@ -30,6 +30,8 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   TextEditingController _netBalanceController = TextEditingController();
   List<Map<String, dynamic>> accountsData = []; // Add this line
   String? selectedShopName;
+  String selectedShopBrand = '';
+  String selectedShopCityR = '';
   List<String> dropdownItems = [];
   List<String> dropdownItems1 = [];
   String? selectedDropdownValue;
@@ -219,7 +221,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   // }
   void fetchShopData1() async {
     List<String> shopNames = await dbHelper.getOrderMasterShopNames();
-    shopOwners = (await dbHelper.getOrderMasterDataDB())!;
+    shopOwners = (await dbHelper.getOrderBookingStatusDB())!;
     setState(() {
       dropdownItems1 = shopNames.toSet().toList();
     });
@@ -271,7 +273,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     //prefs.remove('recoveryFormCurrentMonth')  ;
     setState(() {
-      recoveryFormSerialCounter = (prefs.getInt('recoveryFormSerialCounter') ?? RecoveryhighestSerial)!;
+      recoveryFormSerialCounter = (prefs.getInt('recoveryFormSerialCounter') ?? RecoveryhighestSerial??1);
       recoveryFormCurrentMonth = prefs.getString('recoveryFormCurrentMonth') ?? recoveryFormCurrentMonth;
       recoveryFormCurrentUserId = prefs.getString('recoveryFormCurrentUserId') ?? '';
     });
@@ -289,7 +291,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     String currentMonth = DateFormat('MMM').format(DateTime.now());
 
     if (this.recoveryFormCurrentUserId != userId) {
-      recoveryFormSerialCounter = RecoveryhighestSerial!;
+      recoveryFormSerialCounter = RecoveryhighestSerial?? 1;
       this.recoveryFormCurrentUserId = userId;
     }
 
@@ -386,6 +388,15 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                 fetchNetBalanceForShop(selectedDropdownValue!);
                                 fetchAccountsData();
                               });
+                              for (var owner in shopOwners) {
+                                if (owner['shop_name'] == selectedShopName) {
+                                  setState(() {
+                                    selectedShopBrand = owner['brand'];
+                                    selectedShopCityR= owner['city'];
+                                    print(selectedShopCityR);
+                                  });
+                                }
+                              }
                             },
                           ),
                           SizedBox(height: 10),
@@ -706,6 +717,8 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                             date: getCurrentDate(),
                                             userId: userId,
                                             bookerName: userNames,
+                                            city: selectedShopCityR,
+                                            brand: selectedShopBrand
                                           ),
                                         );
 

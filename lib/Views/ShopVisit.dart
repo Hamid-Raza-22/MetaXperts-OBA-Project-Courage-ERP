@@ -249,7 +249,7 @@ class _ShopVisitState extends State<ShopVisit> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
     //  serialCounter++;
-      ShopVisitsSerialCounter = (prefs.getInt('serialCounter') ?? highestSerial)! ;
+      ShopVisitsSerialCounter = (prefs.getInt('serialCounter') ?? highestSerial?? 1) ;
       shopVisitCurruntMonth = prefs.getString('currentMonth') ?? shopVisitCurruntMonth;
       currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
     });
@@ -268,7 +268,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
     if (this.currentUserId != userId) {
       // Reset serial counter when the userId changes
-      ShopVisitsSerialCounter = highestSerial!;
+      ShopVisitsSerialCounter = highestSerial??1;
       this.currentUserId = userId;
     }
 

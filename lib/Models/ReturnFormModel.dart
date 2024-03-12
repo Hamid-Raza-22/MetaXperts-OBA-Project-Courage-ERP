@@ -9,6 +9,8 @@ class ReturnFormModel {
   dynamic? returnAmount;
   dynamic? bookerId;
   dynamic? bookerName;
+  dynamic city;
+  dynamic brand;
 
   ReturnFormModel({
 
@@ -17,8 +19,9 @@ class ReturnFormModel {
     this.shopName,
     this.returnAmount,
     this.bookerId,
-    this.bookerName
-
+    this.bookerName,
+    this.city,
+    this.brand
   });
 
   factory ReturnFormModel.fromMap(Map<dynamic, dynamic> json) {
@@ -29,7 +32,9 @@ class ReturnFormModel {
         shopName: json['shopName'],
       returnAmount: json['returnAmount'],
       bookerId: json['bookerId'],
-      bookerName: json['bookerName']
+      bookerName: json['bookerName'],
+      city: json['city'],
+      brand: json['brand'],
     );
   }
 
@@ -41,7 +46,9 @@ class ReturnFormModel {
       'shopName': shopName,
       'returnAmount':returnAmount,
       'bookerId':bookerId,
-      'bookerName': bookerName
+      'bookerName': bookerName,
+      'city':city,
+      'brand':brand
 
     };
   }

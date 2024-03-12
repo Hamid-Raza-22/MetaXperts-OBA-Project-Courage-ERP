@@ -9,7 +9,7 @@ class RecoveryFormRepository{
 
   Future<List<RecoveryFormModel>> getRecoveryForm() async{
     var dbClient = await dbHelperRecoveryForm.db;
-    List<Map> maps = await dbClient!.query('recoveryForm',columns: ['recoveryId','date','shopName','netBalance',' userId', 'bookerName']);
+    List<Map> maps = await dbClient!.query('recoveryForm',columns: ['recoveryId','date','shopName','netBalance',' userId', 'bookerName', 'city', 'brand' ]);
     List<RecoveryFormModel> recoveryform = [];
     for(int i = 0; i<maps.length; i++)
     {

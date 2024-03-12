@@ -25,8 +25,15 @@ class OrderDetailsViewModel extends GetxController{
     allOrderDetails.value = orderdetails;
   }
 
-  addOrderDetail(OrderDetailsModel orderdetailsModel){
+  addOrderDetail(OrderDetailsModel orderdetailsModel) async {
     orderdetailsRepository.add(orderdetailsModel);
+    var dbClient = await orderdetailsRepository.dbHelperOrderDetails.db;
+    await dbClient!.insert('orderDetailsData', {
+    'order_no': orderdetailsModel.orderMasterId,
+    'product_name':orderdetailsModel.productName,
+    'quantity_booked': orderdetailsModel.quantity,
+    'price': orderdetailsModel.price,
+    });
     fetchAllOrderDetails();
   }
 
