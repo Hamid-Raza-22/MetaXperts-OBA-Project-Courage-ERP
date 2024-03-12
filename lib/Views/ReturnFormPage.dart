@@ -608,10 +608,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: ElevatedButton(
-        onPressed:
-          isReConfirmButtonPressed
-              ? null // Disable the button if isReConfirmButtonPressed is true
-              : () async {
+        onPressed: () async {
             final bool isConnected = await InternetConnectionChecker().hasConnection;
 
             if (!isConnected) {
@@ -639,6 +636,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
               // Your existing code for submission
               var id = await customAlphabet('1234567890', 5);
+
               returnformViewModel.addReturnForm(ReturnFormModel(
                   returnId: int.parse(id),
                   shopName: _selectedShopController.text,
@@ -651,11 +649,11 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
               ));
 
               String visitid = await returnformViewModel.fetchLastReturnFormId();
-              returnformid = int.parse(visitid);
+               returnformid = int.parse(visitid);
 
               for (int i = 0; i < firstTypeAheadControllers.length; i++) {
                 var id = await customAlphabet('1234567890', 12);
-                returnformdetailsViewModel.addReturnFormDetail(
+               returnformdetailsViewModel.addReturnFormDetail(
                   ReturnFormDetailsModel(
                     id: int.parse(id),
                     returnformId: returnformid ?? 0,
@@ -668,20 +666,21 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                 );
               }
 
-              DBHelper dbreturnform = DBHelper();
-              await dbreturnform.postReturnFormTable();
-              await dbreturnform.postReturnFormDetails();
-
-              onCreatee();
-              setState(() {
-                isReConfirmButtonPressed = true; // Mark the button as pressed
-              });
-
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => HomePage(),
                 ),
               );
+
+              DBHelper dbreturnform = DBHelper();
+               dbreturnform.postReturnFormTable();
+               dbreturnform.postReturnFormDetails();
+
+              setState(() {
+                isReConfirmButtonPressed = false; // Mark the button as pressed
+              });
+
+
 
             } else {
               // Show an error message or handle invalid form case

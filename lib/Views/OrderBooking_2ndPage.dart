@@ -215,10 +215,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
                                 saveRowDataDetailsToDatabase(rowDataDetails);
 
-                                DBHelper dbmaster = DBHelper();
 
-                                await dbmaster.postMasterTable();
-                               await dbmaster.postOrderDetails();
 
                                 Fluttertoast.showToast(
                                   msg: "Order confirmed!",
@@ -230,6 +227,10 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                 setState(() {
                                   isReConfirmButtonPressed = true; // Mark the button as pressed
                                 });
+                                DBHelper dbmaster = DBHelper();
+
+                                await dbmaster.postMasterTable();
+                                await dbmaster.postOrderDetails();
                               },
                               child: Text('Re Confirm'),
                               style: ElevatedButton.styleFrom(
