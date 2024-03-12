@@ -448,6 +448,7 @@ class _ShopVisitState extends State<ShopVisit> {
                         },
                       ),
                     ),
+
                     SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -461,49 +462,42 @@ class _ShopVisitState extends State<ShopVisit> {
                         Expanded(
                           child: Container(
                             height: 30,
-                            child: TypeAheadFormField<String>(
-                              textFieldConfiguration: TextFieldConfiguration(
-                                decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
-                                  enabled: false,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5.0),
-                                  ),
+                            child: DropdownButtonFormField<String>(
+                              value: selectedDropdownValue,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(5.0),
                                 ),
-                                controller: _brandDropDownController,
                               ),
-                              suggestionsCallback: (pattern) {
-                                return brandDropdownItems
-                                    .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
-                                    .toList();
-                              },
-                              itemBuilder: (context, itemData) {
-                                return ListTile(
-                                  title: Text(itemData),
+                              items: brandDropdownItems.map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
                                 );
-                              },
-                              onSuggestionSelected: (itemData) async {
-                                // Validate that the selected item is from the list
-                                if (brandDropdownItems.contains(itemData)) {
-                                  setState(() {
-                                    _brandDropDownController.text = itemData;
-                                    globalselectedbrand = itemData;
-                                  });
-                                  // Call the callback to pass the selected brand to FinalOrderBookingPage
-                                  widget.onBrandItemsSelected(itemData);
-                                  print('Selected Brand: $itemData');
-                                  print(globalselectedbrand);
-                                  productsController.fetchProducts();
-                                  for (int i = 0; i < productsController.rows.length; i++) {
-                                    removeSavedValues(i);
-                                  }
-                                  productsController.controllers.clear();
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedDropdownValue = newValue;
+                                  _brandDropDownController.text = newValue ?? '';
+                                  globalselectedbrand = newValue ?? '';
+                                });
+                                // Call the callback to pass the selected brand to FinalOrderBookingPage
+                                widget.onBrandItemsSelected(newValue!);
+                                print('Selected Brand: $newValue');
+                                print(globalselectedbrand);
+                                productsController.fetchProducts();
+                                for (int i = 0; i < productsController.rows.length; i++) {
+                                  removeSavedValues(i);
                                 }
+                                productsController.controllers.clear();
                               },
                             ),
                           ),
                         ),
                       ],
                     ),
+
 
                     SizedBox(height: 20),
                     Align(
@@ -532,7 +526,7 @@ class _ShopVisitState extends State<ShopVisit> {
                                 padding: EdgeInsets.all(5.0),
                                 child: Container(
                                   height: 400, // Set the desired height
-                                  width: 300, // Set the desired width
+                                  width: MediaQuery.of(context).size.width * 0.9, // Set the desired width
                                   child:Card(
                                     elevation: 5,
                                     shape: RoundedRectangleBorder(

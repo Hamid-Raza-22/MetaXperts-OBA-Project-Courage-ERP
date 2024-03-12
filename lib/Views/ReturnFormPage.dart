@@ -53,6 +53,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   List<TextEditingController> priceControllers = [];
   List<TextEditingController> secondTypeAheadControllers = [];
   int? returnformid;
+  bool isReConfirmButtonPressed = false;
+
   int? returnformdetailsid;
   List<String> dropdownItems = [];
   List<Map<String, dynamic>> shopOwners = [];
@@ -594,63 +596,81 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: ElevatedButton(
-        onPressed: () async {
-          await calculateTotalAmount();
-          double? amount = double.tryParse(amountController.text);
+        onPressed:
+          isReConfirmButtonPressed
+              ? null // Disable the button if isReConfirmButtonPressed is true
+              : () async {
 
-          if (isFormValid() && globalnetBalance!>=amount!) {
-
-            // Your existing code for submission
-            var id = await customAlphabet('1234567890', 5);
-            returnformViewModel.addReturnForm(ReturnFormModel(
-                returnId: int.parse(id),
-                shopName: _selectedShopController.text,
-                date: _getCurrentDate(),
-                returnAmount: amountController.text,
-                bookerId: userId,
-                bookerName: userNames
-            ));
-
-            String visitid = await returnformViewModel.fetchLastReturnFormId();
-            returnformid = int.parse(visitid);
-
+            await calculateTotalAmount();
+            double? amount = double.tryParse(amountController.text);
+            // Check if all type-ahead dropdowns and text fields are filled
+            bool allFieldsFilled = true;
             for (int i = 0; i < firstTypeAheadControllers.length; i++) {
-              var id = await customAlphabet('1234567890', 12);
-              returnformdetailsViewModel.addReturnFormDetail(
-                ReturnFormDetailsModel(
-                  id: int.parse(id),
-                  returnformId: returnformid ?? 0,
-                  productName: firstTypeAheadControllers[i].text,
-                  reason: secondTypeAheadControllers[i].text,
-                  quantity: qtyControllers[i].text,
+              if (firstTypeAheadControllers[i].text.isEmpty ||
+                  secondTypeAheadControllers[i].text.isEmpty ||
+                  qtyControllers[i].text.isEmpty) {
+                allFieldsFilled = false;
+                break;
+              }
+            }
+            if (isFormValid() && allFieldsFilled && globalnetBalance!>=amount!) {
+
+              // Your existing code for submission
+              var id = await customAlphabet('1234567890', 5);
+              returnformViewModel.addReturnForm(ReturnFormModel(
+                  returnId: int.parse(id),
+                  shopName: _selectedShopController.text,
+                  date: _getCurrentDate(),
+                  returnAmount: amountController.text,
                   bookerId: userId,
-                  // returnAmount: amountController.text,
+                  bookerName: userNames
+              ));
+
+              String visitid = await returnformViewModel.fetchLastReturnFormId();
+              returnformid = int.parse(visitid);
+
+              for (int i = 0; i < firstTypeAheadControllers.length; i++) {
+                var id = await customAlphabet('1234567890', 12);
+                returnformdetailsViewModel.addReturnFormDetail(
+                  ReturnFormDetailsModel(
+                    id: int.parse(id),
+                    returnformId: returnformid ?? 0,
+                    productName: firstTypeAheadControllers[i].text,
+                    reason: secondTypeAheadControllers[i].text,
+                    quantity: qtyControllers[i].text,
+                    bookerId: userId,
+                    // returnAmount: amountController.text,
+                  ),
+                );
+              }
+
+              DBHelper dbreturnform = DBHelper();
+              dbreturnform.postReturnFormTable();
+              dbreturnform.postReturnFormDetails();
+
+              onCreatee();
+              setState(() {
+                isReConfirmButtonPressed = true; // Mark the button as pressed
+              });
+
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => HomePage(),
                 ),
+              );
+
+            } else {
+              // Show an error message or handle invalid form case
+              print('Invalid form. Please check your inputs.');
+              Fluttertoast.showToast(
+                msg: 'Please check your inputs and Enter Quantity Lower Than The Current Balance',
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
               );
             }
 
-            DBHelper dbreturnform = DBHelper();
-            await dbreturnform.postReturnFormTable();
-            await dbreturnform.postReturnFormDetails();
-
-            onCreatee();
-
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => HomePage(),
-              ),
-            );
-          } else {
-            // Show an error message or handle invalid form case
-            print('Invalid form. Please check your inputs.');
-            Fluttertoast.showToast(
-              msg: 'Please Enter Quantity Lower Than The Current Balance          ',
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-            );
-          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
@@ -677,14 +697,13 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     bool isQtyValid = qtyControllers.every(
           (controller) => isValidQuantity(controller.text),
     );
-    // bool isPriceValid = priceControllers.every(
-    //       (controller) => isValidPrice(controller.text),
-    // );
+
 
     return _selectedShopController.text.isNotEmpty &&
         isDropdownValid &&
         isTypeAheadValid &&
-        isQtyValid;
+        isQtyValid ;
+
   }
 
 

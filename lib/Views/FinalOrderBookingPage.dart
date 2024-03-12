@@ -132,7 +132,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   TextEditingController _ownerNameController = TextEditingController();
   TextEditingController _phoneNoController = TextEditingController();
   TextEditingController _brandNameController = TextEditingController();
-
   TextEditingController _creditLimitController = TextEditingController();
   TextEditingController _discountController = TextEditingController();
   TextEditingController _subTotalController = TextEditingController();
@@ -281,6 +280,30 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min, // Ensure the row takes minimum space
+                        children: [
+                          Text(
+                            'Date:', // Add the text here
+                            style: TextStyle(
+                              fontSize: 15,
+                              // Optionally adjust the font weight
+                            ),
+                          ),
+                          SizedBox(width: 5), // Add some space between the text and the date
+                          Text(
+                            DateFormat('dd-MMM-yyyy').format(DateTime.now()), // Add the live date here
+                            style: TextStyle(fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   buildTextFormField('Shop Name', _ShopNameController, readOnly: true),
                   SizedBox(height: 10),
                   buildTextFormField('Owner Name', _ownerNameController, readOnly: true),
@@ -298,7 +321,8 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                               padding: EdgeInsets.all(5.0),
                               child: Container(
                                 height: 400, // Set the desired height
-                                width: 300, // Set the desired width
+                                width: MediaQuery.of(context).size.width * 0.9, // Set the desired width
+
                                 child: Card(
                                   elevation: 5,
                                   shape: RoundedRectangleBorder(
@@ -509,21 +533,21 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
               ),
             ),
-            Stack(
-              children: [
-                Positioned(
-                  top: 0, // Align the top edge of the Positioned widget to the top edge of the Stack
-                  right: 0, // Align the right edge of the Positioned widget to the right edge of the Stack
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0), // Adjust padding as needed
-                    child: Text(
-                      _getFormattedDate(),
-                      style: TextStyle(fontSize: 16, color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            )
+            // Stack(
+            //   children: [
+            //     Positioned(
+            //       top: 0, // Align the top edge of the Positioned widget to the top edge of the Stack
+            //       right: 0, // Align the right edge of the Positioned widget to the right edge of the Stack
+            //       child: Padding(
+            //         padding: const EdgeInsets.all(8.0), // Adjust padding as needed
+            //         child: Text(
+            //           _getFormattedDate(),
+            //           style: TextStyle(fontSize: 16, color: Colors.black),
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // )
 
           ],
         ),
@@ -722,7 +746,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
         // Show a message or perform an action indicating that the selected date is before today's date
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Selected date must be today or a future date."),
+            content: Text("Selected date must be a future date."),
           ),
         );
       } else {
@@ -741,8 +765,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
       calculateAmount(rowData.qtyController, rowData.rateController,
           rowData.amountController, rowData);
     });
-
-
 
 
     return Align(

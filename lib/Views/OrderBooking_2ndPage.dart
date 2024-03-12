@@ -25,10 +25,6 @@ import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
 import 'FinalOrderBookingPage.dart';
 
 
-
-// List<String> creditLimitOptions = ['Option 1', 'Option 2', 'Option 3'];
-
-
 class OrderBooking_2ndPage extends StatefulWidget {
   @override
   _OrderBooking_2ndPageState createState() => _OrderBooking_2ndPageState();
@@ -223,8 +219,8 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
                                 DBHelper dbmaster = DBHelper();
 
-                                await dbmaster.postMasterTable();
-                                await dbmaster.postOrderDetails();
+                                 dbmaster.postMasterTable();
+                                dbmaster.postOrderDetails();
 
                                 Fluttertoast.showToast(
                                   msg: "Order confirmed!",

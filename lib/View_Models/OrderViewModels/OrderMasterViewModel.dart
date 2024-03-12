@@ -41,8 +41,18 @@ class OrderMasterViewModel extends GetxController{
   //   return ordermaster;
   // }
 
-  addOrderMaster(OrderMasterModel ordermasterModel){
+  addOrderMaster(OrderMasterModel ordermasterModel) async {
     ordermasterRepository.add(ordermasterModel);
+    // Implementing logic to insert data into 'ownerData' table
+    var dbClient = await ordermasterRepository.dbHelperOrderMaster.db;
+    await dbClient!.insert('orderBookingStatusData', {
+    'order_no': ordermasterModel.orderId,
+      'order_date':ordermasterModel.date,
+    'shop_name': ordermasterModel.shopName,
+    'owner_name': ordermasterModel.ownerName,
+    'phone_no': ordermasterModel.phoneNo,
+      'amount':ordermasterModel.total
+    });
     fetchAllOrderMaster();
   }
 

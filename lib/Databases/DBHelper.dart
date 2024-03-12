@@ -142,22 +142,22 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<void> insertShop(ShopModel shop) async {
-    final Database db = await initDatabase();
-
-    // Insert the shop into the 'shop' table
-    await db.insert(
-      'shop',
-      shop.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-
-    // Insert the relevant data into the 'ownerData' table
-    await db.rawInsert(
-      'INSERT INTO ownerData(id, shop_name, owner_name, phone_no, city) VALUES(?, ?, ?, ?, ?)',
-      [shop.id, shop.shopName, shop.ownerName, shop.phoneNo, shop.city],
-    );
-  }
+  // Future<void> insertShop(ShopModel shop) async {
+  //   final Database db = await initDatabase();
+  //
+  //   // Insert the shop into the 'shop' table
+  //   await db.insert(
+  //     'shop',
+  //     shop.toMap(),
+  //     conflictAlgorithm: ConflictAlgorithm.replace,
+  //   );
+  //
+  //   // Insert the relevant data into the 'ownerData' table
+  //   await db.rawInsert(
+  //     'INSERT INTO ownerData(id, shop_name, owner_name, phone_no, city) VALUES(?, ?, ?, ?, ?)',
+  //     [shop.id, shop.shopName, shop.ownerName, shop.phoneNo, shop.city],
+  //   );
+  // }
 
   Future<List<Map<String, dynamic>>?> getOrderMasterdataDB() async {
     final Database db = await initDatabase();

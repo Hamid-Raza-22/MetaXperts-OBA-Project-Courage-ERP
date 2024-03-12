@@ -128,6 +128,8 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
   }
   Future<List<Map<String, dynamic>>> fetchOrderBookingStatusData() async {
     List<Map<String, dynamic>> data = await dbHelper.getOrderMasterDB() ?? [];
+    List<Map<String, dynamic>> datastatus = await dbHelper.getOrderBookingStatusDB()?? [];
+
 
     // Apply the filters
     if (selectedOrderNoFilter.isNotEmpty) {
@@ -152,9 +154,7 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
 
     if (selectedStatusFilter.isNotEmpty) {
       // Check if the status filter is "All", if not, filter by status
-      if (selectedStatusFilter != 'All') {
-        data = data.where((row) => row['status'] == selectedStatusFilter).toList();
-      }
+      datastatus = datastatus.where((row) => row['status'] == selectedStatusFilter).toList();
     }
 
     // Check if shop field is empty, reset shop filter
