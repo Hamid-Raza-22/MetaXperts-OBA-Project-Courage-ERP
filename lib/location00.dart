@@ -70,9 +70,9 @@ class LocationService {
 
       LocationSettings locationSettings = AndroidSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
+        distanceFilter: 3,
         forceLocationManager: true,
-        intervalDuration: const Duration(seconds: 1),
+        intervalDuration: const Duration(milliseconds:500 ),
       );
 
 
@@ -128,7 +128,6 @@ class LocationService {
           speedAccuracy: 0,
           timestamp: DateTime.now(),
         );
-
 
         gpxString = GpxWriter().asString(gpx, pretty: true);
         print("W100 $gpxString");

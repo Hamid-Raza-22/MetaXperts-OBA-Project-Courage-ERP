@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -167,7 +169,23 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       print("Error: amountController.text is not a valid number.");
     }
   }
-
+  void showLoadingIndicator(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Please Wait..."),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> updateQuantityField(String selectedProductName,
       int index) async {
@@ -187,15 +205,33 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       });
     }
   }
-
+  Future<bool> isInternetAvailable() async {
+    try {
+      final result = await InternetAddress.lookup('g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+    } on SocketException catch (_) {
+      return false;
+    }
+    return false;
+  }
 
   void fetchProductDataForSelectedShop(String selectedShopName) async {
     await productController.fetchProductData(selectedShopName);
     setState(() {
       dropdownItems2 = productController.productNames.toList();
-    });
+      // Clear the controllers and dynamic rows
+      firstTypeAheadControllers.clear();
+      qtyControllers.clear();
+      priceControllers.clear();
+      secondTypeAheadControllers.clear();
+      dynamicRows.clear();
+      // Re-add the initial row
+      addNewRowControllers();
+      dynamicRows.add(buildTypeAheadRow(0));
+      });
   }
-
   void fetchShopData() async {
     List<String> shopNames = await dbHelper.getOrderMasterShopNames();
     shopOwners = (await dbHelper.getOrderBookingStatusDB())!;
@@ -603,87 +639,98 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       ),
     );
   }
-
   Widget buildSubmitButton() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: ElevatedButton(
         onPressed: () async {
-            final bool isConnected = await InternetConnectionChecker().hasConnection;
+          final bool isConnected = await isInternetAvailable();
 
-            if (!isConnected) {
+          if (!isConnected) {
+            Fluttertoast.showToast(
+              msg: 'No Internet',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+            );
+            return; // Exit the function early if internet connection is not available
+          }
+          await calculateTotalAmount();
+          double? amount = double.tryParse(amountController.text);
+          // Check if all type-ahead dropdowns and text fields are filled
+          bool allFieldsFilled = true;
+          bool reasonSelected = true; // Add a flag to check if reasons are selected
+          for (int i = 0; i < firstTypeAheadControllers.length; i++) {
+            if (firstTypeAheadControllers[i].text.isEmpty ||
+                secondTypeAheadControllers[i].text.isEmpty ||
+                qtyControllers[i].text.isEmpty) {
+              allFieldsFilled = false;
+              break;
+            }
+            // Check if reasons are selected
+            if (secondTypeAheadControllers[i].text == 'Select Reason') {
+              reasonSelected = false;
+              break;
+            }
+          }
+          if (isFormValid() && allFieldsFilled && globalnetBalance! >= amount! && reasonSelected) {
+            // Your existing code for submission
+            var id = await customAlphabet('1234567890', 5);
+
+            returnformViewModel.addReturnForm(ReturnFormModel(
+              returnId: int.parse(id),
+              shopName: _selectedShopController.text,
+              date: _getCurrentDate(),
+              returnAmount: amountController.text,
+              bookerId: userId,
+              bookerName: userNames,
+              city: selectedShopCityR,
+              brand: selectedShopBrand,
+            ));
+
+            String visitid = await returnformViewModel.fetchLastReturnFormId();
+            returnformid = int.parse(visitid);
+
+            for (int i = 0; i < firstTypeAheadControllers.length; i++) {
+              var id = await customAlphabet('1234567890', 12);
+              returnformdetailsViewModel.addReturnFormDetail(
+                ReturnFormDetailsModel(
+                  id: int.parse(id),
+                  returnformId: returnformid ?? 0,
+                  productName: firstTypeAheadControllers[i].text,
+                  reason: secondTypeAheadControllers[i].text,
+                  quantity: qtyControllers[i].text,
+                  bookerId: userId,
+                  // returnAmount: amountController.text,
+                ),
+              );
+            }
+
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => HomePage(),
+              ),
+            );
+
+            DBHelper dbreturnform = DBHelper();
+            dbreturnform.postReturnFormTable();
+            dbreturnform.postReturnFormDetails();
+
+            setState(() {
+              isReConfirmButtonPressed = false; // Mark the button as pressed
+            });
+          } else {
+            // Show an error message or handle invalid form case
+            if (!reasonSelected) {
               Fluttertoast.showToast(
-                msg: 'No Internet',
+                msg: 'Please select a reason for all items',
                 toastLength: Toast.LENGTH_SHORT,
                 gravity: ToastGravity.BOTTOM,
                 backgroundColor: Colors.red,
                 textColor: Colors.white,
-              );              return; // Exit the function early if internet connection is not available
-            }
-            await calculateTotalAmount();
-            double? amount = double.tryParse(amountController.text);
-            // Check if all type-ahead dropdowns and text fields are filled
-            bool allFieldsFilled = true;
-            for (int i = 0; i < firstTypeAheadControllers.length; i++) {
-              if (firstTypeAheadControllers[i].text.isEmpty ||
-                  secondTypeAheadControllers[i].text.isEmpty ||
-                  qtyControllers[i].text.isEmpty) {
-                allFieldsFilled = false;
-                break;
-              }
-            }
-            if (  isFormValid() && allFieldsFilled && globalnetBalance!>=amount!) {
-
-              // Your existing code for submission
-              var id = await customAlphabet('1234567890', 5);
-
-              returnformViewModel.addReturnForm(ReturnFormModel(
-                  returnId: int.parse(id),
-                  shopName: _selectedShopController.text,
-                  date: _getCurrentDate(),
-                  returnAmount: amountController.text,
-                  bookerId: userId,
-                  bookerName: userNames,
-                  city: selectedShopCityR,
-                  brand: selectedShopBrand
-              ));
-
-              String visitid = await returnformViewModel.fetchLastReturnFormId();
-               returnformid = int.parse(visitid);
-
-              for (int i = 0; i < firstTypeAheadControllers.length; i++) {
-                var id = await customAlphabet('1234567890', 12);
-               returnformdetailsViewModel.addReturnFormDetail(
-                  ReturnFormDetailsModel(
-                    id: int.parse(id),
-                    returnformId: returnformid ?? 0,
-                    productName: firstTypeAheadControllers[i].text,
-                    reason: secondTypeAheadControllers[i].text,
-                    quantity: qtyControllers[i].text,
-                    bookerId: userId,
-                    // returnAmount: amountController.text,
-                  ),
-                );
-              }
-
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => HomePage(),
-                ),
               );
-
-              DBHelper dbreturnform = DBHelper();
-               dbreturnform.postReturnFormTable();
-               dbreturnform.postReturnFormDetails();
-
-              setState(() {
-                isReConfirmButtonPressed = false; // Mark the button as pressed
-              });
-
-
-
             } else {
-              // Show an error message or handle invalid form case
               print('Invalid form. Please check your inputs.');
               Fluttertoast.showToast(
                 msg: 'Please check your inputs and Enter Quantity Lower Than The Current Balance',
@@ -693,7 +740,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                 textColor: Colors.white,
               );
             }
-
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,

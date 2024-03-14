@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -207,7 +209,17 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
       _currentBalanceController.text = recoveryFormCurrentBalance.toString();
     });
   }
-
+  Future<bool> isInternetAvailable() async {
+    try {
+      final result = await InternetAddress.lookup('g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+    } on SocketException catch (_) {
+      return false;
+    }
+    return false;
+  }
   // void fetchShopData() async {
   //   List<String> shopNames = await dbHelper.getOrderMasterShopNames2();
   //   shopOwners = (await dbHelper.getOrderMasterDB())!;
@@ -249,7 +261,23 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   //   });
   // }
 
-
+  void showLoadingIndicator(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Please Wait..."),
+            ],
+          ),
+        );
+      },
+    );
+  }
   String getCurrentDate() {
     final now = DateTime.now();
     final formatter = DateFormat('dd-MMM-yyyy');
@@ -696,12 +724,14 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                           // ),
                           ElevatedButton(
                             onPressed: () async {
-                              final bool isConnected = await InternetConnectionChecker().hasConnection;
-
+                              showLoadingIndicator(context);
+                             final  bool isConnected = await isInternetAvailable();
+                              Navigator.of(context, rootNavigator: true).pop();
                               if (!isConnected) {
                                 showToast('Please check your internet connection.');
                                 return; // Exit the function early if internet connection is not available
                               }
+
 
                               if (_cashRecoveryController.text.isNotEmpty && _netBalanceController.text.isNotEmpty) {
                                 if (selectedDropdownValue != null && selectedDropdownValue!.isNotEmpty) {

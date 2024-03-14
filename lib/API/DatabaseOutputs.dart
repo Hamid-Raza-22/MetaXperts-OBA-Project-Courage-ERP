@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Databases/DBHelper.dart';
+import '../main.dart';
 import 'ApiServices.dart';
 
 class DatabaseOutputs{
@@ -295,6 +296,7 @@ class DatabaseOutputs{
     final dbnetbalance=DBHelper();
     final dbaccounts=DBHelper();
     print("DELETING.......................................");
+    await isInternetAvailable();
     await dbnetbalance.deleteAllRecordsAccounts();
     //await dbaccounts.deleteAllRecords();
   }
@@ -313,6 +315,8 @@ class DatabaseOutputs{
     final dbrecoveryformgetdata=DBHelper();
 
     print("DELETING.......................................");
+    await isInternetAvailable();
+
     await db.deleteAllRecords();
     await dbowner.deleteAllRecords();
     await dblogin.deleteAllRecords();

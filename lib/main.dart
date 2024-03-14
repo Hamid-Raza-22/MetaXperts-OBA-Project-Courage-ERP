@@ -13,6 +13,7 @@ import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart' as gp;
 import 'package:get/get.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -27,12 +28,14 @@ import 'Databases/DBHelper.dart';
 import 'Views/splash_screen.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:upgrader/upgrader.dart';
 
 // import 'package:location00/location00.dart';
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Upgrader;
 
   AndroidAlarmManager.initialize();
  //
@@ -307,12 +310,22 @@ String _formatDuration(String secondsString) {
   String secondsFormatted = twoDigits(duration.inSeconds.remainder(60));
   return '$hours:$minutes:$secondsFormatted';
 }
-
+Future<bool> isInternetAvailable() async {
+  try {
+    final result = await InternetAddress.lookup('g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com');
+    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+      return true;
+    }
+  } on SocketException catch (_) {
+    return false;
+  }
+  return false;
+}
 
 backgroundTask() async {
 
   try {
-    bool isConnected = await InternetConnectionChecker().hasConnection;
+    bool isConnected = await isInternetAvailable();
     DatabaseOutputs outputs = DatabaseOutputs();
     if (isConnected) {
       print('Internet connection is available. Initiating background data synchronization.');

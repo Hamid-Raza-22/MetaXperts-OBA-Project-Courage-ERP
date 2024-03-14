@@ -119,6 +119,17 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       );
     }
   }
+  Future<bool> isInternetAvailable() async {
+    try {
+      final result = await InternetAddress.lookup('g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+    } on SocketException catch (_) {
+      return false;
+    }
+    return false;
+  }
 
   _retrieveSavedValues() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -237,7 +248,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
       }
     });
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(Duration(seconds: 10));
     Navigator.pop(context); // Close the loading indicator dialog
     completer.complete();
     return completer.future;
@@ -506,14 +517,17 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                             color: Colors.white,iconSize: 20,
                             onPressed: () async {
                               // Check internet connection before refresh
-                              final bool isConnected = await InternetConnectionChecker().hasConnection;
+                              showLoadingIndicator(context);
+                              bool isConnected = await isInternetAvailable();
+                              Navigator.of(context, rootNavigator: true).pop();
+
                               if (isConnected) {
                                 // Internet connection is available
                                 DatabaseOutputs outputs = DatabaseOutputs();
                                 // Run both functions in parallel
                                 showLoadingIndicator(context);
                                 await Future.wait([
-                                 // Future.delayed(Duration(seconds: 6)),
+                          //        Future.delayed(Duration(seconds: 10)),
                                   backgroundTask(),
                                   outputs.checkFirstRun(),
                                 ]);
@@ -744,8 +758,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                               setState(() {
                                 isLoading = true; // assuming isLoading is a boolean state variable
                               });
-                              final bool isConnected = await InternetConnectionChecker().hasConnection;
-
+                              bool isConnected = await isInternetAvailable();
                               if (!isClockedIn) {
                                 showDialog(
                                   context: context,
@@ -820,7 +833,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                               // Delay for 5 seconds
                              // await Future.delayed(Duration(seconds: 5));
 
-                              final bool isConnected = await InternetConnectionChecker().hasConnection;
+                              bool isConnected = await isInternetAvailable();
 
                               if (!isClockedIn) {
                                 showDialog(

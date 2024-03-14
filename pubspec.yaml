@@ -101,7 +101,9 @@ dependencies:
 #    git:
 #      url: https://github.com/IqraMalik8585/Location-27-feb.git
   flutter_easyloading: ^3.0.5
-
+  upgrader: ^9.0.0
+  data_connection_checker_nulls: ^0.0.2
+  internet_connection_checker_plus: ^2.2.0
 
 dev_dependencies:
   flutter_test:

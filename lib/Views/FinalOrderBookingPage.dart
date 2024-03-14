@@ -164,9 +164,11 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
       });
     } else {
       List<DataRow> tempList = [];
+      String lowercaseQuery = query.toLowerCase();
       for (DataRow row in productsController.rows) {
         for (DataCell cell in row.cells) {
-          if (cell.child is Text && (cell.child as Text).data!.contains(query)) {
+          if (cell.child is Text &&
+              (cell.child as Text).data!.toLowerCase().contains(lowercaseQuery)) {
             tempList.add(row);
             break;
           }
@@ -506,7 +508,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                         } else {
                           // Show a message or handle the case where some fields are empty or invalid
                           Fluttertoast.showToast(
-                            msg: 'Please fill in all required fields correctly and select a valid credit limit before confirming.',
+                            msg: 'Please fill in all required fields before confirming.',
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
                             timeInSecForIosWeb: 1,

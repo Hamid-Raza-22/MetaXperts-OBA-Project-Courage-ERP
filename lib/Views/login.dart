@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:order_booking_shop/API/DatabaseOutputs.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:order_booking_shop/Views/ShopListPage.dart';

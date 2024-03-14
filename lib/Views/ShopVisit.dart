@@ -66,9 +66,10 @@ class _ShopVisitState extends State<ShopVisit> {
       });
     } else {
       List<DataRow> tempList = [];
+      String  lowerCaseQuery =query.toLowerCase();
       for (DataRow row in productsController.rows) {
         for (DataCell cell in row.cells) {
-          if (cell.child is Text && (cell.child as Text).data!.contains(query)) {
+          if (cell.child is Text && (cell.child as Text).data!.toLowerCase().contains(lowerCaseQuery)) {
             tempList.add(row);
             break;
           }
