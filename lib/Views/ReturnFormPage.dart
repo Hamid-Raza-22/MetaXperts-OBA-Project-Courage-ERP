@@ -230,7 +230,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       // Re-add the initial row
       addNewRowControllers();
       dynamicRows.add(buildTypeAheadRow(0));
-      });
+    });
   }
   void fetchShopData() async {
     List<String> shopNames = await dbHelper.getOrderMasterShopNames();
@@ -674,73 +674,73 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
               break;
             }
           }
-          if (isFormValid() && allFieldsFilled && globalnetBalance! >= amount! && reasonSelected) {
-            // Your existing code for submission
-            var id = await customAlphabet('1234567890', 5);
+          // Check if any reason or second controller typeahead is empty
+          bool anyEmptyReason = secondTypeAheadControllers.any((controller) => controller.text.isEmpty);
+          if (anyEmptyReason || !allFieldsFilled || !reasonSelected) {
+            Fluttertoast.showToast(
+              msg: 'Please fill all fields and select a reason for all items',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+            );
+            return; // Exit the function early if any reason or second controller typeahead is empty
+          }
+          if (!isFormValid() || globalnetBalance! < amount!) {
+            print('Invalid form. Please check your inputs.');
+            Fluttertoast.showToast(
+              msg: 'Please check your inputs and Enter Quantity Lower Than The Current Balance',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+            );
+            return;
+          }
+          // Your existing code for submission
+          var id = await customAlphabet('1234567890', 5);
 
-            returnformViewModel.addReturnForm(ReturnFormModel(
-              returnId: int.parse(id),
-              shopName: _selectedShopController.text,
-              date: _getCurrentDate(),
-              returnAmount: amountController.text,
-              bookerId: userId,
-              bookerName: userNames,
-              city: selectedShopCityR,
-              brand: selectedShopBrand,
-            ));
+          returnformViewModel.addReturnForm(ReturnFormModel(
+            returnId: int.parse(id),
+            shopName: _selectedShopController.text,
+            date: _getCurrentDate(),
+            returnAmount: amountController.text,
+            bookerId: userId,
+            bookerName: userNames,
+            city: selectedShopCityR,
+            brand: selectedShopBrand,
+          ));
 
-            String visitid = await returnformViewModel.fetchLastReturnFormId();
-            returnformid = int.parse(visitid);
+          String visitid = await returnformViewModel.fetchLastReturnFormId();
+          returnformid = int.parse(visitid);
 
-            for (int i = 0; i < firstTypeAheadControllers.length; i++) {
-              var id = await customAlphabet('1234567890', 12);
-              returnformdetailsViewModel.addReturnFormDetail(
-                ReturnFormDetailsModel(
-                  id: int.parse(id),
-                  returnformId: returnformid ?? 0,
-                  productName: firstTypeAheadControllers[i].text,
-                  reason: secondTypeAheadControllers[i].text,
-                  quantity: qtyControllers[i].text,
-                  bookerId: userId,
-                  // returnAmount: amountController.text,
-                ),
-              );
-            }
-
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => HomePage(),
+          for (int i = 0; i < firstTypeAheadControllers.length; i++) {
+            var id = await customAlphabet('1234567890', 12);
+            returnformdetailsViewModel.addReturnFormDetail(
+              ReturnFormDetailsModel(
+                id: int.parse(id),
+                returnformId: returnformid ?? 0,
+                productName: firstTypeAheadControllers[i].text,
+                reason: secondTypeAheadControllers[i].text,
+                quantity: qtyControllers[i].text,
+                bookerId: userId,
               ),
             );
-
-            DBHelper dbreturnform = DBHelper();
-            dbreturnform.postReturnFormTable();
-            dbreturnform.postReturnFormDetails();
-
-            setState(() {
-              isReConfirmButtonPressed = false; // Mark the button as pressed
-            });
-          } else {
-            // Show an error message or handle invalid form case
-            if (!reasonSelected) {
-              Fluttertoast.showToast(
-                msg: 'Please select a reason for all items',
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-              );
-            } else {
-              print('Invalid form. Please check your inputs.');
-              Fluttertoast.showToast(
-                msg: 'Please check your inputs and Enter Quantity Lower Than The Current Balance',
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-              );
-            }
           }
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+
+          DBHelper dbreturnform = DBHelper();
+          dbreturnform.postReturnFormTable();
+          dbreturnform.postReturnFormDetails();
+
+          setState(() {
+            isReConfirmButtonPressed = false; // Mark the button as pressed
+          });
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
@@ -840,5 +840,5 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       print("Error fetching price for product: $e");
       return null;
     }
-  }
+    }
 }

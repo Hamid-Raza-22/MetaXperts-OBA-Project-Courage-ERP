@@ -70,7 +70,7 @@ class LocationService {
 
       LocationSettings locationSettings = AndroidSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 3,
+        distanceFilter: 4,
         forceLocationManager: true,
         intervalDuration: const Duration(milliseconds:500 ),
       );
