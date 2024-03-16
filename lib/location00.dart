@@ -72,10 +72,20 @@ class LocationService {
         accuracy: LocationAccuracy.high,
         distanceFilter: 4,
         forceLocationManager: true,
-        intervalDuration: const Duration(milliseconds:500 ),
+        intervalDuration: const Duration(seconds:1 ),
       );
 
-
+      // Future<bool> isInternetAvailable() async {
+      //   try {
+      //     final result = await InternetAddress.lookup('google.com');
+      //     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+      //       return true;
+      //     }
+      //   } on SocketException catch (_) {
+      //     return false;
+      //   }
+      //   return false;
+      // }
 
       positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) async {
         print("W100 Repeat");
