@@ -431,7 +431,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
                           // String newOrderId = generateNewOrderId(userId.toString(), currentMonth);
 
-                          List<DataRow> rows = filteredRows.isNotEmpty ? filteredRows : productsController.rows;
+                          List<DataRow> rows =  productsController.rows;
 
                           for (int i = 0; i < rows.length; i++) {
                             DataRow row = rows[i];
@@ -450,8 +450,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                             }
 
                             int totalAmount = productsController.amounts[productsController.productsViewModel.allProducts.firstWhere((product) => product.product_name == selectedItem)]!.value.toInt();
-
-
 
                             if (int.parse(quantity) != 0) {
                               rowDataDetails.add({
@@ -478,7 +476,6 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
                             return;
                           }
-
 
                           Map<String, dynamic> dataToPass = {
                             'shopName': _ShopNameController.text,

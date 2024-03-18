@@ -75,21 +75,21 @@ class LocationService {
         intervalDuration: const Duration(seconds:1 ),
       );
 
-      // Future<bool> isInternetAvailable() async {
-      //   try {
-      //     final result = await InternetAddress.lookup('google.com');
-      //     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-      //       return true;
-      //     }
-      //   } on SocketException catch (_) {
-      //     return false;
-      //   }
-      //   return false;
-      // }
+      Future<bool> isInternetAvailable() async {
+        try {
+          final result = await InternetAddress.lookup('google.com');
+          if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+            return true;
+          }
+        } on SocketException catch (_) {
+          return false;
+        }
+        return false;
+      }
 
       positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) async {
         print("W100 Repeat");
-        isConnected = await isInternetConnected();
+        isConnected = await isInternetAvailable();
         if(isConnected){
           await FirebaseFirestore.instance.collection('location').doc(userIdForLocation.toString()).set({
             'latitude': position.latitude,
@@ -198,14 +198,14 @@ class LocationService {
   }
 
 
-  Future<bool> isInternetConnected() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    bool isConnected = connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi;
-
-    print('Internet Connected: $isConnected');
-
-    return isConnected;
-  }
+  // Future<bool> isInternetConnected() async {
+  //   var connectivityResult = await Connectivity().checkConnectivity();
+  //   bool isConnected = connectivityResult == ConnectivityResult.mobile ||
+  //       connectivityResult == ConnectivityResult.wifi;
+  //
+  //   print('Internet Connected: $isConnected');
+  //
+  //   return isConnected;
+  // }
 
 }
