@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:gpx/gpx.dart';
@@ -56,7 +55,6 @@ class LocationService {
 
       file = new File(filePath);
       isFirstRun = !file.existsSync();
-
       if (!file.existsSync()) {
         file.createSync();
       }
@@ -67,7 +65,6 @@ class LocationService {
         segment = new Trkseg();
         track.trksegs.add(segment);
       }
-
       LocationSettings locationSettings = AndroidSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 4,
@@ -138,10 +135,8 @@ class LocationService {
           speedAccuracy: 0,
           timestamp: DateTime.now(),
         );
-
         gpxString = GpxWriter().asString(gpx, pretty: true);
         print("W100 $gpxString");
-
         file.writeAsStringSync(gpxString);
       });
       print("W100 END");
@@ -149,17 +144,12 @@ class LocationService {
       print('W100 An error occurred: $e');
     }
   }
-
-
   Future<void> init() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     userIdForLocation = pref.getString("userNames") ?? "USER";
     userCityForLocatiion=pref.getString("userCitys") ?? "CITY";
     userDesignationForLocation=pref.getString("userDesignation") ?? "DESIGNATION";
   }
-
-
-
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     double distanceInMeters = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
     return (distanceInMeters / 1000); // Multiply the result by 2
@@ -180,32 +170,10 @@ class LocationService {
     try {
       //WakelockPlus.disable();
       positionStream?.cancel();
-
-      // Fluttertoast.showToast(
-      //     msg: "Total Distance: ${totalDistance.toStringAsFixed(2)} km",
-      //     toastLength: Toast.LENGTH_LONG,
-      //     gravity: ToastGravity.BOTTOM,
-      //     timeInSecForIosWeb: 1,
-      //     backgroundColor: Colors.grey,
-      //     textColor: Colors.white,
-      //     fontSize: 16.0
-      // );
       SharedPreferences pref = await SharedPreferences.getInstance();
       pref.setDouble("TotalDistance", totalDistance);
     } catch (e) {
       print("ERROR ${e.toString()}");
     }
   }
-
-
-  // Future<bool> isInternetConnected() async {
-  //   var connectivityResult = await Connectivity().checkConnectivity();
-  //   bool isConnected = connectivityResult == ConnectivityResult.mobile ||
-  //       connectivityResult == ConnectivityResult.wifi;
-  //
-  //   print('Internet Connected: $isConnected');
-  //
-  //   return isConnected;
-  // }
-
 }

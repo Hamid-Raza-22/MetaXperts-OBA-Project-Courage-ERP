@@ -121,7 +121,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
   Future<bool> isInternetAvailable() async {
     try {
-      final result = await InternetAddress.lookup('g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com');
+      final result = await InternetAddress.lookup('google.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         return true;
       }
@@ -388,6 +388,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     Duration duration = Duration(seconds: seconds);
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     String hours = twoDigits(duration.inHours);
+
     String minutes = twoDigits(duration.inMinutes.remainder(60));
     String secondsFormatted = twoDigits(duration.inSeconds.remainder(60));
     return '$hours:$minutes:$secondsFormatted';

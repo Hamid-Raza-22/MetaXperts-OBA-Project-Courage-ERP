@@ -806,8 +806,8 @@ class _ShopVisitState extends State<ShopVisit> {
                             List<StockCheckItemsModel> stockCheckItemsList = [];
                             SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                            for (int i = 0; i < (filteredRows.isNotEmpty ? filteredRows : productsController.rows).length; i++) {
-                              DataRow row = (filteredRows.isNotEmpty ? filteredRows : productsController.rows)[i];
+                            for (int i = 0; i < (productsController.rows).length; i++) {
+                              DataRow row = (productsController.rows)[i];
                               String itemDesc = row.cells[0].child?.toString() ?? '';
                               String qty = productsController.controllers[i].text; // Get the value from the controller
 
@@ -1017,8 +1017,8 @@ class _ShopVisitState extends State<ShopVisit> {
                             List<StockCheckItemsModel> stockCheckItemsList = [];
                             SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                            for (int i = 0; i < (filteredRows.isNotEmpty ? filteredRows : productsController.rows).length; i++) {
-                              DataRow row = (filteredRows.isNotEmpty ? filteredRows : productsController.rows)[i];
+                            for (int i = 0; i < (productsController.rows).length; i++) {
+                              DataRow row = (productsController.rows)[i];
                               String itemDesc = row.cells[0].child?.toString() ?? '';
                               String qty = productsController.controllers[i].text; // Get the value from the controller
 
