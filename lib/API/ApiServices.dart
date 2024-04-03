@@ -5,16 +5,14 @@ import 'package:oauth2/oauth2.dart' as oauth2;
 import 'AppExceptions.dart';
 import 'BaseApiServices.dart';
 import 'package:http/http.dart' as http;
-
-class ApiServices extends BaseApiServices {
-
-
 // Your provided OAuth and token URLs
- // final authorizationEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth');
+// final authorizationEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth');
 //   final tokenEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth/token');
 // // Your provided client ID and secret
 //   final identifier = 'PEdOhv7Iqu4sCtQsRzbibQ..';
 //   final secret = '122w1TFTxsqTwY1-nhV9fA..';
+
+class ApiServices extends BaseApiServices {
 
   final tokenEndpoint = Uri.parse('https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/oauth/token');
 
@@ -43,6 +41,31 @@ class ApiServices extends BaseApiServices {
     return responseJson;
   }
 
+  @override
+  Future<dynamic> putApi(var data, dynamic url) async {
+    final client = await getClient();
+    if (kDebugMode) {
+      print(url);
+      print(data);
+    }
+
+    dynamic responseJson;
+    try {
+      final response = await client.put(
+        Uri.parse(url),
+        body: data,
+      ).timeout(const Duration(seconds: 10));
+      responseJson = returnResponse(response);
+    } on SocketException {
+      print(InternetException(''));
+    } on RequestTimeOut {
+      print(RequestTimeOut(''));
+    }
+    if (kDebugMode) {
+      print(responseJson);
+    }
+    return responseJson;
+  }
 
 
   @override

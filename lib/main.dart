@@ -30,23 +30,18 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:upgrader/upgrader.dart';
 
-// import 'package:location00/location00.dart';
-
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Upgrader;
 
   AndroidAlarmManager.initialize();
- //
+
   // Initialize the FlutterBackground plugin
   await FlutterBackground.initialize();
 
   // Enable background execution
   await FlutterBackground.enableBackgroundExecution();
- //
- // // Initialize the service
- // // await initializeServiceBackGroundData();
+
   await initializeServiceLocation();
 
   // Ensure Firebase is initialized before running the app
@@ -330,7 +325,7 @@ backgroundTask() async {
     if (isConnected) {
       print('Internet connection is available. Initiating background data synchronization.');
       await synchronizeData();
-      await outputs.checkFirstRun();
+      await outputs.initializeDatalogin();
 
   print('Background data synchronization completed.');
     } else {

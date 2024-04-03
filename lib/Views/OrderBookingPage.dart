@@ -176,7 +176,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
   Future<void> fetchShopNames() async {
     String userCity = userCitys;
-    List<dynamic> shopNames = await dbHelper.getShopNamesForCity(userCity);
+    List<dynamic> shopNames = await dbHelper.getShopNamesForCity();
     shopOwners = (await dbHelper.getOwnersDB())!;
     setState(() {
       // Explicitly cast each element to String

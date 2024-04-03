@@ -5,6 +5,8 @@ class OrderDetailsModel {
   dynamic? amount;
   dynamic? price;
   dynamic? quantity;
+  dynamic? userId;
+
 
   OrderDetailsModel({
     this.id,
@@ -13,6 +15,7 @@ class OrderDetailsModel {
     this.amount,
     this.price,
     this.quantity,
+    this.userId
 
   });
 
@@ -24,6 +27,7 @@ class OrderDetailsModel {
       amount: json['amount'],
       price: json['price'],
       quantity: json['quantity'],
+      userId: json['userId']
     );
   }
 
@@ -35,6 +39,7 @@ class OrderDetailsModel {
       'amount': amount,
       'price': price,
       'quantity': quantity,
+      'userId': userId
     };
   }
 }

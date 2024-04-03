@@ -43,14 +43,14 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
     await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,shopCity TEXT,posted INTEGER DEFAULT 0)");
-    await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,posted INTEGER DEFAULT 0,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
+    await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,userId TEXT,posted INTEGER DEFAULT 0,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
     await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT)");
     await db.execute("CREATE TABLE products(id NUMBER, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
     await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
-    await db.execute("CREATE TABLE orderDetailsData(order_no TEXT, product_name TEXT, quantity_booked INTEGER, price INTEGER)");
+    await db.execute("CREATE TABLE orderDetailsData(id INTEGER,order_no TEXT, product_name TEXT, quantity_booked INTEGER,userId TEXT, price INTEGER)");
     await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
     await db.execute("CREATE TABLE accounts(account_id INTEGER, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT)");
-    await db.execute("CREATE TABLE productCategory(brand TEXT)");
+    await db.execute("CREATE TABLE productCategory(id INTEGER,brand TEXT)");
     await db.execute("CREATE TABLE attendance(id INTEGER PRIMARY KEY , date TEXT, timeIn TEXT, userId TEXT, latIn TEXT, lngIn TEXT, bookerName TEXT)");
     await db.execute("CREATE TABLE attendanceOut(id INTEGER PRIMARY KEY , date TEXT, timeOut TEXT, totalTime TEXT, userId TEXT,latOut TEXT, lngOut TEXT,totalDistance TEXT, posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE recoveryForm (recoveryId TEXT, date TEXT, shopName TEXT, cashRecovery REAL, netBalance REAL, userId TEXT ,bookerName TEXT,city TEXT, brand TEXT)");
@@ -62,6 +62,73 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE recoveryFormGet (recovery_id TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE location(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, fileName TEXT,userId TEXT,totalDistance TEXT,userName TEXT, posted INTEGER DEFAULT 0,body BLOB)");
 }
+  Future<int> updateLogin(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('login', row, where: 'user_id = ?', whereArgs: [row['user_id']]);
+  }
+  Future<int> updateOwner(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('ownerData', row, where: 'id = ?', whereArgs: [row['id']]);
+  }
+  Future<int> updateOrderBookingStutsData(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('orderBookingStatusData', row, where: 'order_no = ?', whereArgs: [row['order_no']]);
+  }
+  Future<int> updateRecoveryFormGetData(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('recoveryFormGet', row, where: 'recovery_id = ?', whereArgs: [row['recovery_id']]);
+  }
+  Future<int> updateOrderMasterData(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('orderMasterData', row, where: 'order_no = ?', whereArgs: [row['order_no']]);
+  }
+  Future<int> updateOrderDetailsdata(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('orderDetailsData', row, where: 'id = ?', whereArgs: [row['id']]);
+  }
+  Future<int> updateProductCategorydata(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('productCategory', row, where: 'id = ?', whereArgs: [row['id']]);
+  }
+  Future<int> updateProductdata(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.update('products', row, where: 'id = ?', whereArgs: [row['id']]);
+  }
+
+  // Delete funtions
+  Future<int> deleteLogin(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('login', where: 'user_id = ?', whereArgs: [row['user_id']]);
+  }
+  Future<int> deleteOwner(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('ownerData',  where: 'id = ?', whereArgs: [row['id']]);
+  }
+  Future<int> deleteOrderBookingStutsData(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('orderBookingStatusData', where: 'order_no = ?', whereArgs: [row['order_no']]);
+  }
+  Future<int> deleteRecoveryFormGetData(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('recoveryFormGet',  where: 'recovery_id = ?', whereArgs: [row['recovery_id']]);
+  }
+  Future<int>deleteOrderMasterData(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('orderMasterData', where: 'order_no = ?', whereArgs: [row['order_no']]);
+  }
+  Future<int> deleteOrderDetailsdata(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('orderDetailsData',where: 'id = ?', whereArgs: [row['id']]);
+  }
+  Future<int> deleteProductCategorydata(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('productCategory',  where: 'id = ?', whereArgs: [row['id']]);
+  }
+  Future<int> deleteProductdata(Map<String, dynamic> row) async {
+    Database? db = await this.db;
+    return await db!.delete('products', where: 'id = ?', whereArgs: [row['id']]);
+  }
+
 
   Future<void> getHighestSerialNo() async {
     int serial;
@@ -162,7 +229,7 @@ _onCreate(Database db, int version) async {
   Future<List<Map<String, dynamic>>?> getOrderMasterdataDB() async {
     final Database db = await initDatabase();
     try {
-      final List<Map<String, dynamic>> ordermaster = await db.query('orderBookingStatusData');
+      final List<Map<String, dynamic>> ordermaster = await db.query('orderBookingStatusData',where: 'user_id = ?', whereArgs: [userId]);
       return ordermaster;
     } catch (e) {
       print("Error retrieving products: $e");
@@ -172,7 +239,7 @@ _onCreate(Database db, int version) async {
   Future<List<Map<String, dynamic>>?> getRecoverydataDB() async {
     final Database db = await initDatabase();
     try {
-      final List<Map<String, dynamic>> recoveryFormGet = await db.query('recoveryFormGet');
+      final List<Map<String, dynamic>> recoveryFormGet = await db.query('recoveryFormGet', where: 'user_id = ?', whereArgs: [userId]);
       return recoveryFormGet;
     } catch (e) {
       print("Error retrieving products: $e");
@@ -183,8 +250,9 @@ _onCreate(Database db, int version) async {
     final Database db = await initDatabase();
     try {
       for (var data in dataList) {
-        await db.insert('orderDetailsData', data);
-      }
+        if (data['userId'] == userId) {
+          await db.insert('orderDetailsData', data);
+      }}
       return true;
     } catch (e) {
       print("Error inserting orderDetailsGet data: ${e.toString()}");
@@ -362,6 +430,8 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
+
+
   Future<bool> entershopdata(String shopName) async {
     final Database db = await initDatabase();
     try {
@@ -535,7 +605,8 @@ _onCreate(Database db, int version) async {
             productName: i['productName'].toString(),
             price: i['price'].toString(),
             quantity: i['quantity'].toString(),
-            amount: i['amount'].toString()
+            amount: i['amount'].toString(),
+            userId: i['userId'].toString(),
         );
         var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
         if(result == true){
@@ -593,7 +664,7 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
-  Future<List<String>> getShopNamesForCity(String userCity) async {
+  Future<List<String>> getShopNamesForCity() async {
     final Database db = await initDatabase();
     try {
       final List<Map<String, dynamic>> shopNames = await db.query(
@@ -695,7 +766,7 @@ _onCreate(Database db, int version) async {
   Future<Iterable> getProductsNames() async {
     final Database db = await initDatabase();
     try {
-      final List<Map<String, dynamic>>? productNames= await db.query('products');
+      final List<Map<String, dynamic>>? productNames = await db.query('products');
       return productNames!.map((map) => map['product_name'].toList());
     } catch (e) {
       print("Error retrieving products: $e");
@@ -767,8 +838,9 @@ _onCreate(Database db, int version) async {
     final Database db = await initDatabase();
     try {
       for (var data in dataList) {
+        if (data['user_id'] == userId) {
         await db.insert('orderBookingStatusData', data);
-      }
+      }}
       return true;
     } catch (e) {
       print("Error inserting orderBookingStatusData: ${e.toString()}");
@@ -780,8 +852,9 @@ _onCreate(Database db, int version) async {
     final Database db = await initDatabase();
     try {
       for (var data in dataList) {
+        if (data['user_id'] == userId) {
         await db.insert('recoveryFormGet', data);
-      }
+      }}
       return true;
     } catch (e) {
       print("Error inserting recoveryFormGet: ${e.toString()}");
@@ -847,7 +920,9 @@ _onCreate(Database db, int version) async {
     final Database db = await initDatabase();
     try {
       for (var data in dataList) {
-        await db.insert('orderMasterData', data);
+        if (data['user_id'] == userId) {
+          await db.insert('orderMasterData', data);
+        }
       }
       return true;
     } catch (e) {

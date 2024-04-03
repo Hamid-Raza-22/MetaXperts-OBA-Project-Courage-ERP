@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:gpx/gpx.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +38,74 @@ class LocationService {
   }
 
   StreamSubscription<Position>? positionStream;
+  LocationSettings locationSettings = AndroidSettings(
+    accuracy: LocationAccuracy.high,
+    distanceFilter: 9,
+    forceLocationManager: true,
+    // intervalDuration: const Duration(seconds:1 ),
+  );
+
   Future<void> listenLocation() async {
+
+    positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) async {
+      print("W100 Repeat");
+
+      longi = position.longitude.toString();
+      lat = position.latitude.toString();
+      final trackPoint = Wpt(
+        lat: position.latitude,
+        lon: position.longitude,
+        time: DateTime.now(),
+      );
+
+      segment.trkpts.add(trackPoint);
+
+      if (isFirstRun) {
+        track.trksegs.add(segment);
+        gpx.trks.add(track);
+        isFirstRun = false;
+      }
+
+      if (lastTrackPoint != null) {
+        totalDistance += calculateDistance(
+          lastTrackPoint!.latitude,
+          lastTrackPoint!.longitude,
+          position.latitude,
+          position.longitude,
+        );
+      }
+
+      lastTrackPoint = Position(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accuracy: 0,
+        altitude: 0,
+        altitudeAccuracy: 0,
+        heading: 0,
+        headingAccuracy: 0,
+        speed: 0,
+        speedAccuracy: 0,
+        timestamp: DateTime.now(),
+      );
+      gpxString = GpxWriter().asString(gpx, pretty: true);
+      print("W100 $gpxString");
+      file.writeAsStringSync(gpxString);
+
+      isConnected = await  isInternetConnected() ;
+      if(isConnected){
+        await FirebaseFirestore.instance.collection('location').doc(userIdForLocation.toString()).set({
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+          'name': userIdForLocation.toString(),
+          'city': userCityForLocatiion.toString(),
+          'designation':userDesignationForLocation.toString(),
+          'isActive': true
+        }, SetOptions(merge: true));
+      }
+
+    });
+
+
 
     SharedPreferences pref = await SharedPreferences.getInstance();
     userIdForLocation = pref.getString("userNames") ?? "USER";
@@ -65,80 +133,21 @@ class LocationService {
         segment = new Trkseg();
         track.trksegs.add(segment);
       }
-      LocationSettings locationSettings = AndroidSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 4,
-        forceLocationManager: true,
-        intervalDuration: const Duration(seconds:1 ),
-      );
 
-      Future<bool> isInternetAvailable() async {
-        try {
-          final result = await InternetAddress.lookup('google.com');
-          if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-            return true;
-          }
-        } on SocketException catch (_) {
-          return false;
-        }
-        return false;
-      }
 
-      positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) async {
-        print("W100 Repeat");
-        isConnected = await isInternetAvailable();
-        if(isConnected){
-          await FirebaseFirestore.instance.collection('location').doc(userIdForLocation.toString()).set({
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-            'name': userIdForLocation.toString(),
-            'city': userCityForLocatiion.toString(),
-            'designation':userDesignationForLocation.toString(),
-            'isActive': true
-          }, SetOptions(merge: true));
-        }
+      // Future<bool> isInternetAvailable() async {
+      //   try {
+      //     final result = await InternetAddress.lookup('google.com');
+      //     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+      //       return true;
+      //     }
+      //   } on SocketException catch (_) {
+      //     return false;
+      //   }
+      //   return false;
+      // }
 
-        longi = position.longitude.toString();
-        lat = position.latitude.toString();
-        final trackPoint = Wpt(
-          lat: position.latitude,
-          lon: position.longitude,
-          time: DateTime.now(),
-        );
 
-        segment.trkpts.add(trackPoint);
-
-        if (isFirstRun) {
-          track.trksegs.add(segment);
-          gpx.trks.add(track);
-          isFirstRun = false;
-        }
-
-        if (lastTrackPoint != null) {
-          totalDistance += calculateDistance(
-            lastTrackPoint!.latitude,
-            lastTrackPoint!.longitude,
-            position.latitude,
-            position.longitude,
-          );
-        }
-
-        lastTrackPoint = Position(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          accuracy: 0,
-          altitude: 0,
-          altitudeAccuracy: 0,
-          heading: 0,
-          headingAccuracy: 0,
-          speed: 0,
-          speedAccuracy: 0,
-          timestamp: DateTime.now(),
-        );
-        gpxString = GpxWriter().asString(gpx, pretty: true);
-        print("W100 $gpxString");
-        file.writeAsStringSync(gpxString);
-      });
       print("W100 END");
     } catch (e) {
       print('W100 An error occurred: $e');
@@ -176,4 +185,9 @@ class LocationService {
       print("ERROR ${e.toString()}");
     }
   }
+}
+Future<bool> isInternetConnected() async {
+  bool isConnected = await InternetConnectionChecker().hasConnection;
+  print('Internet Connected: $isConnected');
+  return isConnected;
 }

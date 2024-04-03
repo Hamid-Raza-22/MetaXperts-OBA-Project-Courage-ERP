@@ -350,6 +350,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
         quantity: rowData['quantity'],
         price: rowData['rate'],
         amount:  rowData['totalAmount'],
+        userId: userId,
         // Populate other fields based on your data model
       ));
     }
@@ -443,220 +444,217 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     );
   }
 
+
   int calculateTotalQuantity(List<String> quantities) {
     return quantities.fold<int>(0, (sum, quantity) => sum + int.parse(quantity));
   }
 
-
   Future<void> generateAndSharePDF(dynamic orderId, dynamic user_name, dynamic shopName,
-      dynamic order_date, List<dynamic> selectedItems, List<dynamic> quantities,List<dynamic> rates,
+      dynamic order_date, List<dynamic> selectedItems, List<dynamic> quantities, List<dynamic> rates,
       List<dynamic> totalAmounts, dynamic totalAmount, dynamic creditLimit,
       dynamic requiredDelivery) async {
     final pdf = pw.Document();
     final image = pw.Image(pw.MemoryImage(Uint8List.fromList((await rootBundle.load('assets/images/p1.png')).buffer.asUint8List())));
     final totalQuantity = calculateTotalQuantity(quantities.cast<String>());
 
-    // Add content to the PDF documenti want to s
-    pdf.addPage(pw.Page(
-      pageFormat: pw.PdfPageFormat.a4,
-      build: (pw.Context context){
-        return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              // Header
-              pw.Container(
-                margin: const pw.EdgeInsets.only(top: -60), // Adjust margin here
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Row (
-                      crossAxisAlignment: pw.CrossAxisAlignment.center,
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Add your logo image from assets
-                        pw.Container(
-                          child: image,
-                          height: 150,
-                          width: 150,
-                        ),
-                        pw.Text('Courage ERP', style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold, color: PdfColors.green)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Page Content
-              pw.SizedBox(height: 20),
-              // Order# , Date, Booker
+    final itemsPerPage = 10; // Adjust this value based on your requirement
 
-              pw.Row(
+    // Add content to the PDF document
+    for (var startIndex = 0; startIndex < selectedItems.length; startIndex += itemsPerPage) {
+      final endIndex = (startIndex + itemsPerPage < selectedItems.length) ? startIndex + itemsPerPage : selectedItems.length;
+      final itemsSubset = selectedItems.sublist(startIndex, endIndex);
+      final quantitiesSubset = quantities.sublist(startIndex, endIndex);
+      final ratesSubset = rates.sublist(startIndex, endIndex);
+      final totalAmountsSubset = totalAmounts.sublist(startIndex, endIndex);
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: pw.PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Header (Omitted for brevity)
+                // Page Content
+                pw.Container(
+                  margin: const pw.EdgeInsets.only(top: -60),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Container(
+                            child: image,
+                            height: 150,
+                            width: 150,
+                          ),
+                          pw.Text('Courage ERP', style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold, color: PdfColors.green)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                // Order#, Date, Booker
+                pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        mainAxisAlignment: pw.MainAxisAlignment.start,
-                        children: [
-                          pw.Text('Order#: $OrderMasterid', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Booker Name: $user_name', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Shop Name: $shopName', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                        ]
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      mainAxisAlignment: pw.MainAxisAlignment.start,
+                      children: [
+                        pw.Text('Order#: $orderId', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Booker Name: $user_name', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Shop Name: $shopName', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                      ],
                     ),
                     pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
-                        mainAxisAlignment: pw.MainAxisAlignment.end,
-                        children: [
-                          pw.Text('Date: $order_date', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Req. Delivery: $requiredDelivery', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Credit Limit: $creditLimit', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                        ]
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      mainAxisAlignment: pw.MainAxisAlignment.end,
+                      children: [
+                        pw.Text('Date: $order_date', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Req. Delivery: $requiredDelivery', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Credit Limit: $creditLimit', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                      ],
                     ),
-                  ]
-              ),
-              pw.Column(
-                children: [
-                  pw.SizedBox(height: 30),
-                  // Invoice Heading
-                  pw.Row(
+                  ],
+                ),
+                pw.Column(
+                  children: [
+                    pw.SizedBox(height: 30),
+                    // Invoice Heading
+                    pw.Row(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       mainAxisAlignment: pw.MainAxisAlignment.start,
                       children: [
                         pw.Text('Invoice', style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
-                      ]
-                  ),
-                  pw.Row(
+                      ],
+                    ),
+                    pw.Row(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       mainAxisAlignment: pw.MainAxisAlignment.start,
                       children: [
-
                         // Order Summary
                         pw.Text('Order Summary..', style: pw.TextStyle(fontSize: 15)),
                         pw.SizedBox(height: 20),
-                      ]
-                  ),
-                  pw.SizedBox(height: 30),
-
-                  // Table
-                  pw.Table(
-
-                    border: pw.TableBorder.symmetric(),
-                    columnWidths: {
-                      0: pw.FlexColumnWidth(1),
-                      1: pw.FlexColumnWidth(4),
-                      2: pw.FlexColumnWidth(1),
-                      3: pw.FlexColumnWidth(1),
-                      4: pw.FlexColumnWidth(2),
-                      5: pw.FlexColumnWidth(2),
-                    },
-
-                    children: [
-                      pw.TableRow(
-
-                        children: [
-                          pw.Text('S.N.', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Descr. of Goods', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Qty.', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Unit', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Price', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('Amount(Rs.)', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-
-                        ],
-
-                      ),
-
-                      for (var i = 0; i < selectedItems.length; i++)
-                        pw.TableRow(
-
-                          children: [
-                            pw.Text((i + 1).toString()),
-                            pw.Text(selectedItems[i]),
-                            pw.Text(quantities[i].toString()),
-                            pw.Text(('PCS').toString()),
-                            pw.Text(rates[i].toString()),
-                            //pw.Text(order_date.toString()),
-                            pw.Text(totalAmounts[i].toString()),
-                          ],
-                        ),
-                    ],
-                  ),
-                  pw.SizedBox(height: 20),
-                  // Total
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    mainAxisAlignment: pw.MainAxisAlignment.end,
-                    children: [
-
-                      pw.Text('Total: $totalAmount', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-
-                      pw.SizedBox(height: 5),
-                      pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.end,
-                        children: [
-                          // pw.Text('Discount: ', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                          // pw.Text(discount.toString(), style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                        ],
-                      ),
-                      pw.SizedBox(height: 10),
-                      pw.Container(
-                        height: 1,
-                        color: PdfColors.grey,
-                        margin: const pw.EdgeInsets.symmetric(vertical: 5),
-                      ),
-                      pw.SizedBox(height: 20),
-                      // Total Quantity
-                      pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.Text('Grand Total: ${totalQuantity} PCS', style: pw.TextStyle(fontSize: 15)),
-                          // pw.Text('Net Amount: ${subTotal.toString()}', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                        ],
-                      ),
-
-
-                      pw.SizedBox(height: 10),
-                      pw.Container(
-                        height: 1,
-                        color: PdfColors.grey,
-                        margin: const pw.EdgeInsets.symmetric(vertical: 5),
-                      ),
-                      pw.SizedBox(height: 10),
-                      // pw.Row(
-                      //   mainAxisAlignment: pw.MainAxisAlignment.end,
-                      //   children: [
-                      //     pw.Text('Credit Limit: ', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                      //     pw.Text(creditLimit.toString(), style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
-                      //   ],
-                      // ),
-                    ],
-                  ),
-                  // Footer
-                  pw.Container(
-                    margin: const pw.EdgeInsets.only(top: 30),
-                    child: pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.center,
-                      crossAxisAlignment: pw.CrossAxisAlignment.end,
-                      children: [
-                        pw.Text('Developed by MetaXperts', style: pw.TextStyle(fontSize: 12)),
                       ],
                     ),
-                  ),
-                ],
-              )]);
-      },
-    ));
+                    pw.SizedBox(height: 30),
+                    // Table
+                    pw.Table(
+                      border: pw.TableBorder.symmetric(),
+                      columnWidths: {
+                        0: pw.FlexColumnWidth(1),
+                        1: pw.FlexColumnWidth(4),
+                        2: pw.FlexColumnWidth(1),
+                        3: pw.FlexColumnWidth(1),
+                        4: pw.FlexColumnWidth(2),
+                        5: pw.FlexColumnWidth(2),
+                      },
+                      children: [
+                        pw.TableRow(
+                          children: [
+                            pw.Text('S.N.', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('Descr. of Goods', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('Qty.', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('Unit', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('Price', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                            pw.Text('Amount(Rs.)', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                          ],
+                        ),
+                        for (var i = 0; i < itemsSubset.length; i++)
+                          pw.TableRow(
+                            children: [
+                              pw.Text((i + startIndex + 1).toString()),
+                              pw.Text(itemsSubset[i]),
+                              pw.Text(quantitiesSubset[i].toString()),
+                              pw.Text(('PCS').toString()),
+                              pw.Text(ratesSubset[i].toString()),
+                              pw.Text(totalAmountsSubset[i].toString()),
+                            ],
+                          ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 20),
+                    // Total
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      mainAxisAlignment: pw.MainAxisAlignment.end,
+                      children: [
+                        pw.Text('Total: $totalAmount', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        pw.SizedBox(height: 5),
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.end,
+                          children: [
+                            // pw.Text('Discount: ', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                            // pw.Text(discount.toString(), style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          ],
+                        ),
+                        pw.SizedBox(height: 10),
+                        pw.Container(
+                          height: 1,
+                          color: PdfColors.grey,
+                          margin: const pw.EdgeInsets.symmetric(vertical: 5),
+                        ),
+                        pw.SizedBox(height: 20),
+                        // Total Quantity
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          children: [
+                            pw.Text('Grand Total: ${totalQuantity} PCS', style: pw.TextStyle(fontSize: 15)),
+                            // pw.Text('Net Amount: ${subTotal.toString()}', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                          ],
+                        ),
+                        pw.SizedBox(height: 10),
+                        pw.Container(
+                          height: 1,
+                          color: PdfColors.grey,
+                          margin: const pw.EdgeInsets.symmetric(vertical: 5),
+                        ),
+                        pw.SizedBox(height: 10),
+                        // pw.Row(
+                        //   mainAxisAlignment: pw.MainAxisAlignment.end,
+                        //   children: [
+                        //     pw.Text('Credit Limit: ', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        //     pw.Text(creditLimit.toString(), style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        //   ],
+                        // ),
+                      ],
+                    ),
+                    // Footer
+                    pw.Container(
+                      margin: const pw.EdgeInsets.only(top: 30),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                        children: [
+                          pw.Text('Developed by MetaXperts', style: pw.TextStyle(fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            );
+          },
+        ),
+      );
+    }
 
     // Get the directory for temporary files
     final directory = await getTemporaryDirectory();
 
     // Create a temporary file in the directory
-    final output = File('${directory.path}/order_summary_$OrderMasterid.pdf');
+    final output = File('${directory.path}/order_summary_$orderId.pdf');
     await output.writeAsBytes(await pdf.save());
 
     // Share the PDF
     await Share.shareFiles([output.path], text: 'PDFDocument');
   }
-
 
   Future<String> generateAndSavePDF(dynamic OrderMasterid, dynamic user_name, dynamic shopName,
       dynamic order_date, List<dynamic> selectedItems, List<dynamic> quantities,List<dynamic> rates,
@@ -880,17 +878,17 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
 
   Widget buildElevatedButton(String txt, [Function()? onPressed]) {
     return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        elevation: 10,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          minimumSize: Size(200, 50),
         ),
-        minimumSize: Size(200, 50),
-      ),
-      child: Text(txt),
-    );
-  }
+        child: Text(txt),
+        );
+    }
 }

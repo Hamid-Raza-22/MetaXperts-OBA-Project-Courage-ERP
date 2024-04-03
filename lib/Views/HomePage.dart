@@ -530,7 +530,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 await Future.wait([
                           //        Future.delayed(Duration(seconds: 10)),
                                   backgroundTask(),
-                                  outputs.checkFirstRun(),
+                                  outputs.initializeDatalogin(),
+                                  outputs.checkFirstRun()
                                 ]);
                                 // After 10 seconds, hide the loading indicator and perform the refresh logic
                                 Navigator.of(context, rootNavigator: true).pop();

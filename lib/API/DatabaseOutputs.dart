@@ -1,5 +1,3 @@
-//import 'package:order_booking_shop/Databases/DBHelper.dart';
-import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Databases/DBHelper.dart';
@@ -46,19 +44,19 @@ class DatabaseOutputs{
     }
   }
   Future<void> update_orderbooking_status() async{
-    final dborderbookingstatus= DBHelper();
+    final db= DBHelper();
     print("DELETING.......................................");
-    await dborderbookingstatus.deleteAllRecords();
+    await db.deleteAllRecords();
   }
   void initialize_orderbooking_status() async{
     final api = ApiServices();
-    final dborderbookingstatus= DBHelper();
-    var OrderBookingStatusdata= await dborderbookingstatus.getOrderBookingStatusDB();
+    final db= DBHelper();
+    var OrderBookingStatusdata= await db.getOrderBookingStatusDB();
 
     //
     // if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
     //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
-    //   var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
+    //   var results2 = await db.insertOrderBookingStatusData(response2);   //return True or False
     //   if (results2) {
     //     print("Data inserted successfully.");
     //   } else {
@@ -68,31 +66,367 @@ class DatabaseOutputs{
     //   print("Data is available.");
     // }
   }
- Future<void>  initializeData() async {
+  Future<void> initializeDatalogin() async {
     final api = ApiServices();
     final db = DBHelper();
-    final dbowner = DBHelper();
-    final dbdistributor = DBHelper();
-    final dbordermaster= DBHelper();
-    final dborderdetails= DBHelper();
-    final dbnetbalance= DBHelper();
-    final dbaccounts= DBHelper();
-    final dborderbookingstatus= DBHelper();
-    final dblogin=DBHelper();
-    final dbProductCategory=DBHelper();
-    final dbrecovertformget=DBHelper();
 
-    var Productdata = await db.getProductsDB();
-    var OrderMasterdata = await dbordermaster.getOrderMasterDB();
-    var OrderDetailsdata = await dborderdetails.getOrderDetailsDB();
-    var NetBalancedata = await dbnetbalance.getNetBalanceDB();
-    var Accountsdata = await dbaccounts.getAccoutsDB();
-    var OrderBookingStatusdata= await dborderbookingstatus.getOrderBookingStatusDB();
-    var Owerdata = await dbowner.getOwnersDB();
-    var Distributordata = await dbdistributor.getDistributorsDB();
-    var Logindata = await dblogin.getAllLogins();
-    var PCdata = await dbProductCategory.getAllPCs();
-    var RecoveryFormGetData = await dbrecovertformget.getRecoverydataDB();
+    // Get existing data from local database
+    // var Logindata = Set<Map<String, dynamic>>.from((await db.getAllLogins()) ?? []);
+    var Owerdata = Set<Map<String, dynamic>>.from((await db.getOwnersDB()) ?? []);
+    // var OrderBookingStatusdata = Set<Map<String, dynamic>>.from((await db.getOrderBookingStatusDB()) ?? []);
+    // var RecoveryFormGetData = Set<Map<String, dynamic>>.from((await db.getRecoverydataDB()) ?? []);
+    // var OrderMasterdata = Set<Map<String, dynamic>>.from((await db.getOrderMasterDB()) ?? []);
+    // var OrderDetailsdata = Set<Map<String, dynamic>>.from((await db.getOrderDetailsDB()) ?? []);
+    // var Productdata = Set<Map<String, dynamic>>.from((await db.getProductsDB()) ?? []);
+    // var PCdata = Set<Map<String, dynamic>>.from((await db.getAllPCs()) ?? []);
+
+    // Get data from API
+   // var responseLogin = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
+    var responseOwner = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
+    // var responseOrderBookingStatusdata = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
+    // var responseRecoveryFormGetData = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
+    // var responseOrderMasterdata = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
+    // var responseOrderDetailsdata= await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
+    // var responseProductdata = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
+    // var responsePC = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
+
+    // // Convert API responses to sets for efficient operations
+    // var apiLoginData = Set<Map<String, dynamic>>.from(responseLogin);
+    // var apiOwnerData = Set<Map<String, dynamic>>.from(responseOwner);
+    //  var apiOrderBookingStatusdata = Set<Map<String, dynamic>>.from(responseOrderBookingStatusdata);
+    // var apiRecoveryFormGetData = Set<Map<String, dynamic>>.from(responseRecoveryFormGetData);
+    // var apiOrderMasterdata = Set<Map<String, dynamic>>.from(responseOrderMasterdata);
+    // var apiOrderDetailsdata = Set<Map<String, dynamic>>.from(responseOrderDetailsdata);
+    // var apiProductdata = Set<Map<String, dynamic>>.from(responseProductdata);
+    // var apiPCdata = Set<Map<String, dynamic>>.from(responsePC);
+    //
+    // // ... other API data sets ...
+    // Get existing data from local database
+    // var localLoginData = Set<Map<String, dynamic>>.from((await db.getAllLogins()) ?? []);
+    //var localOwnerData = Set<Map<String, dynamic>>.from((await db.getOwnersDB()) ?? []);
+    //  var localOrderBookingStatusdata = Set<Map<String, dynamic>>.from((await db.getOrderBookingStatusDB()) ?? []);
+    // var localRecoveryFormGetData = Set<Map<String, dynamic>>.from((await db.getRecoverydataDB()) ?? []);
+    // var localOrderMasterdata = Set<Map<String, dynamic>>.from((await db.getOrderMasterDB()) ?? []);
+    // var localOrderDetailsdata = Set<Map<String, dynamic>>.from((await db.getOrderDetailsDB()) ?? []);
+    // var localProductdata = Set<Map<String, dynamic>>.from((await db.getProductsDB()) ?? []);
+    // var localPCdata = Set<Map<String, dynamic>>.from((await db.getAllPCs()) ?? []);
+    // ... other local data sets ...
+    // Find items to delete: items that are in local data but not in API data
+    // var loginItemsToDelete = localLoginData.difference(apiLoginData);
+    // var ownerItemsToDelete = localOwnerData.difference(apiOwnerData);
+    //  var orderbookingstatusItemsToDelete = localOrderBookingStatusdata.difference(apiOrderBookingStatusdata);
+    // var recoveryItemsToDelete = localRecoveryFormGetData.difference(apiRecoveryFormGetData);
+    // var ordermasterItemsToDelete = localOrderMasterdata.difference(apiOrderMasterdata);
+    // var orderdetailsToDelete = localOrderDetailsdata.difference(apiOrderDetailsdata);
+    // var productsitemsToDelete = localProductdata.difference(apiProductdata);
+    // var pcitemsToDelete = localPCdata.difference(apiPCdata);
+
+
+
+    // ... other items to delete ...
+    /// Process login data
+// Process login data
+//     for (var item in responseLogin) {
+//       // Check if item already exists in local data
+//       Map<String, dynamic>? existingItem;
+//       try {
+//         existingItem = Logindata.firstWhere((element) => element['user_id'] == item['user_id']);
+//       } catch (e) {
+//         existingItem = null;
+//       }
+//
+//       if (existingItem == null) {
+//         // If item does not exist, insert it
+//         var results3 = await db.insertLogin([item]);
+//         if (results3) {
+//           print("Login Data inserted successfully.");
+//           // Delete items from local database
+//           // for (var item in loginItemsToDelete) {
+//           //   await db.deleteLogin(item);
+//           // }
+//         } else {
+//           print("Error inserting data.");
+//         }
+//       } else {
+//         // If item exists, update it
+//         var results3 = await db.updateLogin(item);
+//         if (results3 != null && results3 > 0) {
+//           print("Login Data updated successfully.");
+//         } else {
+//           print("Error updating data.");
+//         }
+//       }
+//
+//     }
+
+
+
+// Process owner data
+    for (var item in responseOwner) {
+      // Check if item already exists in local data
+     // var existingItem = Owerdata?.firstWhere((element) => element['id'] == item['id'], orElse: () => {});
+      Map<String, dynamic>? existingItem;
+      try {
+        existingItem = Owerdata.firstWhere((element) => element['id'] == item['id']);
+      } catch (e) {
+        existingItem = null;
+      }
+
+      if (existingItem == null) {
+
+    //  if (existingItem == null || existingItem.isEmpty) {
+        // If item does not exist, insert it
+        var results2 = await db.insertOwnerData([item]);
+         if (results2) {
+         print("Owner Data inserted successfully.");
+        //   for (var item in ownerItemsToDelete) {
+        //     await db.deleteOwner(item);
+        //   }
+
+         }
+      else {
+          print("Error inserting data.");
+        }
+      } else {
+        // If item exists, update it
+        var results2 = await db.updateOwner(item);
+        if (results2 > 0) {
+          print(" Owner Data updated successfully.");
+        } else {
+          print("Error updating data.");
+        }
+      }
+    }
+
+
+ //    // Process order Booking Status
+ //    for (var item in responseOrderBookingStatusdata) {
+ //      // Check if item already exists in local data
+ //     // var existingItem = OrderBookingStatusdata?.firstWhere((element) => element['order_no'] == item['order_no'], orElse: () => {});
+ //      Map<String, dynamic>? existingItem;
+ //      try {
+ //        existingItem = OrderBookingStatusdata.firstWhere((element) => element['order_no'] == item['order_no']);
+ //      } catch (e) {
+ //        existingItem = null;
+ //      }
+ //
+ //      if (existingItem == null) {
+ //
+ //      //if (existingItem == null || existingItem.isEmpty) {
+ //        // If item does not exist, insert it
+ //        var results = await db.insertOrderBookingStatusData([item]);
+ //        if (results) {
+ //          print("order Booking Status Data inserted successfully.");
+ //        } else {
+ //          print("Error inserting data.");
+ //        }
+ //      } else {
+ //        // If item exists, update it
+ //        var results2 = await db.updateOrderBookingStutsData(item);
+ //        if (results2 > 0) {
+ //          print(" order Booking Status Data updated successfully.");
+ //        } else {
+ //          print("Error updating data.");
+ //        }
+ //      }
+ //    }
+ //    // Process RecoveryFormGetData
+ //    for (var item in responseRecoveryFormGetData) {
+ //      // Check if item already exists in local data
+ //      //var existingItem = RecoveryFormGetData?.firstWhere((element) => element['recovery_id'] == item['recovery_id'], orElse: () => {});
+ //      Map<String, dynamic>? existingItem;
+ //      try {
+ //        existingItem = RecoveryFormGetData.firstWhere((element) => element['recovery_id'] == item['recovery_id']);
+ //      } catch (e) {
+ //        existingItem = null;
+ //      }
+ //
+ //      if (existingItem == null) {
+ //
+ //     // if (existingItem == null || existingItem.isEmpty) {
+ //        // If item does not exist, insert it
+ //        var results = await db.insertRecoveryFormData([item]);
+ //        if (results) {
+ //          print("RecoveryFormGetData inserted successfully.");
+ //        } else {
+ //          print("Error inserting data.");
+ //        }
+ //      } else {
+ //        // If item exists, update it
+ //        var results2 = await db.updateRecoveryFormGetData(item);
+ //        if (results2 > 0) {
+ //          print(" RecoveryFormGetData updated successfully.");
+ //        } else {
+ //          print("Error updating data.");
+ //        }
+ //      }
+ //    }
+ //    // Process OrderMasterdata
+ //    for (var item in responseOrderMasterdata) {
+ //      // Check if item already exists in local data
+ //    //  var existingItem = OrderMasterdata?.firstWhere((element) => element['order_no'] == item['order_no'], orElse: () => {});
+ //      Map<String, dynamic>? existingItem;
+ //      try {
+ //        existingItem = OrderMasterdata.firstWhere((element) => element['order_no'] == item['order_no']);
+ //      } catch (e) {
+ //        existingItem = null;
+ //      }
+ //
+ //      if (existingItem == null) {
+ //
+ //   //   if (existingItem == null || existingItem.isEmpty) {
+ //        // If item does not exist, insert it
+ //        var results = await db.insertOrderMasterData([item]);
+ //        if (results) {
+ //          print("OrderMaster Data inserted successfully.");
+ //        } else {
+ //          print("Error inserting data.");
+ //        }
+ //      } else {
+ //        // If item exists, update it
+ //        var results2 = await db.updateOrderMasterData(item);
+ //        if (results2 > 0) {
+ //          print(" OrderMaster Data updated successfully.");
+ //        } else {
+ //          print("Error updating data.");
+ //        }
+ //      }
+ //    }
+ //    // Process OrderDetailsdata
+ //    for (var item in responseOrderDetailsdata) {
+ //      // Check if item already exists in local data
+ //     // var existingItem = OrderDetailsdata?.firstWhere((element) => element['id'] == item['id'], orElse: () => {});
+ //      Map<String, dynamic>? existingItem;
+ //      try {
+ //        existingItem = OrderDetailsdata.firstWhere((element) => element['id'] == item['id']);
+ //      } catch (e) {
+ //        existingItem = null;
+ //      }
+ //
+ //      if (existingItem == null) {
+ //     // if (existingItem == null || existingItem.isEmpty) {
+ //        // If item does not exist, insert it
+ //        var results = await db.insertOrderDetailsData([item]);
+ //        if (results) {
+ //          print("OrderDetailsdata Data inserted successfully.");
+ //        } else {
+ //          print("Error inserting data.");
+ //        }
+ //      } else {
+ //        // If item exists, update it
+ //        var results2 = await db.updateOrderDetailsdata(item);
+ //        if (results2 > 0) {
+ //          print(" OrderDetailsdataData updated successfully.");
+ //        } else {
+ //          print("Error updating data.");
+ //        }
+ //      }
+ //    }
+ //    // Process Productdata
+ //    for (var item in responseProductdata) {
+ //      // Check if item already exists in local data
+ //      //var existingItem = Productdata?.firstWhere((element) => element['id'] == item['id'], orElse: () => {});
+ //      Map<String, dynamic>? existingItem;
+ //      try {
+ //        existingItem = Productdata.firstWhere((element) => element['id'] == item['id']);
+ //      } catch (e) {
+ //        existingItem = null;
+ //      }
+ //
+ //      if (existingItem == null) {
+ //
+ //     // if (existingItem == null || existingItem.isEmpty) {
+ //        // If item does not exist, insert it
+ //        var results = await db.insertProductsData([item]);
+ //        if (results) {
+ //          print("OrderDetailsdata Data inserted successfully.");
+ //        } else {
+ //          print("Error inserting data.");
+ //        }
+ //      } else {
+ //        // If item exists, update it
+ //        var results2 = await db.updateProductdata(item);
+ //        if (results2 > 0) {
+ //          print(" OrderDetailsdataData updated successfully.");
+ //        } else {
+ //          print("Error updating data.");
+ //        }
+ //      }
+ //    }
+ //    // Process ProductCategory data
+ //    for (var item in responsePC) {
+ //      // Check if item already exists in local data
+ //     // var existingItem = PCdata?.firstWhere((element) => element['id'] == item['id'], orElse: () => {});
+ //      Map<String, dynamic>? existingItem;
+ //      try {
+ //        existingItem = PCdata.firstWhere((element) => element['id'] == item['id']);
+ //      } catch (e) {
+ //        existingItem = null;
+ //      }
+ //
+ //      if (existingItem == null) {
+ //
+ //     // if (existingItem == null || existingItem.isEmpty) {
+ //        // If item does not exist, insert it
+ //        var results = await db.insertProductCategory([item]);
+ //        if (results) {
+ //          print("ProductCategorydata inserted successfully.");
+ //        } else {
+ //          print("Error inserting data.");
+ //        }
+ //      } else {
+ //        // If item exists, update it
+ //        var results2 = await db.updateProductCategorydata(item);
+ //        if (results2 > 0) {
+ //          print(" ProductCategorydata updated successfully.");
+ //        } else {
+ //          print("Error updating data.");
+ //        }
+ //      }
+ //    }
+ //
+ // //   Delete items from local database
+ //    for (var item in orderbookingstatusItemsToDelete) {
+ //      await db.deleteOrderBookingStutsData(item);
+ //    }
+    // // Delete items from local database
+    // for (var item in recoveryItemsToDelete) {
+    //   await db.deleteRecoveryFormGetData(item);
+    // }
+    // // Delete items from local database
+    // for (var item in ordermasterItemsToDelete) {
+    //   await db.deleteOrderMasterData(item);
+    // }
+    // // Delete items from local database
+    // for (var item in orderdetailsToDelete) {
+    //   await db.deleteOrderDetailsdata(item);
+    // }
+    // // Delete items from local database
+    // for (var item in productsitemsToDelete) {
+    //   await db.deleteProductdata(item);
+    // }
+    // // Delete items from local database
+    // for (var item in pcitemsToDelete) {
+    //   await db.deleteProductCategorydata(item);
+    // }
+    showAllTables();
+
+  }
+
+  Future<void>  initializeData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+
+
+    // Get existing data from local database
+    var Logindata = Set<Map<String, dynamic>>.from((await db.getAllLogins()) ?? []);
+    var Owerdata = Set<Map<String, dynamic>>.from((await db.getOwnersDB()) ?? []);
+  ;var OrderBookingStatusdata = Set<Map<String, dynamic>>.from((await db.getOrderBookingStatusDB()) ?? []);
+    var RecoveryFormGetData = Set<Map<String, dynamic>>.from((await db.getRecoverydataDB()) ?? []);
+    var OrderMasterdata = Set<Map<String, dynamic>>.from((await db.getOrderMasterDB()) ?? []);
+    var OrderDetailsdata = Set<Map<String, dynamic>>.from((await db.getOrderDetailsDB()) ?? []);
+    var Productdata = Set<Map<String, dynamic>>.from((await db.getProductsDB()) ?? []);
+    var PCdata = Set<Map<String, dynamic>>.from((await db.getAllPCs()) ?? []);
 
     //https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/muhammad_usman/login/get/
     // https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/
@@ -102,7 +436,7 @@ class DatabaseOutputs{
     if (Logindata == null || Logindata.isEmpty ) {
        // replace with your actual access token
       var response3 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
-      var results3= await dblogin.insertLogin(response3);//return True or False
+      var results3= await db.insertLogin(response3);//return True or False
       if (results3) {
         print(" Login Data inserted successfully.");
       } else {
@@ -114,7 +448,7 @@ class DatabaseOutputs{
 
     if (Owerdata == null || Owerdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
-      var results2 = await dbowner.insertOwnerData(response2);   //return True or False
+      var results2 = await db.insertOwnerData(response2);   //return True or False
       if (results2) {
         print("Owner Data inserted successfully.");
       } else {
@@ -126,7 +460,7 @@ class DatabaseOutputs{
 
     // if (Accountsdata == null || Accountsdata.isEmpty ) {
     //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
-    //   var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
+    //   var results2 = await db.insertAccoutsData(response2);   //return True or False
     //   if (results2) {
     //     print("Accounts Data inserted successfully.");
     //   } else {
@@ -139,7 +473,7 @@ class DatabaseOutputs{
     //
     // if (NetBalancedata == null || NetBalancedata.isEmpty ) {
     //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
-    //   var results2 = await dbnetbalance.insertNetBalanceData(response2);   //return True or False
+    //   var results2 = await db.insertNetBalanceData(response2);   //return True or False
     //   if (results2) {
     //     print(" Net Balance Data inserted successfully.");
     //   } else {
@@ -152,7 +486,7 @@ class DatabaseOutputs{
 
     if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
-      var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
+      var results2 = await db.insertOrderBookingStatusData(response2);   //return True or False
       if (results2) {
         print("OrderBookingStatus Data inserted successfully.");
       } else {
@@ -164,7 +498,7 @@ class DatabaseOutputs{
 
     if (RecoveryFormGetData == null || RecoveryFormGetData.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
-      var results2 = await dbrecovertformget.insertRecoveryFormData(response2);   //return True or False
+      var results2 = await db.insertRecoveryFormData(response2);   //return True or False
       if (results2) {
         print("RecoveryFormGetData Data inserted successfully.");
       } else {
@@ -176,7 +510,7 @@ class DatabaseOutputs{
 
     if (OrderMasterdata == null || OrderMasterdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
-      var results2 = await dbordermaster.insertOrderMasterData(response2);   //return True or False
+      var results2 = await db.insertOrderMasterData(response2);   //return True or False
       if (results2) {
         print("OrderMaster Data inserted successfully.");
       } else {
@@ -188,7 +522,7 @@ class DatabaseOutputs{
 
     if (OrderDetailsdata == null || OrderDetailsdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
-      var results2 = await dborderdetails.insertOrderDetailsData(response2);   //return True or False
+      var results2 = await db.insertOrderDetailsData(response2);   //return True or False
       if (results2) {
         print("OrderDetails Data inserted successfully.");
       } else {
@@ -217,7 +551,7 @@ class DatabaseOutputs{
 
     // if (Distributordata == null || Distributordata.isEmpty ) {
     //   var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/distributorlist/get/");
-    //   var results2 = await dbowner.insertDistributorData(response2);   //return True or False
+    //   var results2 = await db.insertDistributorData(response2);   //return True or False
     //   if (results2) {
     //     print("Distributors Data inserted successfully.");
     //   } else {
@@ -229,7 +563,7 @@ class DatabaseOutputs{
 
     if (PCdata == null || PCdata.isEmpty ) {
       var response4 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
-      var results4= await dbProductCategory.insertProductCategory(response4);//return True or False
+      var results4= await db.insertProductCategory(response4);//return True or False
       if (results4) {
         print("Pc Data inserted successfully.");
       } else {
@@ -243,18 +577,16 @@ class DatabaseOutputs{
 
   Future<void>  initializeData2() async {
     final api = ApiServices();
-    final dbnetbalance= DBHelper();
-    final dbaccounts= DBHelper();
-    final dborderbookingstatus= DBHelper();
+    final db= DBHelper();
 
 
-    var NetBalancedata = await dbnetbalance.getNetBalanceDB();
-    var Accountsdata = await dbaccounts.getAccoutsDB();
-    var OrderBookingStatusdata= await dborderbookingstatus.getOrderBookingStatusDB();
+    var NetBalancedata = await db.getNetBalanceDB();
+    var Accountsdata = await db.getAccoutsDB();
+    var OrderBookingStatusdata = Set<Map<String, dynamic>>.from((await db.getOrderBookingStatusDB()) ?? []);
 
     if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
-      var results2 = await dborderbookingstatus.insertOrderBookingStatusData(response2);   //return True or False
+      var results2 = await db.insertOrderBookingStatusData(response2);   //return True or False
       if (results2) {
         print("OrderBookingStatus Data inserted successfully.");
       } else {
@@ -265,7 +597,7 @@ class DatabaseOutputs{
     }
     if (Accountsdata == null || Accountsdata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
-      var results2 = await dbaccounts.insertAccoutsData(response2);   //return True or False
+      var results2 = await db.insertAccoutsData(response2);   //return True or False
       if (results2) {
         print("Accounts Data inserted successfully.");
       } else {
@@ -278,7 +610,7 @@ class DatabaseOutputs{
 
     if (NetBalancedata == null || NetBalancedata.isEmpty ) {
       var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
-      var results2 = await dbnetbalance.insertNetBalanceData(response2);   //return True or False
+      var results2 = await db.insertNetBalanceData(response2);   //return True or False
       if (results2) {
         print(" Net Balance Data inserted successfully.");
       } else {
@@ -293,41 +625,21 @@ class DatabaseOutputs{
   }
 
   Future<void> update2() async {
-    final dbnetbalance=DBHelper();
-    final dbaccounts=DBHelper();
+    final db=DBHelper();
+
     print("DELETING.......................................");
     await isInternetAvailable();
-    await dbnetbalance.deleteAllRecordsAccounts();
-    //await dbaccounts.deleteAllRecords();
+    await db.deleteAllRecordsAccounts();
+    //await db.deleteAllRecords();
   }
 
   Future<void> update() async {
     final db = DBHelper();
-    final dbowner = DBHelper();
-    final dblogin=DBHelper();
-    final dbdistributor = DBHelper();
-    final dbordermaster= DBHelper();
-    final dborderdetails= DBHelper();
-    final dborderbookingstatus= DBHelper();
-    final dbProductCategory=DBHelper();
-    final dbnetbalance=DBHelper();
-    final dbAccounts=DBHelper();
-    final dbrecoveryformgetdata=DBHelper();
-
     print("DELETING.......................................");
     await isInternetAvailable();
 
     await db.deleteAllRecords();
-    await dbowner.deleteAllRecords();
-    await dblogin.deleteAllRecords();
-    await dbdistributor.deleteAllRecords();
-    await dbProductCategory.deleteAllRecords();
-    await dbordermaster.deleteAllRecords();
-    await dborderdetails.deleteAllRecords();
-    await dbnetbalance.deleteAllRecords();
-    await dborderbookingstatus.deleteAllRecords();
-    await dbAccounts.deleteAllRecords();
-    await dbrecoveryformgetdata.deleteAllRecords();
+
   }
   Future<void> showOrderMaster() async {
     print("************Tables SHOWING**************");
@@ -541,11 +853,6 @@ class DatabaseOutputs{
     print("************Tables Products**************");
     final db = DBHelper();
 
-    final dbnetbalance = DBHelper();
-    final dbaccounts = DBHelper();
-    final dborderbookingstatus = DBHelper();
-
-
     var data = await db.getProductsDB();
     int co = 0;
 
@@ -554,7 +861,7 @@ class DatabaseOutputs{
 
     print("************Tables Net Balance**************");
     co=0;
-    data = await dbnetbalance.getNetBalanceDB();
+    data = await db.getNetBalanceDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -563,7 +870,7 @@ class DatabaseOutputs{
 
     print("************Tables Accounts**************");
     co=0;
-    data = await dbaccounts.getAccoutsDB();
+    data = await db.getAccoutsDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -572,7 +879,7 @@ class DatabaseOutputs{
 
     print("************Tables Order Booking Status**************");
     co=0;
-    data = await dborderbookingstatus.getOrderBookingStatusDB();
+    data = await db.getOrderBookingStatusDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -585,15 +892,7 @@ class DatabaseOutputs{
     print("************Tables SHOWING**************");
     print("************Tables Products**************");
     final db = DBHelper();
-    final dbowner = DBHelper();
-    final dbdistributor = DBHelper();
-    final dblogin = DBHelper();
-    final dbPC = DBHelper();
-    final dbordermaster = DBHelper();
-    final dborderdetails = DBHelper();
-    final dborderbookingstatus = DBHelper();
-    final dbnetbalance = DBHelper();
-    final dbaccounts = DBHelper();
+
 
     var data = await db.getProductsDB();
     int co = 0;
@@ -605,7 +904,7 @@ class DatabaseOutputs{
 
     print("************Tables Owners**************");
     co=0;
-    data = await dbowner.getOwnersDB();
+    data = await db.getOwnersDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -614,7 +913,7 @@ class DatabaseOutputs{
 
     print("************Logins Owners**************");
     co=0;
-    data = await dblogin.getAllLogins();
+    data = await db.getAllLogins();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -623,7 +922,7 @@ class DatabaseOutputs{
 
     print("************ProductsCategories Owners**************");
     co=0;
-    data = await dbPC.getAllPCs();
+    data = await db.getAllPCs();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -632,7 +931,7 @@ class DatabaseOutputs{
 
     print("************Tables OrderMaster**************");
     co=0;
-    data = await dbordermaster.getOrderMasterDB();
+    data = await db.getOrderMasterDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -641,7 +940,7 @@ class DatabaseOutputs{
 
     print("************Tables Order Details**************");
     co=0;
-    data = await dborderdetails.getOrderDetailsDB();
+    data = await db.getOrderDetailsDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -650,7 +949,7 @@ class DatabaseOutputs{
 
     print("************Tables Order Booking Status**************");
     co=0;
-    data = await dborderbookingstatus.getOrderBookingStatusDB();
+    data = await db.getOrderBookingStatusDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -661,7 +960,7 @@ class DatabaseOutputs{
 
     print("************Tables Net Balance**************");
     co=0;
-    data = await dbnetbalance.getNetBalanceDB();
+    data = await db.getNetBalanceDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -670,7 +969,7 @@ class DatabaseOutputs{
 
     print("************Tables Accounts**************");
     co=0;
-    data = await dbaccounts.getAccoutsDB();
+    data = await db.getAccoutsDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
@@ -680,7 +979,7 @@ class DatabaseOutputs{
 
   print("************Tables Distributors**************");
   co=0;
-  data = await dbdistributor.getDistributorsDB();
+  data = await db.getDistributorsDB();
   for(var i in data!){
   co++;
   print("$co | ${i.toString()} \n");
@@ -689,7 +988,7 @@ class DatabaseOutputs{
 
     print("************Tables Recovery Form Get**************");
     co=0;
-    data = await dbdistributor.getRecoverydataDB();
+    data = await db.getRecoverydataDB();
     for(var i in data!){
       co++;
       print("$co | ${i.toString()} \n");
