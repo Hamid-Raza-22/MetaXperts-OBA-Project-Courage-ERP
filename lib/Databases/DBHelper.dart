@@ -47,11 +47,11 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT)");
     await db.execute("CREATE TABLE products(id NUMBER, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
     await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
-    await db.execute("CREATE TABLE orderDetailsData(id INTEGER,order_no TEXT, product_name TEXT, quantity_booked INTEGER,userId TEXT, price INTEGER)");
+    await db.execute("CREATE TABLE orderDetailsData(id INTEGER,order_no TEXT, product_name TEXT, quantity_booked INTEGER, user_id TEXT, price INTEGER)");
     await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
     await db.execute("CREATE TABLE accounts(account_id INTEGER, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT)");
     await db.execute("CREATE TABLE productCategory(id INTEGER,brand TEXT)");
-    await db.execute("CREATE TABLE attendance(id INTEGER PRIMARY KEY , date TEXT, timeIn TEXT, userId TEXT, latIn TEXT, lngIn TEXT, bookerName TEXT)");
+    await db.execute("CREATE TABLE attendance(id INTEGER PRIMARY KEY , date TEXT, timeIn TEXT, userId TEXT, latIn TEXT, lngIn TEXT, bookerName TEXT,city TEXT, designation TEXT)");
     await db.execute("CREATE TABLE attendanceOut(id INTEGER PRIMARY KEY , date TEXT, timeOut TEXT, totalTime TEXT, userId TEXT,latOut TEXT, lngOut TEXT,totalDistance TEXT, posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE recoveryForm (recoveryId TEXT, date TEXT, shopName TEXT, cashRecovery REAL, netBalance REAL, userId TEXT ,bookerName TEXT,city TEXT, brand TEXT)");
     await db.execute("CREATE TABLE returnForm (returnId INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, shopName TEXT, returnAmount INTEGER, bookerId TEXT, bookerName TEXT, city TEXT, brand TEXT)");
@@ -250,7 +250,7 @@ _onCreate(Database db, int version) async {
     final Database db = await initDatabase();
     try {
       for (var data in dataList) {
-        if (data['userId'] == userId) {
+        if (data['user_id'] == userId) {
           await db.insert('orderDetailsData', data);
       }}
       return true;
@@ -721,10 +721,10 @@ _onCreate(Database db, int version) async {
   }
   Future<void> deleteAllRecords() async{
     final db = await initDatabase();
-    await db.delete('ownerData');
-    await db.delete('products');
-    await db.delete('orderMasterData');
-    await db.delete('orderDetailsData');
+   // await db.delete('ownerData');
+   // await db.delete('products');
+   //  await db.delete('orderMasterData');
+    // await db.delete('orderDetailsData');
     await db.delete('orderBookingStatusData');
     await db.delete('netBalance');
     await db.delete('accounts');
@@ -766,7 +766,7 @@ _onCreate(Database db, int version) async {
   Future<Iterable> getProductsNames() async {
     final Database db = await initDatabase();
     try {
-      final List<Map<String, dynamic>>? productNames = await db.query('products');
+      final List<Map<String, dynamic>>? productNames= await db.query('products');
       return productNames!.map((map) => map['product_name'].toList());
     } catch (e) {
       print("Error retrieving products: $e");
@@ -1010,6 +1010,9 @@ _onCreate(Database db, int version) async {
             latIn: i['latIn'].toString(),
             lngIn: i['lngIn'].toString(),
             bookerName: i['bookerName'].toString(),
+            city: i['city'].toString(),
+            designation: i['designation'].toString(),
+
           );
 
           var result = await api.masterPost(

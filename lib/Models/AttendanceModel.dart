@@ -6,6 +6,8 @@ class AttendanceModel {
   dynamic? latIn;
   dynamic? lngIn;
  dynamic? bookerName;
+ dynamic? designation;
+ dynamic? city;
 
 
   AttendanceModel({
@@ -15,7 +17,9 @@ class AttendanceModel {
     this.userId,
     this.latIn,
     this.lngIn,
-    this.bookerName
+    this.bookerName,
+    this.city,
+    this.designation
 
   });
 
@@ -28,7 +32,9 @@ class AttendanceModel {
         userId: json['userId'],
         latIn: json['latIn'],
         lngIn: json['lngIn'],
-      bookerName: json['bookerName']
+      bookerName: json['bookerName'],
+        city: json['city'],
+        designation: json['designation'],
 
 
     );
@@ -42,7 +48,9 @@ class AttendanceModel {
       'userId': userId,
       'latIn': latIn,
       'lngIn': lngIn,
-      'bookerName': bookerName
+      'bookerName': bookerName,
+      'city':city,
+      'designation':designation
 
     };
   }

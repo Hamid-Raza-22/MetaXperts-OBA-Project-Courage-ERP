@@ -22,6 +22,8 @@ class _LoginFormState extends State<LoginForm> {
 
   void initState() {
     super.initState();
+   // _requestPermission();
+
     // DatabaseOutputs outputs = DatabaseOutputs();
     // outputs.initializeData();
   }

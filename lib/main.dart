@@ -34,13 +34,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Upgrader;
 
-  AndroidAlarmManager.initialize();
-
-  // Initialize the FlutterBackground plugin
-  await FlutterBackground.initialize();
-
-  // Enable background execution
-  await FlutterBackground.enableBackgroundExecution();
+  // AndroidAlarmManager.initialize();
+  //
+  // // Initialize the FlutterBackground plugin
+  // await FlutterBackground.initialize();
+  //
+  // // Enable background execution
+  // await FlutterBackground.enableBackgroundExecution();
 
   await initializeServiceLocation();
 

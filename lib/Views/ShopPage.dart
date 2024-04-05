@@ -139,7 +139,7 @@ class _ShopPageState extends State<ShopPage> {
     if (userDesignation != 'ASM') {
       await fetchShopNames();
       setState(() {
-        cityController.text = 'Sialkot';
+        cityController.text = '$userCitys';
       //  distributorNameController.text = 'M.A Traders Sialkot';
       });
 

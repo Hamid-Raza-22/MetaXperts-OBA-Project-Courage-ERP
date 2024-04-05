@@ -506,7 +506,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       mainAxisAlignment: pw.MainAxisAlignment.start,
                       children: [
-                        pw.Text('Order#: $orderId', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Order#: $OrderMasterid', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
                         pw.Text('Booker Name: $user_name', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
                         pw.Text('Shop Name: $shopName', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
                       ],

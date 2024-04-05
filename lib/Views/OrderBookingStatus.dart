@@ -73,6 +73,8 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
   Future<void> onCreatee() async {
     DatabaseOutputs db = DatabaseOutputs();
     await db.showOrderMaster();
+    await db.showOrderDetailsData();
+    await db.showOrderDetails();
 
     // DatabaseOutputs outputs = DatabaseOutputs();
     // outputs.checkFirstRun();
@@ -177,99 +179,102 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
 
 // List<int> selectedIndexes = [];  // Add this line at the beginning of your widget
 
+
   Future<List<DataRow>> buildDataRows(List<Map<String, dynamic>> data) async {
-   data = data.reversed.toList();
-    return Future.wait(data.map((map) async {
-      // Get a reference to the database.
+    data = data.reversed.toList();
+    Set<String> uniqueOrderNumbers = Set<String>(); // Set to keep track of unique order numbers
+    List<DataRow> rows = [];
+
+    await Future.forEach(data, (map) async {
       final Database? db = await DBHelper().db;
-
-      // Query the database for the status in the orderBookingStatusData table where the order_no equals the current order's id.
       List<Map<String, dynamic>> statusRows = await db!.query('orderBookingStatusData', where: 'order_no = ?', whereArgs: [map['order_no']]);
-      print('Status Rows: $statusRows'); // Debug print
-
       String status = statusRows.isNotEmpty ? statusRows.first['status'] : 'N/A';
-      print('Status: $status'); // Debug print
 
       bool highlightRow = map['order_no'] == selectedOrderNoFilter ||
           map['shop_name'] == selectedShopFilter ||
           status == selectedStatusFilter;
 
-      return DataRow(
-        color: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
-          if (status == 'DISPATCHED') return Colors.greenAccent;  // Set the color to green if the status is 'DISPATCHED'
-          if (status == 'PENDING') return Colors.transparent;
-          if (status == 'N/A') return Colors.yellowAccent;
-          return Colors.transparent;  // Use the default color for other statuses
-        }),
-        cells: [
-          DataCell(Text(map['order_no'].toString())),
-          DataCell(Text(map['order_date'].toString())),
-          DataCell(Text(map['shop_name'].toString())),
-          DataCell(Text(map['amount'].toString())),
-          DataCell(
-            status == 'N/A'
-                ? Icon(Icons.sync, color: Colors.green) // Sync logo for 'N/A' status
-                : Text(status), // Use the status variable here
-          ),// Use the status variable here
-          DataCell(
-            GestureDetector(
-              onTap: () async {
-                // Get a reference to the database.
-                final Database? db = await DBHelper().db;
-
-                // Query the database for all rows in the order_details table where the order_details_id equals the current order's id.
-                List<Map<String, dynamic>> queryRows = await db!.query('orderDetailsData', where: 'order_no = ?', whereArgs: [map['order_no']]);
-
-                // Now you have the data, you can display it in the dialog.
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Order Details'),
-                      content: ListView.builder(
-                        itemCount: queryRows.length,
-                        itemBuilder: (context, index) {
-                          return RichText(
-                            text: TextSpan(
-                              style: DefaultTextStyle.of(context).style,
-                              children: <TextSpan>[
-                                TextSpan(text: 'Sr. No: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                TextSpan(text: '${index + 1}\n'), // Add serial number here
-                                TextSpan(text: 'Product Name: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                TextSpan(text: '${queryRows[index]['product_name']}\n'),
-                                TextSpan(text: 'Quantity: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                TextSpan(text: '${queryRows[index]['quantity_booked']}\n'),
-                                TextSpan(text: 'Unit Price: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                                TextSpan(text: '${queryRows[index]['price']}\n'),
-                              ],
+      // Check if the current order_no is unique
+      if (!uniqueOrderNumbers.contains(map['order_no'])) {
+        uniqueOrderNumbers.add(map['order_no']);
+        rows.add(
+          DataRow(
+            color: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+              if (status == 'DISPATCHED') return Colors.greenAccent; // Set the color to green if the status is 'DISPATCHED'
+              if (status == 'PENDING') return Colors.transparent;
+              if (status == 'N/A') return Colors.yellowAccent;
+              return Colors.transparent; // Use the default color for other statuses
+            }),
+            cells: [
+              DataCell(Text(map['order_no'].toString())),
+              DataCell(Text(map['order_date'].toString())),
+              DataCell(Text(map['shop_name'].toString())),
+              DataCell(Text(map['amount'].toString())),
+              DataCell(
+                status == 'N/A'
+                    ? Icon(Icons.sync, color: Colors.green) // Sync logo for 'N/A' status
+                    : Text(status), // Use the status variable here
+              ), // Use the status variable here
+              DataCell(
+                GestureDetector(
+                  onTap: () async {
+                    final Database? db = await DBHelper().db;
+                    List<Map<String, dynamic>> queryRows = await db!.query('orderDetailsData', where: 'order_no = ?', whereArgs: [map['order_no']]);
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Order Details'),
+                          content: ListView.builder(
+                            itemCount: queryRows.length,
+                            itemBuilder: (context, index) {
+                              return RichText(
+                                text: TextSpan(
+                                  style: DefaultTextStyle.of(context).style,
+                                  children: <TextSpan>[
+                                    TextSpan(text: 'Sr. No: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    TextSpan(text: '${index + 1}\n'), // Add serial number here
+                                    TextSpan(text: 'Product Name: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    TextSpan(text: '${queryRows[index]['product_name']}\n'),
+                                    TextSpan(text: 'Quantity: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    TextSpan(text: '${queryRows[index]['quantity_booked']}\n'),
+                                    TextSpan(text: 'Unit Price: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    TextSpan(text: '${queryRows[index]['price']}\n'),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Close'),
                             ),
-                          );
-                        },
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Close'),
-                        ),
-                      ],
+                          ],
+                        );
+                      },
                     );
                   },
-                );
-              },
-              child: Text(
-                'Order Details',
-                style: TextStyle(
-                  color: Colors.blue, //decoration: TextDecoration.underline,
+                  child: Text(
+                    'Order Details',
+                    style: TextStyle(
+                      color: Colors.blue, //decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      );
-    }).toList());
+        );
+      }
+    });
+
+    return rows;
   }
+
+
 
 
   @override
@@ -561,42 +566,42 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
                         child: SingleChildScrollView(
                           scrollDirection: Axis.vertical,
                           child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: FutureBuilder<List<Map<String, dynamic>>>(
-                              future: fetchOrderBookingStatusData(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return CircularProgressIndicator();
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
-                                } else {
-                                  return FutureBuilder<List<DataRow>>(
-                                    future: buildDataRows(snapshot.data ?? []),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return CircularProgressIndicator();
-                                      } else if (snapshot.hasError) {
-                                        return Text('Error: ${snapshot.error}');
-                                      } else {
-                                        return DataTable(
-                                          columns: const [
-                                            DataColumn(label: Text('Order No')),
-                                            DataColumn(label: Text('Order Date')),
-                                            DataColumn(label: Text('Shop Name')),
-                                            DataColumn(label: Text('Amount')),
-                                            DataColumn(label: Text('Status')),
-                                            DataColumn(label: Text('Details')),
-                                          ],
-                                          rows: snapshot.data!,
-                                        );
-                                      }
-                                    },
-                                  );
-                                }
-                              },
-                            )
+            scrollDirection: Axis.horizontal,
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: fetchOrderBookingStatusData(),
+            builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+            } else {
+            return FutureBuilder<List<DataRow>>(
+            future: buildDataRows(snapshot.data ?? []),
+            builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+            } else {
+            return DataTable(
+            columns: const [
+            DataColumn(label: Text('Order No')),
+            DataColumn(label: Text('Order Date')),
+            DataColumn(label: Text('Shop Name')),
+            DataColumn(label: Text('Amount')),
+            DataColumn(label: Text('Status')),
+            DataColumn(label: Text('Details')),
+            ],
+            rows: snapshot.data!,
+            );
+            }
+            },
+            );
+            }
+            },
+            ),
+            ),
 
-                          ),
                         ),
                       ),
                     ),
