@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
-import 'package:order_booking_shop/Views/ShopListPage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share/share.dart' as io;
 import 'package:share/share.dart';

@@ -15,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/ShopModel.dart';
 import 'CurrentLocationScreen.dart';
-import 'ShopList.dart';
+
 
 class ShopPage extends StatefulWidget {
   const ShopPage({Key? key}) : super(key: key);

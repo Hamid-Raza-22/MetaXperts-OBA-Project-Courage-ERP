@@ -738,7 +738,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                   double cashRecovery = double.tryParse(_cashRecoveryController.text) ?? 0.0;
                                   if (cashRecovery > 0 && cashRecovery <= recoveryFormCurrentBalance) {
                                         String newOrderId2 = generateNewRecoveryFormOrderId(Receipt, userId.toString());
-                                        recoveryformViewModel.addRecoveryForm(
+                                      await  recoveryformViewModel.addRecoveryForm(
                                           RecoveryFormModel(
                                             recoveryId: newOrderId2,
                                             shopName: selectedDropdownValue,

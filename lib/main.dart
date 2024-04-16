@@ -49,6 +49,7 @@ Future<void> main() async {
 
   await BackgroundLocator.initialize();
 
+
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   runApp(

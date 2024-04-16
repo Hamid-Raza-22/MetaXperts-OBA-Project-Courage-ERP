@@ -700,7 +700,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           // Your existing code for submission
           var id = await customAlphabet('1234567890', 5);
 
-          returnformViewModel.addReturnForm(ReturnFormModel(
+         await returnformViewModel.addReturnForm(ReturnFormModel(
             returnId: int.parse(id),
             shopName: _selectedShopController.text,
             date: _getCurrentDate(),
@@ -716,7 +716,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
           for (int i = 0; i < firstTypeAheadControllers.length; i++) {
             var id = await customAlphabet('1234567890', 12);
-            returnformdetailsViewModel.addReturnFormDetail(
+          await  returnformdetailsViewModel.addReturnFormDetail(
               ReturnFormDetailsModel(
                 id: int.parse(id),
                 returnformId: returnformid ?? 0,
@@ -735,8 +735,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           );
 
           DBHelper dbreturnform = DBHelper();
-          dbreturnform.postReturnFormTable();
-          dbreturnform.postReturnFormDetails();
+         await dbreturnform.postReturnFormTable();
+         await dbreturnform.postReturnFormDetails();
 
           setState(() {
             isReConfirmButtonPressed = false; // Mark the button as pressed
