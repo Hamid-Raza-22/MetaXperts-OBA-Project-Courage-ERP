@@ -42,7 +42,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
   String currentMonth = DateFormat('MMM').format(DateTime.now());
   final TextEditingController orderIDController = TextEditingController();
   String currentOrderId = '';
-
+  DBHelper dbmaster = DBHelper();
   void initState() {
     super.initState();
     onCreatee();
@@ -211,10 +211,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   shopCity: selectedShopCity,
                                   requiredDelivery: requiredDelivery,
                                 ));
-
                                 saveRowDataDetailsToDatabase(rowDataDetails);
-
-
 
                                 Fluttertoast.showToast(
                                   msg: "Order confirmed!",
@@ -226,7 +223,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                 setState(() {
                                   isReConfirmButtonPressed = true; // Mark the button as pressed
                                 });
-                                DBHelper dbmaster = DBHelper();
+
 
                                 await dbmaster.postMasterTable();
                                 await dbmaster.postOrderDetails();

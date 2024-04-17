@@ -72,8 +72,9 @@ class _OrderBookingStatusState extends State<OrderBookingStatus> {
 
   Future<void> onCreatee() async {
     DatabaseOutputs db = DatabaseOutputs();
+    await db.showOrderDispacthed();
     await db.showOrderMaster();
-    await db.showOrderDetailsData();
+   // await db.showOrderDetailsData();
     await db.showOrderDetails();
 
     // DatabaseOutputs outputs = DatabaseOutputs();

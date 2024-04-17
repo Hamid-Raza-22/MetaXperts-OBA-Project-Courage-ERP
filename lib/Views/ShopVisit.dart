@@ -99,10 +99,10 @@ class _ShopVisitState extends State<ShopVisit> {
   List<String> selectedProductNames = [];
   // Add an instance of ProductsViewModel
   ProductsViewModel productsViewModel = Get.put(ProductsViewModel());
- // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
+  // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
   int ShopVisitsSerialCounter = highestSerial ?? 0;
 
- // int? serialCounter;
+  // int? serialCounter;
 
   double currentBalance = 0.0;
   String currentUserId = '';
@@ -141,7 +141,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
     super.initState();
     data();
-   // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
+    // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
 
     //selectedDropdownValue = dropdownItems[0]; // Default value
     _fetchBrandItemsFromDatabase();
@@ -153,7 +153,7 @@ class _ShopVisitState extends State<ShopVisit> {
     fetchProductsNamesByBrand();
     saveCurrentLocation();
     _checkUserIdAndFetchShopNames();
-   // productsController.controllers.clear();
+    // productsController.controllers.clear();
     // removeSavedValues(index);
     print(userId);
     print(highestSerial);
@@ -249,7 +249,7 @@ class _ShopVisitState extends State<ShopVisit> {
     //serialCounter=highestSerial;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-    //  serialCounter++;
+      //  serialCounter++;
       ShopVisitsSerialCounter = (prefs.getInt('serialCounter') ?? highestSerial?? 1) ;
       shopVisitCurruntMonth = prefs.getString('currentMonth') ?? shopVisitCurruntMonth;
       currentUserId = prefs.getString('currentUserId') ?? ''; // Add this line
@@ -463,41 +463,51 @@ class _ShopVisitState extends State<ShopVisit> {
                         Expanded(
                           child: Container(
                             height: 30,
-                            child: DropdownButtonFormField<String>(
-                              value: selectedDropdownValue,
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(5.0),
+                            child: TypeAheadFormField<String>(
+                              textFieldConfiguration: TextFieldConfiguration(
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+                                  enabled: false, // Set enabled to false to make it read-only
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                  ),
                                 ),
+                                controller: _brandDropDownController,
                               ),
-                              items: brandDropdownItems.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
+                              suggestionsCallback: (pattern) {
+                                return brandDropdownItems
+                                    .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
+                                    .toList();
+                              },
+                              itemBuilder: (context, itemData) {
+                                return ListTile(
+                                  title: Text(itemData),
                                 );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedDropdownValue = newValue;
-                                  _brandDropDownController.text = newValue ?? '';
-                                  globalselectedbrand = newValue ?? '';
-                                });
-                                // Call the callback to pass the selected brand to FinalOrderBookingPage
-                                widget.onBrandItemsSelected(newValue!);
-                                print('Selected Brand: $newValue');
-                                print(globalselectedbrand);
-                                productsController.fetchProducts();
-                                for (int i = 0; i < productsController.rows.length; i++) {
-                                  removeSavedValues(i);
+                              },
+                              onSuggestionSelected: (itemData) async {
+                                // Validate that the selected item is from the list
+                                if (brandDropdownItems.contains(itemData)) {
+                                  setState(() {
+                                    _brandDropDownController.text = itemData;
+                                    globalselectedbrand = itemData;
+                                  });
+                                  // Call the callback to pass the selected brand to FinalOrderBookingPage
+                                  widget.onBrandItemsSelected(itemData);
+                                  print('Selected Brand: $itemData');
+                                  print(globalselectedbrand);
+                                  productsController.fetchProducts();
+                                  for (int i = 0; i < productsController.rows.length; i++) {
+                                    removeSavedValues(i);
+                                  }
+                                  productsController.controllers.clear();
                                 }
-                                productsController.controllers.clear();
                               },
                             ),
                           ),
                         ),
                       ],
                     ),
+
 
 
                     SizedBox(height: 20),
@@ -554,18 +564,18 @@ class _ShopVisitState extends State<ShopVisit> {
                                               ),
                                             ),
                                           ),
-                                         // Add vertical scroll direction
-                                         //  Obx(() =>
-                                               SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: DataTable(
-                                                columns: [
-                                                  DataColumn(label: Text('Product')),
-                                                  DataColumn(label: Text('Quantity')),
-                                                ],
-                                                rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
-                                              ),
+                                          // Add vertical scroll direction
+                                          //  Obx(() =>
+                                          SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: DataTable(
+                                              columns: [
+                                                DataColumn(label: Text('Product')),
+                                                DataColumn(label: Text('Quantity')),
+                                              ],
+                                              rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
                                             ),
+                                          ),
                                           // ),
                                         ],
                                       ),
@@ -1333,10 +1343,6 @@ class Products extends GetxController {
         ))
       ]));
     }
-  }
+    }
 
 }
-
-
-
-

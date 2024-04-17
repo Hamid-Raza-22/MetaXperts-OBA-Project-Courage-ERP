@@ -46,9 +46,9 @@ class OrderMasterViewModel extends GetxController{
     // Implementing logic to insert data into 'ownerData' table
     var dbClient = await ordermasterRepository.dbHelperOrderMaster.db;
     await dbClient!.insert('orderBookingStatusData', {
-    'order_no': ordermasterModel.orderId,
+      'order_no': ordermasterModel.orderId,
       'order_date':ordermasterModel.date,
-    'shop_name': ordermasterModel.shopName,
+      'shop_name': ordermasterModel.shopName,
       'user_id':userId,
       'amount':ordermasterModel.total,
       'status':pending

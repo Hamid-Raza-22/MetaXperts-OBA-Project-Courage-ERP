@@ -424,9 +424,9 @@ _onCreate(Database db, int version) async {
              userId: i['userId'].toString()
 
         );
-
-        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/',);
         var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshop/post/',);
+        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/',);
+
 
         if (result == true && result1 == true) {
          // await db.rawQuery("UPDATE attendanceOut SET posted = 1 WHERE id = '${i['id']}'");
@@ -576,8 +576,8 @@ _onCreate(Database db, int version) async {
             requiredDelivery: i['requiredDelivery'].toString()
         );
 
-        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/ordermaster/post/',);
-        var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/',);
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/',);
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/ordermaster/post/',);
 
         if (result == true&& result1 == true) {
           await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
@@ -616,8 +616,8 @@ _onCreate(Database db, int version) async {
             amount: i['amount'].toString(),
             userId: i['userId'].toString(),
         );
-        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
-        var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
         if(result == true&& result1 == true){
           await db.rawQuery("UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
         }
@@ -1064,12 +1064,13 @@ _onCreate(Database db, int version) async {
 
           var result = await api.masterPost(
             v.toMap(),
-            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
+            'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
+
           );
 
           var result1 = await api.masterPost(
             v.toMap(),
-            'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
+            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
           );
 
           if (result == true && result1 == true) {
@@ -1100,8 +1101,6 @@ _onCreate(Database db, int version) async {
     }
   }
 
-
-
   Future<void> postAttendanceOutTable() async {
     final Database db = await initDatabase();
     final ApiServices api = ApiServices();
@@ -1122,8 +1121,8 @@ _onCreate(Database db, int version) async {
             lngOut: i['lngOut'].toString(),
             totalDistance: i['totalDistance'].toString()
           );
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendanceout/post/',);
           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendanceout/post/',);
 
           if (result == true && result1 == true) {
             print('successfully post');
@@ -1231,8 +1230,8 @@ _onCreate(Database db, int version) async {
             brand: i['brand'].toString(),
           );
 
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recoveryform/post/',);
           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/recoveryform/post/',);
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recoveryform/post/',);
 
           if (result == true&& result1 == true){
             db.rawQuery(
@@ -1295,8 +1294,8 @@ _onCreate(Database db, int version) async {
           brand: i['brand'].toString(),
         );
 
-        final result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnform/post/',);
-        final result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnform/post/',);
+        bool result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnform/post/',);
+        bool result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnform/post/',);
 
         if (result == true && result1 == true) {
           db.rawQuery("DELETE FROM returnForm WHERE returnId = '${i['returnId']}'");
@@ -1328,8 +1327,8 @@ _onCreate(Database db, int version) async {
           quantity: i['quantity'].toString(),
           bookerId: i['bookerId'].toString(),
         );
-        final result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');
         final result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post');
+        final result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');
         if(result == true && result1 == true){
           db.rawQuery('DELETE FROM return_form_details WHERE id = ${i['id']}');
         }
@@ -1460,8 +1459,8 @@ _onCreate(Database db, int version) async {
         }
         // Print information before making the API request
         print("Making API request for shop visit ID: ${v.id}");
-        var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/report/post/', imageBytes,);
         var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes,);
+        var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/report/post/', imageBytes,);
         if (result == true && result1 == true) {
           await db.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
           print("Successfully posted data for shop visit ID: ${v.id}");
@@ -1519,8 +1518,8 @@ _onCreate(Database db, int version) async {
           }
           // Print information before making the API request
           print("Making API request for shop visit ID: ${v.id}");
-          var result = await api.masterPostWithGPX(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/', gpxBytes,);
           var result1 = await api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes,);
+          var result = await api.masterPostWithGPX(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/', gpxBytes,);
           if (result == true && result1 == true) {
             await db.rawUpdate("UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
             print("Successfully posted data for shop visit ID: ${v.id}");
@@ -1553,8 +1552,8 @@ _onCreate(Database db, int version) async {
           itemDesc: i['itemDesc'].toString(),
           qty: i['qty'].toString(),
         );
-        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/shopvisit/post/');
         var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/');
+        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/shopvisit/post/');
         if(result == true && result1 == true){
           db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
         }

@@ -82,8 +82,9 @@ class DatabaseOutputs{
 
     // Get data from API
    // var responseLogin = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
-    var responseOwner = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
-    var responseOwner3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/owner/get/");
+    var responseOwner = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/owner/get/");
+    var responseOwner3 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
+
     // var responseOrderBookingStatusdata = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
     // var responseRecoveryFormGetData = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
     // var responseOrderMasterdata = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
@@ -191,8 +192,6 @@ class DatabaseOutputs{
           }
         }
       }
-    } else {
-      print("Unable to fetch data from both APIs.");
     }
 
  //    // Process order Booking Status
@@ -434,7 +433,7 @@ class DatabaseOutputs{
       bool inserted = false;
 
       try {
-        var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/login/get/");
         inserted = await db.insertLogin(response);  // returns True or False
 
         if (inserted) {
@@ -446,7 +445,7 @@ class DatabaseOutputs{
         print("Error with first API. Trying second API.");
 
         try {
-          var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/login/get/");
+          var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
           inserted = await db.insertLogin(response);  // returns True or False
 
           if (inserted) {
@@ -463,7 +462,8 @@ class DatabaseOutputs{
 
     if (Owerdata == null || Owerdata.isEmpty ) {
       try {
-        var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/owner/get/");
+
         var results = await db.insertOwnerData(response);   //return True or False
         if (results) {
           print("Owner Data inserted successfully using first API..");
@@ -472,7 +472,7 @@ class DatabaseOutputs{
         }
       } catch (e) {
         print("Error with first API. Trying second API.");
-        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/owner/get/");
+        var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
         var results = await db.insertOwnerData(response);   //return True or False
         if (results) {
           print("Owner Data inserted successfully using second API..");
@@ -512,7 +512,7 @@ class DatabaseOutputs{
 
     if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
       try {
-        var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/statusget/get/");
         var results = await db.insertOrderBookingStatusData1(response);   //return True or False
         if (results) {
           print("OrderBookingStatus Data inserted successfully using first API.");
@@ -521,7 +521,7 @@ class DatabaseOutputs{
         }
       } catch (e) {
         print("Error with first API. Trying second API.");
-        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/statusget/get/");
+        var response = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
         var results = await db.insertOrderBookingStatusData1(response);   //return True or False
         if (results) {
           print("OrderBookingStatus Data inserted successfully using second API..");
@@ -529,15 +529,14 @@ class DatabaseOutputs{
           print("Error inserting data.");
         }
       }
-    } else {
-      print("Data is available.");
     }
 
 
     if (RecoveryFormGetData == null || RecoveryFormGetData.isEmpty ) {
       try {
-        var response1 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
-        var results1 = await db.insertRecoveryFormData1(response1);   //return True or False
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/recovery/get/");
+
+        var results1 = await db.insertRecoveryFormData1(response);   //return True or False
         if (results1) {
           print("RecoveryFormGetData Data inserted successfully using first API.");
         } else {
@@ -545,22 +544,21 @@ class DatabaseOutputs{
         }
       } catch (e) {
         print("Error with first API. Trying second API.");
-        var response2 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/recovery/get/");
-        var results2 = await db.insertRecoveryFormData1(response2);   //return True or False
+        var response= await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
+
+        var results2 = await db.insertRecoveryFormData1(response);   //return True or False
         if (results2) {
           print("RecoveryFormGetData Data inserted successfully using second API.");
         } else {
           print("Error inserting data with both APIs.");
         }
       }
-    } else {
-      print("Data is available.");
     }
-
 
     if (OrderMasterdata == null || OrderMasterdata.isEmpty ) {
       try {
-        var response1 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
+        var response1 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/masterget/get/");
+
         var results1 = await db.insertOrderMasterData1(response1);   //return True or False
         if (results1) {
           print("OrderMaster Data inserted successfully using first API.");
@@ -569,7 +567,7 @@ class DatabaseOutputs{
         }
       } catch (e) {
         print("Error with first API. Trying second API.");
-        var response2 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/masterget/get/");
+        var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
         var results2 = await db.insertOrderMasterData1(response2);   //return True or False
         if (results2) {
           print("OrderMaster Data inserted successfully using second API.");
@@ -577,14 +575,12 @@ class DatabaseOutputs{
           print("Error inserting data with both APIs.");
         }
       }
-    } else {
-      print("Data is available.");
     }
 
 
     if (OrderDetailsdata == null || OrderDetailsdata.isEmpty ) {
       try {
-        var response1 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
+        var response1 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/detailget/get/");
         var results1 = await db.insertOrderDetailsData1(response1);   //return True or False
         if (results1) {
           print("OrderDetails Data inserted successfully using first API.");
@@ -593,7 +589,7 @@ class DatabaseOutputs{
         }
       } catch (e) {
         print("Error with first API. Trying second API.");
-        var response2 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/detailget/get/");
+        var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
         var results2 = await db.insertOrderDetailsData1(response2);   //return True or False
         if (results2) {
           print("OrderDetails Data inserted successfully using second API.");
@@ -608,7 +604,8 @@ class DatabaseOutputs{
 
     if (Productdata == null || Productdata.isEmpty ) {
       try {
-        var response1 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
+        var response1 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/product/get/");
+
         var results1 = await db.insertProductsData(response1);   //return True or False
         if (results1) {
           print("Products Data inserted successfully using first API.");
@@ -617,7 +614,8 @@ class DatabaseOutputs{
         }
       } catch (e) {
         print("Error with first API. Trying second API.");
-        var response2 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/product/get/");
+        var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
+
         var results2 = await db.insertProductsData(response2);   //return True or False
         if (results2) {
           print("Products Data inserted successfully using second API.");
@@ -643,7 +641,7 @@ class DatabaseOutputs{
 
     if (PCdata == null || PCdata.isEmpty ) {
       try {
-        var response1 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
+        var response1 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/brand/get/");
         var results1 = await db.insertProductCategory(response1);   //return True or False
         if (results1) {
           print("PC Data inserted successfully using first API.");
@@ -652,7 +650,8 @@ class DatabaseOutputs{
         }
       } catch (e) {
         print("Error with first API. Trying second API.");
-        var response2 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/brand/get/");
+        var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
+
         var results2 = await db.insertProductCategory(response2);   //return True or False
         if (results2) {
           print("PC Data inserted successfully using second API.");
@@ -677,47 +676,45 @@ class DatabaseOutputs{
     var OrderBookingStatusdata = Set<Map<String, dynamic>>.from((await db.getOrderBookingStatusDB()) ?? []);
 
     if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty ) {
-      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
       var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/statusget/get/");
+      var results3 = await db.insertOrderBookingStatusData(response3);
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
       var results2 = await db.insertOrderBookingStatusData(response2);   //return True or False
-      var results3 = await db.insertOrderBookingStatusData(response3);   //return True or False
+      //return True or False
       if (results2 && results3) {
         print("OrderBookingStatus Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
-    } else {
-      print("Data is available.");
     }
     if (Accountsdata == null || Accountsdata.isEmpty ) {
-      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
       var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/account/get/");
-      var results2 = await db.insertAccoutsData(response2);   //return True or False
-      var results3 = await db.insertAccoutsData(response3);   //return True or False
-      if (results2 && results3) {
+      var results3 = await db.insertAccoutsData(response3);
+      // var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
+      //
+      // var results2 = await db.insertAccoutsData(response2);   //return True or False
+       //return True or False
+      if (results3) {
         print("Accounts Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
-    } else {
-      print("Data is available.");
     }
 
 
     if (NetBalancedata == null || NetBalancedata.isEmpty ) {
-      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
       var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/balance/get/");
-      var results2 = await db.insertNetBalanceData(response2);   //return True or False
-      var results3 = await db.insertNetBalanceData(response3);   //return True or False
-      if (results2 && results3) {
+      var results3 = await db.insertNetBalanceData(response3);
+      // var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
+      //
+      // var results2 = await db.insertNetBalanceData(response2);   //return True or False
+        //return True or False
+      if ( results3) {
         print(" Net Balance Data inserted successfully.");
       } else {
         print("Error inserting data.");
       }
-    } else {
-      print("Data is available.");
     }
-
 
     showAllTables2();
   }
@@ -933,7 +930,7 @@ class DatabaseOutputs{
   }
   Future<void> showOrderDispacthed() async {
     print("************Tables SHOWING**************");
-    print("************Dispatched Orders**************");
+    print("************Order Booking /Dispatched Orders**************");
     final db = DBHelper();
 
     var data = await db.getOrderBookingStatusDB();
@@ -942,7 +939,7 @@ class DatabaseOutputs{
       co++;
       print("$co | ${i.toString()} \n");
     }
-    print("TOTAL of Orders Dispatched is $co");
+    print("TOTAL of Orders Booking Dispatched is $co");
 
   }
 

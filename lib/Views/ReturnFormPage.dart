@@ -51,6 +51,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   final returnformViewModel = Get.put(ReturnFormViewModel());
   TextEditingController _selectedShopController = TextEditingController();
   List<Widget> dynamicRows = [];
+  bool isOrderConfirmed = false;
   List<TypeAheadController> firstTypeAheadControllers = [];
   List<TextEditingController> qtyControllers = [];
   List<TextEditingController> priceControllers = [];
@@ -67,7 +68,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   DBHelper dbHelper = DBHelper();
   double? amountControllerNetBalance;
   TextEditingController amountController = TextEditingController();
-
+  DBHelper dbreturnform = DBHelper();
   final ProductController productController = Get.put(ProductController());
   final ProductController productController1 = Get.put(ProductController());
   bool isValidQuantity(String quantity) {
@@ -643,7 +644,12 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: ElevatedButton(
-        onPressed: () async {
+        onPressed: isReConfirmButtonPressed
+            ? null // Disable the button if isReConfirmButtonPressed is true
+            : () async {
+
+          // Your existing code for handling the "Re Confirm" button press
+           isOrderConfirmed = true;
           final bool isConnected = await isInternetAvailable();
 
           if (!isConnected) {
@@ -726,21 +732,18 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                 bookerId: userId,
               ),
             );
-          }
-
+          }setState(() {
+            isReConfirmButtonPressed = false; // Mark the button as pressed
+          });
+          await dbreturnform.postReturnFormTable();
+          await dbreturnform.postReturnFormDetails();
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => HomePage(),
             ),
           );
 
-          DBHelper dbreturnform = DBHelper();
-         await dbreturnform.postReturnFormTable();
-         await dbreturnform.postReturnFormDetails();
 
-          setState(() {
-            isReConfirmButtonPressed = false; // Mark the button as pressed
-          });
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
