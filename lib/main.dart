@@ -9,6 +9,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
@@ -20,6 +21,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 // import 'package:location00/location00.dart';
 import 'package:order_booking_shop/Tracker/trac.dart';
 import 'package:order_booking_shop/location00.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 import 'API/DatabaseOutputs.dart';
@@ -32,7 +34,7 @@ import 'package:upgrader/upgrader.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Upgrader;
+  await  Upgrader;
 
   // AndroidAlarmManager.initialize();
   //
@@ -42,12 +44,15 @@ Future<void> main() async {
   // // Enable background execution
   // await FlutterBackground.enableBackgroundExecution();
 
+  // Request notification permissions
+  await _requestPermissions();
+
   await initializeServiceLocation();
 
   // Ensure Firebase is initialized before running the app
   await Firebase.initializeApp();
 
-  await BackgroundLocator.initialize();
+  // await BackgroundLocator.initialize();
 
 
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
@@ -59,8 +64,20 @@ Future<void> main() async {
     ),
   );
 }
+Future<void> _requestPermissions() async {
+  // Request notification permission
+  if (await Permission.notification.request().isDenied) {
+    // Notification permission not granted
+    SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+    return;
+  }
 
-
+  // Request location permission
+  if (await Permission.location.request().isDenied) {
+    // Location permission not granted
+    SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+  }
+}
 
 void callbackDispatcher(){
   Workmanager().executeTask((task, inputData) async {
@@ -235,20 +252,20 @@ void onStart(ServiceInstance service) async {
     if (service is AndroidServiceInstance) {
       if (await service.isForegroundService()) {
 
-        flutterLocalNotificationsPlugin.show(
-          888,
-          'COOL SERVICE',
-          'Awesome',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'my_foreground',
-              'MY FOREGROUND SERVICE',
-              icon: 'ic_bg_service_small',
-              ongoing: true,
-              priority: Priority.high,
-            ),
-          ),
-        );
+        // flutterLocalNotificationsPlugin.show(
+        //   888,
+        //   'COOL SERVICE',
+        //   'Awesome',
+        //   const NotificationDetails(
+        //     android: AndroidNotificationDetails(
+        //       'my_foreground',
+        //       'MY FOREGROUND SERVICE',
+        //       icon: 'ic_bg_service_small',
+        //       ongoing: true,
+        //       priority: Priority.high,
+        //     ),
+        //   ),
+        // );
 
         flutterLocalNotificationsPlugin.show(
           889,

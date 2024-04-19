@@ -436,10 +436,10 @@ class DatabaseOutputs{
         var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/login/get/");
         inserted = await db.insertLogin(response);  // returns True or False
 
-        if (inserted) {
+        if (inserted == true) {
           print("Login Data inserted successfully using first API.");
         } else {
-          print("Error inserting data using first API.");
+          throw Exception("Error inserting data using first API.");
         }
       } catch (e) {
         print("Error with first API. Trying second API.");

@@ -131,14 +131,14 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
           .toList() ??
           [];
 
-      // Sort the accountsData based on order_date in descending order
-      accountsData.sort((a, b) =>
-          DateTime.parse(b['order_date']).compareTo(DateFormat('dd-MMM-yyyy').parse(a['order_date'])));
+      // Reverse the list to get the latest orders at the beginning
+      accountsData = accountsData.reversed.toList();
 
       // Limit to a maximum of three rows
-      accountsData = accountsData.take(3).toList();
+      accountsData = accountsData.length > 3 ? accountsData.sublist(0, 3) : accountsData;
     });
   }
+
 
 
   Future<void> onCreatee() async {
@@ -488,14 +488,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                 ],
 
                                 // Modify the DataRow creation inside the DataTable
-                                rows: accountsData
-                                    .where((account) =>
-                                account['order_date'] != null &&
-                                    account['credit'] != null &&
-                                    account['booker_name'] != null &&
-                                    account['shop_name'] == selectedDropdownValue)
-                                    .take(3) // Limit to a maximum of three rows
-                                    .map(
+                                rows: accountsData.map(
                                       (account) => DataRow(
                                     cells: [
                                       DataCell(Text(account['order_date'] ?? '')),
@@ -504,6 +497,8 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                     ],
                                   ),
                                 ).toList(),
+
+
                               ),
                             ),
                           ),
@@ -603,125 +598,6 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
 
                           SizedBox(height: 20),
 
-                          // ElevatedButton(
-                          //   onPressed: () async {
-                          //     final bool isConnected = await InternetConnectionChecker().hasConnection;
-                          //
-                          //     if (isConnected && !isButtonPressed && selectedDropdownValue!.isNotEmpty) {
-                          //       // Check if both text fields are not empty
-                          //       if (_cashRecoveryController.text.isNotEmpty && _netBalanceController.text.isNotEmpty) {
-                          //         // Set the flag to true to indicate that the button has been pressed
-                          //         setState(() {
-                          //           isButtonPressed = true;
-                          //         });
-                          //
-                          //         String? cashRecoveryValidation = validateCashRecovery(_cashRecoveryController.text);
-                          //
-                          //         // Check if validation passes
-                          //         if (cashRecoveryValidation == null) {
-                          //           // Validation passed, proceed with your submission logic
-                          //           if (recoveryFormCurrentBalance > 0.0) {
-                          //             try {
-                          //               String newOrderId2 = generateNewRecoveryFormOrderId(Receipt, userId.toString());
-                          //
-                          //               recoveryformViewModel.addRecoveryForm(
-                          //                 RecoveryFormModel(
-                          //                   recoveryId: newOrderId2,
-                          //                   shopName: selectedDropdownValue,
-                          //                   cashRecovery: _cashRecoveryController.text,
-                          //                   netBalance: _netBalanceController.text,
-                          //                   date: getCurrentDate(),
-                          //                   userId: userId,
-                          //                   bookerName: userNames,
-                          //                 ),
-                          //               );
-                          //
-                          //               DBHelper dbrecoveryform = DBHelper();
-                          //               dbrecoveryform.postRecoveryFormTable();
-                          //
-                          //               // Check if cash recovery is not null before moving to the next page
-                          //               if (_cashRecoveryController.text.isNotEmpty) {
-                          //                 // Navigator.push(
-                          //                 //   context,
-                          //                 // //   MaterialPageRoute(
-                          //                 // //     builder: (context) => RecoveryForm_2ndPage(
-                          //                 // //   //     formData: {
-                          //                 // //   //       'recoveryId': newOrderId2,
-                          //                 // //   //       'shopName': selectedDropdownValue,
-                          //                 // //   //       'cashRecovery': _cashRecoveryController.text,
-                          //                 // //   //       'netBalance': _netBalanceController.text,
-                          //                 // //   //       'date': getCurrentDate(),
-                          //                 // //   //     },
-                          //                 // //   //   ),
-                          //                 // //   // ),
-                          //                 // // );
-                          //
-                          //                 // Clear text fields after submitting
-                          //                 // _cashRecoveryController.clear();
-                          //                 // _netBalanceController.clear();
-                          //               } else {
-                          //                 // Display an error message if cash recovery is empty
-                          //                 showToast('Please fill in the Cash Recovery field before moving to the next page.');
-                          //               }
-                          //             } catch (e) {
-                          //               print('Error during submission: $e');
-                          //             } finally {
-                          //               // Reset the flag to false after successful submission or any error
-                          //               setState(() {
-                          //                 isButtonPressed = false;
-                          //               });
-                          //             }
-                          //           } else {
-                          //             // Show a toast or display an error message for current balance <= 0.0
-                          //             showToast('Current balance must be greater than 0.0 for submission.');
-                          //
-                          //             // Reset the flag to false after validation fails
-                          //             setState(() {
-                          //               isButtonPressed = false;
-                          //             });
-                          //           }
-                          //         } else {
-                          //           // Validation failed, display an error message or take appropriate action
-                          //           showToast(cashRecoveryValidation);
-                          //
-                          //           // Reset the flag to false if validation fails
-                          //           setState(() {
-                          //             isButtonPressed = false;
-                          //           });
-                          //         }
-                          //       } else {
-                          //         // Display an error message if any text field is empty
-                          //         showToast('Please fill in all fields before submitting.');
-                          //
-                          //         // Reset the flag to false if validation fails
-                          //         setState(() {
-                          //           isButtonPressed = false;
-                          //         });
-                          //       }
-                          //     } else {
-                          //       // Display an error message if internet is not connected or dropdown value is empty
-                          //       showToast('Please Check Internet');
-                          //
-                          //       // Reset the flag to false if validation fails
-                          //       setState(() {
-                          //         isButtonPressed = false;
-                          //       });
-                          //     }
-                          //   },
-                          //   style: ElevatedButton.styleFrom(
-                          //     backgroundColor: Colors.green,
-                          //     foregroundColor: Colors.white,
-                          //     shape: RoundedRectangleBorder(
-                          //       borderRadius: BorderRadius.circular(10),
-                          //     ),
-                          //   ),
-                          //   child: Text(
-                          //     'Submit',
-                          //     style: TextStyle(
-                          //       fontSize: 18,
-                          //     ),
-                          //   ),
-                          // ),
                           ElevatedButton(
                             onPressed: () async {
                               showLoadingIndicator(context);

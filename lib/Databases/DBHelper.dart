@@ -62,6 +62,7 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE recoveryFormGet (recovery_id TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE location(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, fileName TEXT,userId TEXT,totalDistance TEXT,userName TEXT, posted INTEGER DEFAULT 0,body BLOB)");
 }
+
   Future<int> updateLogin(Map<String, dynamic> row) async {
     Database? db = await this.db;
     return await db!.update('login', row, where: 'user_id = ?', whereArgs: [row['user_id']]);

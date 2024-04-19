@@ -737,7 +737,23 @@ class _ShopVisitState extends State<ShopVisit> {
                             //   });
                             //   return;
                             // }
+                            List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
+                            String selectedBrand = _brandDropDownController.text.trim();
 
+                            if (!allowedBrands.contains(selectedBrand)) {
+                              Fluttertoast.showToast(
+                                msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+
+                              setState(() {
+                                isButtonPressed = false;
+                              });
+                              return;
+                            }
                             if (!checkboxValue1 ||
                                 !checkboxValue2 ||
                                 !checkboxValue3 ||
@@ -932,7 +948,7 @@ class _ShopVisitState extends State<ShopVisit> {
                               ? null
                               : () async {
                             setState(() {
-                              isButtonPressed2 = true;
+                             // isButtonPressed2 = true;
                             });
 
                             // bool allRowsFilled = stockCheckItems.every((item) =>
@@ -974,6 +990,23 @@ class _ShopVisitState extends State<ShopVisit> {
 
                               setState(() {
                                 isButtonPressed2 = false;
+                              });
+                              return;
+                            }
+                            List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
+                            String selectedBrand = _brandDropDownController.text.trim();
+
+                            if (!allowedBrands.contains(selectedBrand)) {
+                              Fluttertoast.showToast(
+                                msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+
+                              setState(() {
+                                isButtonPressed = false;
                               });
                               return;
                             }
@@ -1343,6 +1376,5 @@ class Products extends GetxController {
         ))
       ]));
     }
-    }
-
+  }
 }

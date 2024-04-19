@@ -57,6 +57,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   List<TextEditingController> priceControllers = [];
   List<TextEditingController> secondTypeAheadControllers = [];
   int? returnformid;
+  bool isButtonDisabled = false;
   bool isReConfirmButtonPressed = false;
   String selectedShopBrand = '';
   String selectedShopCityR = '';
@@ -355,7 +356,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
             children: [
               Expanded(
                 child: Container(
-                  height: 30,
+                  height: 50,
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: Colors.black45,
@@ -375,7 +376,10 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                       return ListTile(
                         title: Text(
                           suggestion,
-                          style: TextStyle(fontSize: 12),
+                          style: TextStyle(fontSize: 11),
+                          // Adjust maxLines and overflow properties to allow multiline text
+                          maxLines: 2, // Set the maximum number of lines
+                          overflow: TextOverflow.ellipsis, // Handle overflow by showing ellipsis
                         ),
                       );
                     },
@@ -387,8 +391,6 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         fetchProductDataForSelectedShop(suggestion);
                         printOrderNoForSelectedShop();
                         fetchNetBalanceForShop(suggestion!);
-
-
                       });
                       for (var owner in shopOwners) {
                         if (owner['shop_name'] == suggestion) {
@@ -408,7 +410,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         floatingLabelBehavior: FloatingLabelBehavior.never,
                         filled: true,
                         fillColor: Colors.white10,
+                        contentPadding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 3.0), // Adjust vertical padding
                       ),
+                      style: TextStyle(fontSize: 15),
                     ),
                   ),
                 ),
@@ -416,6 +420,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
               SizedBox(width: 25),
             ],
           ),
+
         ],
       ),
     );
@@ -644,12 +649,11 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: ElevatedButton(
-        onPressed: isReConfirmButtonPressed
+        onPressed: isButtonDisabled // Use isButtonDisabled to determine if the button should be disabled
             ? null // Disable the button if isReConfirmButtonPressed is true
             : () async {
-
           // Your existing code for handling the "Re Confirm" button press
-           isOrderConfirmed = true;
+          isOrderConfirmed = true;
           final bool isConnected = await isInternetAvailable();
 
           if (!isConnected) {
@@ -681,7 +685,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
             }
           }
           // Check if any reason or second controller typeahead is empty
-          bool anyEmptyReason = secondTypeAheadControllers.any((controller) => controller.text.isEmpty);
+          bool anyEmptyReason =
+          secondTypeAheadControllers.any((controller) => controller.text.isEmpty);
           if (anyEmptyReason || !allFieldsFilled || !reasonSelected) {
             Fluttertoast.showToast(
               msg: 'Please fill all fields and select a reason for all items',
@@ -706,7 +711,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           // Your existing code for submission
           var id = await customAlphabet('1234567890', 5);
 
-         await returnformViewModel.addReturnForm(ReturnFormModel(
+          await returnformViewModel.addReturnForm(ReturnFormModel(
             returnId: int.parse(id),
             shopName: _selectedShopController.text,
             date: _getCurrentDate(),
@@ -722,7 +727,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
           for (int i = 0; i < firstTypeAheadControllers.length; i++) {
             var id = await customAlphabet('1234567890', 12);
-          await  returnformdetailsViewModel.addReturnFormDetail(
+            await returnformdetailsViewModel.addReturnFormDetail(
               ReturnFormDetailsModel(
                 id: int.parse(id),
                 returnformId: returnformid ?? 0,
@@ -732,8 +737,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                 bookerId: userId,
               ),
             );
-          }setState(() {
-            isReConfirmButtonPressed = false; // Mark the button as pressed
+          }
+          setState(() {
+            isButtonDisabled = true; // Mark the button as disabled after being pressed
           });
           await dbreturnform.postReturnFormTable();
           await dbreturnform.postReturnFormDetails();
@@ -742,11 +748,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
               builder: (context) => HomePage(),
             ),
           );
-
-
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
+          backgroundColor: isButtonDisabled ? Colors.grey : Colors.green, // Change the button color when disabled
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -759,6 +763,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           ),
         ),
       ),
+
+
     );
   }
 
@@ -843,5 +849,5 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
       print("Error fetching price for product: $e");
       return null;
     }
-    }
+  }
 }

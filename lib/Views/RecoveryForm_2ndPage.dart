@@ -105,13 +105,13 @@ class RecoveryForm_2ndPage extends StatelessWidget {
       ),
     );
   }
-
   Widget buildTextFieldRow(String labelText, String text) {
     TextEditingController controller = TextEditingController(text: text);
 
     return Container(
       margin: EdgeInsets.only(bottom: 10.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, // Align text to the top
         children: <Widget>[
           Expanded(
             flex: 2,
@@ -123,7 +123,6 @@ class RecoveryForm_2ndPage extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Container(
-              height: 30,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5.0),
                 border: Border.all(color: Colors.green),
@@ -131,8 +130,10 @@ class RecoveryForm_2ndPage extends StatelessWidget {
               child: TextField(
                 readOnly: true,
                 controller: controller,
+                maxLines: null, // Allow multiple lines
                 decoration: InputDecoration(
                   border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0), // Adjust padding
                 ),
               ),
             ),
@@ -233,9 +234,22 @@ class RecoveryForm_2ndPage extends StatelessWidget {
                         children: [
                           pw.Text('Shop Name:', style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold)),
                           pw.SizedBox(width: 10.0),
-                          pw.Text('$shopName', style: pw.TextStyle(fontSize: 15)),
+                          pw.Expanded(
+                            child: pw.Wrap(
+                              children: [
+                                pw.Text(
+                                  '$shopName',
+                                  style: pw.TextStyle(fontSize: 15),
+                                  softWrap: true, // Enable text wrapping
+                                  overflow: pw.TextOverflow.clip, // Clip overflowed text
+                                  maxLines: 3, // Adjust as needed
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
+
                       pw.SizedBox(height: 20.0),
                       pw.Row(
                         children: [
@@ -282,5 +296,5 @@ class RecoveryForm_2ndPage extends StatelessWidget {
 
     // Share the PDF
     await Share.shareFiles([output.path], text: 'PDF Document');
-    }
+  }
 }
