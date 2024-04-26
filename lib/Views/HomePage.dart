@@ -335,7 +335,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
-    backgroundTask();
+    // backgroundTask();
     WidgetsBinding.instance!.addObserver(this);
     _loadClockStatus();
     fetchShopList();

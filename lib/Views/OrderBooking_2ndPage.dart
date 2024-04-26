@@ -211,7 +211,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
                                   shopCity: selectedShopCity,
                                   requiredDelivery: requiredDelivery,
                                 ));
-                                saveRowDataDetailsToDatabase(rowDataDetails);
+                                await saveRowDataDetailsToDatabase(rowDataDetails);
 
                                 Fluttertoast.showToast(
                                   msg: "Order confirmed!",

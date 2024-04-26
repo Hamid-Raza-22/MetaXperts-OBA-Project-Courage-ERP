@@ -110,9 +110,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     print("Shop Debits: $shopDebits");
     print("Shop Credits: $shopCredits");
     print("Shop Debits - Credits: $debitsMinusCreditsPerShop");
-
     // You can update the state or perform other actions with the data here
   }
+
   Future<void> fetchNetBalanceForShop(String shopName) async {
     DBHelper dbHelper = DBHelper();
     double shopDebits = 0.0;
@@ -163,6 +163,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
     return totalAmount;
   }
+
   Future<void> netbalance() async {
     double? amount = double.tryParse(amountController.text);
     if (amount != null) {
@@ -605,7 +606,6 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                       qtyControllers.removeAt(index);
                       priceControllers.removeAt(index);
                       secondTypeAheadControllers.removeAt(index);
-
                       for (int i = index; i < dynamicRows.length; i++) {
                         dynamicRows[i] = buildTypeAheadRow(i);
                       }
@@ -763,8 +763,6 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           ),
         ),
       ),
-
-
     );
   }
 
@@ -810,7 +808,6 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           where: 'product_name = ? AND order_no = ?',
           whereArgs: [productName,selectedorderno ],
         );
-
         if (result.isNotEmpty) {
           return result[0]['quantity_booked'].toString();
         } else {
