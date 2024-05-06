@@ -297,6 +297,7 @@ class _ShopVisitState extends State<ShopVisit> {
     DatabaseOutputs db = DatabaseOutputs();
     await db.showShopVisit();
     await db.showStockCheckItems();
+
     // DatabaseOutputs outputs = DatabaseOutputs();
     //  outputs.checkFirstRun();
   }
