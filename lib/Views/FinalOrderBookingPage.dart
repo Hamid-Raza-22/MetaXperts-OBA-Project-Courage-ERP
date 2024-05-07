@@ -15,7 +15,7 @@ import 'package:order_booking_shop/View_Models/OrderViewModels/OrderMasterViewMo
 import 'package:order_booking_shop/View_Models/OrderViewModels/ProductsViewModel.dart';
 
 import 'HomePage.dart';
-import 'OrderBooking_2ndPage.dart';
+import 'OrderBooking2ndPage.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 
@@ -118,10 +118,10 @@ class FinalOrderBookingPage extends StatefulWidget {
   const FinalOrderBookingPage({super.key});
 
   @override
-  _FinalOrderBookingPageState createState() => _FinalOrderBookingPageState();
+  FinalOrderBookingPageState createState() => FinalOrderBookingPageState();
 }
 
-class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
+class FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   final TextEditingController _totalController = TextEditingController();
   final ordermasterViewModel = Get.put(OrderMasterViewModel());
   final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
@@ -190,7 +190,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     _searchController = TextEditingController();
     addNewRow();
     addNewRow();
-    onCreatee();
+   // onCreatee();
 
     addListenerToController(_discountController, _calculateSubTotal);
     addListenerToController(_paymentController, _calculateBalance);
@@ -258,8 +258,9 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     _brandNameController.text = selectedBrandName;
     _phoneNoController.text = ownerContact!;
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true, // When false, blocks the current route from being popped.
+      onPopInvoked: (didPop) async {
         await productsController.clearAmounts();
         productsController.rows.clear();
         Navigator.of(context).pushReplacement(
@@ -267,7 +268,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
             builder: (context) => const HomePage(),
           ),
         );
-        return false;
+      //  return Future.value(false);
       },
       child: Scaffold(
         appBar: AppBar(
@@ -490,7 +491,7 @@ class _FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                           // Navigate to another page after confirmation
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => OrderBooking_2ndPage(),
+                              builder: (context) => const OrderBooking2ndPage(),
                               settings: RouteSettings(arguments: dataToPass),
                             ),
                           );

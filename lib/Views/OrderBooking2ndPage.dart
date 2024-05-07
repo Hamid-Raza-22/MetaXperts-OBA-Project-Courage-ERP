@@ -25,12 +25,14 @@ import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
 import 'FinalOrderBookingPage.dart';
 
 
-class OrderBooking_2ndPage extends StatefulWidget {
+class OrderBooking2ndPage extends StatefulWidget {
+  const OrderBooking2ndPage({super.key});
+
   @override
-  _OrderBooking_2ndPageState createState() => _OrderBooking_2ndPageState();
+  OrderBooking2ndPageState createState() => OrderBooking2ndPageState();
 }
 
-class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
+class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
   final Productss productsController = Get.put(Productss());
   List<Map<String, dynamic>> rowDataDetails = [];
   bool isDataSavedInApex = true;
@@ -404,7 +406,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
     );
   }
 
-  Widget buildExpandedColumn(String Text, double width,
+  Widget buildExpandedColumn(String text, double width,
       {bool readOnly = false, TextEditingController? controller}) {
     return Expanded(
       flex: width != null ? width.toInt() : 1,
@@ -412,7 +414,7 @@ class _OrderBooking_2ndPageState extends State<OrderBooking_2ndPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (Text != null)
-            buildTextFormField(30, Text,
+            buildTextFormField(30, text,
                 readOnly: readOnly, controller: controller),
         ],
       ),
