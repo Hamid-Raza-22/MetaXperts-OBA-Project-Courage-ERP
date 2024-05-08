@@ -1,5 +1,4 @@
 
-
 import '../Databases/DBHelper.dart';
 import '../Models/LocationModel.dart';
 

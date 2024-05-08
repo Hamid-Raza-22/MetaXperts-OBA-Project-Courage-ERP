@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:order_booking_shop/Models/ShopModel.dart';
 import 'package:order_booking_shop/Repositories/ShopRepository.dart';
 
-import '../Repositories/OrderRepository.dart';
 
 class ShopViewModel extends GetxController{
 

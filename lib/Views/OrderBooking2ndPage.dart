@@ -1,21 +1,18 @@
 import 'dart:io' show File;
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show Uint8List, kDebugMode;
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BuildContext, Colors, Column, CrossAxisAlignment, DropdownButton, DropdownMenuItem, EdgeInsets, ElevatedButton, Expanded, InputDecoration, MainAxisAlignment, MaterialPageRoute, ModalRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, Size, SizedBox, State, StatefulWidget, Text, TextAlign, TextEditingController, TextFormField, TextStyle, Widget, WillPopScope;
+import 'package:flutter/services.dart' show Size, TextAlign, Uint8List, rootBundle;
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:path_provider/path_provider.dart';
-
-import 'package:share/share.dart';
+import 'package:share/share.dart' show Share;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart' as pw;
-import 'package:pdf/pdf.dart';
-
+import 'package:pdf/pdf.dart' show PdfColors;
 import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/OrderModels/OrderDetailsModel.dart';

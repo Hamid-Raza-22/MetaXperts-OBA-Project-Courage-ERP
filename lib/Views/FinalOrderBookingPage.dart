@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier, ValueNotifier, kDebugMode;
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/material.dart' show AbsorbPointer, AlertDialog, Align, Alignment, AppBar, Axis, Border, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, ChangeNotifier, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, Icon, IconButton, Icons, InkWell, InputDecoration, ListTile, MainAxisSize, MaterialPageRoute, MediaQuery, ModalRoute, Navigator, OutlineInputBorder, Padding, PopScope, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, Size, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextButton, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, showDatePicker, showDialog;
+import 'package:flutter/services.dart' show FilteringTextInputFormatter, Size, TextInputFormatter, TextInputType;
+import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
-import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart' show SuggestionsBoxDecoration, TextFieldConfiguration, TypeAheadFormField;
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:order_booking_shop/API/DatabaseOutputs.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Models/ProductsModel.dart';
@@ -17,7 +17,7 @@ import 'package:order_booking_shop/View_Models/OrderViewModels/ProductsViewModel
 import 'HomePage.dart';
 import 'OrderBooking2ndPage.dart';
 import 'package:get/get.dart';
-import 'dart:async';
+import 'dart:async' show Future;
 
 
 

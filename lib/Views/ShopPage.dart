@@ -1,16 +1,15 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show AlertDialog, Align, Alignment, BorderRadius, BoxDecoration, BuildContext, Colors, Column, Container, CrossAxisAlignment, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, InputDecoration, Key, ListTile, MainAxisAlignment, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, SafeArea, Scaffold, SingleChildScrollView, Size, SizedBox, State, StatefulWidget, Text, TextButton, TextEditingController, TextEditingValue, TextFormField, TextInputType, TextSelection, TextStyle, Widget, showDialog;
-import 'package:flutter/services.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter/material.dart' show Key, AlertDialog, Align, Alignment, BorderRadius, BoxDecoration, BuildContext, Colors, Column, Container, CrossAxisAlignment, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, InputDecoration, ListTile, MainAxisAlignment, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, SafeArea, Scaffold, SingleChildScrollView, Size, SizedBox, State, StatefulWidget, Text, TextButton, TextEditingController, TextEditingValue, TextFormField, TextInputType, TextSelection, TextStyle, Widget, showDialog;
+import 'package:flutter/services.dart' show FilteringTextInputFormatter, FontWeight, LengthLimitingTextInputFormatter, Size, TextEditingValue, TextInputFormatter, TextInputType, TextSelection;
+import 'package:flutter_typeahead/flutter_typeahead.dart' show TextFieldConfiguration, TypeAheadFormField;
+import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
+import 'package:flutter/foundation.dart' show Key, kDebugMode;
+import 'package:geolocator/geolocator.dart' show Geolocator, LocationAccuracy, Position;
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'package:nanoid/async.dart';
-import 'package:order_booking_shop/API/Globals.dart';
-import 'package:order_booking_shop/View_Models/ShopViewModel.dart';
-import 'package:order_booking_shop/Views/HomePage.dart';
+import 'package:intl/intl.dart' show DateFormat;
+import 'package:nanoid/async.dart' show customAlphabet;
+import 'package:order_booking_shop/API/Globals.dart' show userCitys, userId;
+import 'package:order_booking_shop/View_Models/ShopViewModel.dart' show ShopViewModel;
+import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Databases/DBHelper.dart';

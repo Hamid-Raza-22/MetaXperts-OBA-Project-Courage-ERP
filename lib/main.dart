@@ -1,37 +1,38 @@
-import 'dart:async';
-import 'dart:io';
+import 'dart:async' show Future, Timer;
+import 'dart:io' show InternetAddress, Platform, SocketException;
 
-import 'dart:ui';
+import 'dart:ui' show DartPluginRegistrant;
 
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:device_info_plus/device_info_plus.dart' show DeviceInfoPlugin;
+import 'package:firebase_core/firebase_core.dart' show Firebase;
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/material.dart' show MaterialApp, WidgetsFlutterBinding, runApp;
+import 'package:flutter/services.dart' show SystemChannels;
+import 'package:flutter_background/flutter_background.dart';
 
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_background_service/flutter_background_service.dart' show AndroidConfiguration, FlutterBackgroundService, IosConfiguration, ServiceInstance;
+import 'package:flutter_background_service_android/flutter_background_service_android.dart' show AndroidServiceInstance;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails;
 
-import 'package:order_booking_shop/Tracker/trac.dart';
+import 'package:order_booking_shop/Tracker/trac.dart' show startTimer;
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
-import 'package:order_booking_shop/location00.dart';
+import 'package:order_booking_shop/location00.dart' show LocationService;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workmanager/workmanager.dart';
+import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
+import 'package:workmanager/workmanager.dart' show Workmanager;
 import 'API/DatabaseOutputs.dart';
 import 'API/Globals.dart';
 import 'Databases/DBHelper.dart';
 import 'Views/splash_screen.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
-import 'package:upgrader/upgrader.dart';
+import 'package:upgrader/upgrader.dart' show Upgrader;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Upgrader;
-  // AndroidAlarmManager.initialize();
-
+  // Upgrader;
+  // // AndroidAlarmManager.initialize();
+  //
   // // Initialize the FlutterBackground plugin
   // await FlutterBackground.initialize();
   //

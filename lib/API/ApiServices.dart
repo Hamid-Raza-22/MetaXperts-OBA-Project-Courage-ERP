@@ -1,8 +1,8 @@
 import 'dart:convert' show jsonDecode;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show Uint8List, kDebugMode;
 import 'package:oauth2/oauth2.dart' as oauth2;
-import 'AppExceptions.dart';
-import 'BaseApiServices.dart';
+import 'AppExceptions.dart' show FetchDataException;
+import 'BaseApiServices.dart' show BaseApiServices;
 import 'package:http/http.dart' as http;
 // Your provided OAuth and token URLs
 // final authorizationEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxperts/oauth');

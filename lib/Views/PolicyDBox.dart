@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' show AlertDialog, BuildContext, Checkbox, Column, CrossAxisAlignment, MainAxisSize, Navigator, Row, SizedBox, StatelessWidget, Text, TextButton, TextStyle, Widget;
 
+
 class PolicyDialog extends StatelessWidget {
   const PolicyDialog({super.key});
 
@@ -56,7 +57,7 @@ class PolicyDialog extends StatelessWidget {
     );
   }
 }
-//
+
 // void main() {
 //   runApp(MaterialApp(
 //       home: Scaffold(

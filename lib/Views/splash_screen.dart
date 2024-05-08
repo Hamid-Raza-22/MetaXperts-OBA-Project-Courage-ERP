@@ -1,12 +1,10 @@
-import 'dart:async';
-
+import 'dart:async' show Future, Timer;
 import 'package:flutter/material.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../API/DatabaseOutputs.dart';
 import 'login.dart';
-//import 'package:google_map_live/login.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);

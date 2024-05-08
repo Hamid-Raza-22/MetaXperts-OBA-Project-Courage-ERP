@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialApp, MaterialPageRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextAlign, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, Widget, runApp;
+import 'package:flutter_image_compress/flutter_image_compress.dart' show FlutterImageCompress;
+import 'package:geocoding/geocoding.dart' show Placemark, placemarkFromCoordinates;
+import 'package:geolocator/geolocator.dart' show Geolocator, LocationAccuracy, Position;
+import 'package:flutter/services.dart' show FilteringTextInputFormatter, TextAlign, TextInputType, Uint8List;
+import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 import 'package:get/get.dart';
-import 'dart:io';
+import 'dart:io' show File;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -43,7 +43,7 @@ class Products extends GetxController {
     rows.assignAll(products.map((product) {
       return DataRow(cells: [
         DataCell(Text(product.product_name ?? '')),
-        DataCell(EditableQuantityField(initialQuantity: 0)),
+        const DataCell(EditableQuantityField(initialQuantity: 0)),
       ]);
     }).toList());
   }
@@ -60,10 +60,10 @@ class ShopVisit extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ShopVisitState createState() => _ShopVisitState();
+  ShopVisitState createState() => ShopVisitState();
 }
 
-class _ShopVisitState extends State<ShopVisit> {
+class ShopVisitState extends State<ShopVisit> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   //final productsViewModel = Get.put(ProductsViewModel());
@@ -314,7 +314,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Shop Visit'),
+        title: const Text('Shop Visit'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -332,11 +332,11 @@ class _ShopVisitState extends State<ShopVisit> {
                       alignment: Alignment.topRight,
                       child: Text(
                         ' Date: ${_getFormattedDate()}',
-                        style: TextStyle(fontSize: 16, color: Colors.black),
+                        style: const TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Text(
+                    const SizedBox(height: 20),
+                    const Text(
                       'Shop Name',
                       style: TextStyle(fontSize: 16, color: Colors.black),
                     ),
@@ -351,7 +351,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             ),
-                            contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
                           ),
                         ),
                         suggestionsCallback: (pattern) {
@@ -386,8 +386,8 @@ class _ShopVisitState extends State<ShopVisit> {
                     ),
 
 
-                    SizedBox(height: 20.0),
-                    Align(
+                    const SizedBox(height: 20.0),
+                    const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Booker Name',
@@ -399,7 +399,7 @@ class _ShopVisitState extends State<ShopVisit> {
                       child: TextFormField(enabled: false,
                         controller: BookerNameController,
 
-                        decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                        decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(5.0),
                           ),
@@ -413,8 +413,8 @@ class _ShopVisitState extends State<ShopVisit> {
                         },
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Align(
+                    const SizedBox(height: 10),
+                    const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Brand',
@@ -428,7 +428,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             height: 30,
                             child: TypeAheadFormField<String>(
                               textFieldConfiguration: TextFieldConfiguration(
-                                decoration: InputDecoration(contentPadding: EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                                decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
                                   enabled: false,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(5.0),
@@ -466,23 +466,23 @@ class _ShopVisitState extends State<ShopVisit> {
                       ],
                     ),
 
-                    SizedBox(height: 20),
-                    Align(
+                    const SizedBox(height: 20),
+                    const Align(
                       alignment: Alignment.center,
                       child: Text(
                         'Checklist',
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Align(
+                    const SizedBox(height: 20),
+                    const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         '1-Stock Check (Current Balance)',
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),
-                    SizedBox(height: 25),
+                    const SizedBox(height: 25),
                     Column(
                       children: [
 
@@ -490,7 +490,7 @@ class _ShopVisitState extends State<ShopVisit> {
                           child: Column(
                             children: [
                               Padding(
-                                padding: EdgeInsets.all(5.0),
+                                padding: const EdgeInsets.all(5.0),
                                 child: Container(
                                   height: 500, // Set the desired height
                                   width: 300, // Set the desired width
@@ -498,7 +498,7 @@ class _ShopVisitState extends State<ShopVisit> {
                                     elevation: 5,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
-                                      side: BorderSide(
+                                      side: const BorderSide(
                                         color: Colors.black, // Change the color as needed
                                         width: 1.0, // Change the width as needed
                                       ),
@@ -513,7 +513,7 @@ class _ShopVisitState extends State<ShopVisit> {
                                               onChanged: (query) {
                                                 filterData(query);
                                               },
-                                              decoration: InputDecoration(
+                                              decoration: const InputDecoration(
                                                 labelText: 'Search',
                                                 hintText: 'Type to search...',
                                                 prefixIcon: Icon(Icons.search),
@@ -526,8 +526,8 @@ class _ShopVisitState extends State<ShopVisit> {
                                               scrollDirection: Axis.horizontal,
                                               child: DataTable(
                                                 columns: [
-                                                  DataColumn(label: Text('Product')),
-                                                  DataColumn(label: Text('Quantity')),
+                                                  const DataColumn(label: Text('Product')),
+                                                  const DataColumn(label: Text('Quantity')),
                                                 ],
                                                 rows: filteredRows.isNotEmpty ? filteredRows : productsController.rows,
                                               ),
@@ -597,7 +597,7 @@ class _ShopVisitState extends State<ShopVisit> {
 
                       ],
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Column(
                       children: [
                         buildRow('1-Performed Store Walkthrough', checkboxValue1, (bool? value) {
@@ -632,7 +632,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             });
                           }
                         }),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () async {
                             try {
@@ -656,7 +656,7 @@ class _ShopVisitState extends State<ShopVisit> {
                                 await saveImage();
 
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                   content: Text('No image selected.'),
                                 ));
                               }
@@ -671,9 +671,9 @@ class _ShopVisitState extends State<ShopVisit> {
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          child: Text('+ Add Photo'),
+                          child: const Text('+ Add Photo'),
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         // Add the Stack widget to overlay the warning icon on top of the image
                         Stack(
                           alignment: Alignment.center,
@@ -686,27 +686,27 @@ class _ShopVisitState extends State<ShopVisit> {
                                 fit: BoxFit.cover,
                               ),
                             if (_imageFile == null)
-                              Icon(
+                              const Icon(
                                 Icons.warning,
                                 color: Colors.red,
                                 size: 48,
                               ),
                           ],
                         ),
-                        SizedBox(height: 20),
-                        Text('Feedback/ Special Note'),
-                        SizedBox(height: 20.0),
+                        const SizedBox(height: 20),
+                        const Text('Feedback/ Special Note'),
+                        const SizedBox(height: 20.0),
                         // Feedback or Note Box
                         Container(
                           width: double.infinity,
-                          padding: EdgeInsets.all(10.0),
+                          padding: const EdgeInsets.all(10.0),
 
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: TextField(
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               hintText: 'Feedback or Note',
                               border: InputBorder.none,
                             ),
@@ -718,7 +718,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             },
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
                         ElevatedButton(
                           onPressed: isButtonPressed
@@ -857,7 +857,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => FinalOrderBookingPage(),
+                                builder: (context) => const FinalOrderBookingPage(),
                                 settings: RouteSettings(arguments: dataToPass),
                               ),
                             );
@@ -873,10 +873,10 @@ class _ShopVisitState extends State<ShopVisit> {
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          child: Text('+ Order Booking Form'),
+                          child: const Text('+ Order Booking Form'),
                         ),
 
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
                         ElevatedButton(
                           onPressed: isButtonPressed2
@@ -998,7 +998,7 @@ class _ShopVisitState extends State<ShopVisit> {
                                 _brandDropDownController.text.isNotEmpty) {
                               Navigator.pop(context);
                               // Stop the timer on the home page
-                              HomePage();
+                              const HomePage();
                             } else {
                               Fluttertoast.showToast(
                                 msg: 'Please fill all fields before proceeding.',
@@ -1020,16 +1020,16 @@ class _ShopVisitState extends State<ShopVisit> {
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          child: Text('No Order'),
+                          child: const Text('No Order'),
                         ),
 
-                        SizedBox(height: 50),
+                        const SizedBox(height: 50),
                       ],
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -1059,7 +1059,7 @@ class _ShopVisitState extends State<ShopVisit> {
       children: [
         Text(
           text,
-          style: TextStyle(fontSize: 14, color: Colors.black),
+          style: const TextStyle(fontSize: 14, color: Colors.black),
         ),
         Row(
           children: [
@@ -1070,7 +1070,7 @@ class _ShopVisitState extends State<ShopVisit> {
               activeColor: Colors.green,
             ),
             if (!value)
-              Icon(
+              const Icon(
                 Icons.warning,
                 color: Colors.red,
                 size: 24,
@@ -1267,7 +1267,7 @@ class _EditableQuantityFieldState extends State<EditableQuantityField> {
     return TextFormField(
       keyboardType: TextInputType.number,
       textAlign: TextAlign.center,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
       ),
       controller: _controller,
