@@ -1,5 +1,8 @@
+import 'dart:convert' show base64Decode, base64Encode;
+import 'dart:typed_data' show Uint8List;
+
 class ShopModel {
-  dynamic? id;
+  dynamic id;
   String? shopName;
   String? city;
   String? date;
@@ -7,10 +10,11 @@ class ShopModel {
   String? ownerName;
   String? ownerCNIC;
   String? phoneNo;
-  dynamic? alternativePhoneNo;
-  dynamic? latitude;
-  dynamic? longitude;
-  dynamic? userId;
+  dynamic alternativePhoneNo;
+  dynamic latitude;
+  dynamic longitude;
+  dynamic userId;
+  Uint8List? body;
 
   ShopModel({
     this.id,
@@ -23,6 +27,7 @@ class ShopModel {
     this.phoneNo,
     this.alternativePhoneNo,
      this.latitude,
+    this.body,
      this.longitude,
     this.userId
   });
@@ -41,7 +46,10 @@ class ShopModel {
       alternativePhoneNo: json['alternativePhoneNo'],
       latitude:json['latitude'],
       longitude: json['longitude'],
-        userId: json['userId']
+        userId: json['userId'],
+      body: json['body'] != null && json['body'].toString().isNotEmpty
+          ? Uint8List.fromList(base64Decode(json['body'].toString()))
+          : null,
     );
   }
 
@@ -58,8 +66,8 @@ class ShopModel {
       'alternativePhoneNo': alternativePhoneNo,
       'latitude':latitude,
       'longitude':longitude,
-      'userId': userId
-
+      'userId': userId,
+      'body':  body != null ? base64Encode(body!) : null
     };
   }
 }

@@ -1,10 +1,8 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, Center, Colors, Column, Container, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, MainAxisAlignment, MaterialPageRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, Text, TextEditingController, TextFormField, TextStyle, Widget, showDialog;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
- import 'package:internet_connection_checker/internet_connection_checker.dart' show InternetConnectionChecker;
-
+import 'package:internet_connection_checker/internet_connection_checker.dart' show InternetConnectionChecker;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
-
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 import '../API/Globals.dart' show userNames;
 import '../Databases/DBHelper.dart';
@@ -23,19 +21,19 @@ class LoginFormState extends State<LoginForm> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  //
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   // showDialog(
-  //   //               context: context,
-  //   //               builder: (context) => const PolicyDialog(),
-  //   //             );
-  //  // _requestPermission();
-  //
-  //   // DatabaseOutputs outputs = DatabaseOutputs();
-  //   // outputs.initializeData();
-  // }
+
+  @override
+  void initState() {
+    super.initState();
+    // showDialog(
+    //               context: context,
+    //               builder: (context) => const PolicyDialog(),
+    //             );
+   // _requestPermission();
+
+    // DatabaseOutputs outputs = DatabaseOutputs();
+    // outputs.initializeData();
+  }
 
   final dblogin = DBHelper();
 

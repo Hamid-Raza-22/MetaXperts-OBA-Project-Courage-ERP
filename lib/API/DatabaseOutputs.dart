@@ -88,7 +88,8 @@ class DatabaseOutputs{
 
     // Get data from API
    // var responseLogin = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
-    var responseOwner = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/owner/get/");
+    //var responseOwner = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/owner/get/");
+    var responseOwner = await api.getApi("https://apex.oracle.com/pls/apex/metaa/owner/get/");
     var responseOwner3 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
 
     // var responseOrderBookingStatusdata = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
@@ -486,7 +487,9 @@ class DatabaseOutputs{
 
     if (Owerdata == null || Owerdata.isEmpty ) {
       try {
-        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/owner/get/");
+        // https://apex.oracle.com/pls/apex/metaa/owner/get/
+        //http://103.149.32.30:8080/ords/metaxperts/owner/get/
+        var response = await api.getApi("https://apex.oracle.com/pls/apex/metaa/owner/get/");
 
         var results = await db.insertOwnerData(response);   //return True or False
         if (results) {

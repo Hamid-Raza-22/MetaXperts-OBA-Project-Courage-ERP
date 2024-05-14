@@ -104,6 +104,8 @@ dependencies:
   upgrader: ^9.0.0
   data_connection_checker_nulls: ^0.0.2
   internet_connection_checker_plus: ^2.2.0
+  riverpod: ^2.5.1
+  flutter_riverpod: ^2.5.1
 
 dev_dependencies:
   flutter_test:

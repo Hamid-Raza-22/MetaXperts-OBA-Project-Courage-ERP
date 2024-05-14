@@ -9,7 +9,7 @@ class ShopRepository {
 
   Future<List<ShopModel>> getShop() async {
     var dbClient = await dbHelper.db;
-    List<Map> maps = await dbClient!.query('shop', columns: ['id', 'shopName' , 'city' ,'date', 'shopAddress' , 'ownerName' , 'ownerCNIC' , 'phoneNo' , 'alternativePhoneNo', 'latitude', 'longitude','userId','posted']);
+    List<Map> maps = await dbClient!.query('shop', columns: ['id', 'shopName' , 'city' ,'date', 'shopAddress' , 'ownerName' , 'ownerCNIC' , 'phoneNo' , 'alternativePhoneNo', 'latitude', 'longitude','userId','posted','body']);
     List<ShopModel> shop = [];
 
     for (int i = 0; i < maps.length; i++) {

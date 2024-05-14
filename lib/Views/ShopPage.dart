@@ -1,15 +1,20 @@
-import 'package:flutter/material.dart' show Key, AlertDialog, Align, Alignment, BorderRadius, BoxDecoration, BuildContext, Colors, Column, Container, CrossAxisAlignment, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, InputDecoration, ListTile, MainAxisAlignment, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, SafeArea, Scaffold, SingleChildScrollView, Size, SizedBox, State, StatefulWidget, Text, TextButton, TextEditingController, TextEditingValue, TextFormField, TextInputType, TextSelection, TextStyle, Widget, showDialog;
+import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter, FontWeight, LengthLimitingTextInputFormatter, Size, TextEditingValue, TextInputFormatter, TextInputType, TextSelection;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart' show TextFieldConfiguration, TypeAheadFormField;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
-import 'package:flutter/foundation.dart' show Key, kDebugMode;
+import 'package:flutter/foundation.dart' show Key, Uint8List, kDebugMode;
 import 'package:geolocator/geolocator.dart' show Geolocator, LocationAccuracy, Position;
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/async.dart' show customAlphabet;
 import 'package:order_booking_shop/API/Globals.dart' show userCitys, userId;
 import 'package:order_booking_shop/View_Models/ShopViewModel.dart' show ShopViewModel;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Databases/DBHelper.dart';
@@ -90,7 +95,9 @@ class _ShopPageState extends State<ShopPage> {
   int? shopId;
   String currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   bool isLocationAdded = false;
-
+  File? _imageFile;
+  final ImagePicker _imagePicker = ImagePicker();
+  get shopData => null;
   List<String> validCities = ['Adezai', 'Ahmed Nager Chatha', 'Ahmedpur East', 'Ali Bandar', 'Ali Pur', 'Amir Chah', 'Arifwala', 'Astor', 'Attock', 'Ayubia', 'Baden', 'Bagh', 'Bahawalnagar', 'Bahawalpur', 'Bajaur', 'Banda Daud Shah',
     'Bannu', 'Baramula', 'Basti Malook', 'Batagram', 'Bazdar', 'Bela', 'Bellpat', 'Bhagalchur', 'Bhaipheru', 'Bhakkar', 'Bhalwal', 'Bhimber', 'Birote', 'Buner', 'Burewala', 'Burj', 'Chachro', 'Chagai',
     'Chah Sandan', 'Chailianwala', 'Chakdara', 'Chakku', 'Chakwal', 'Chaman', 'Charsadda', 'Chhatr', 'Chichawatni', 'Chiniot', 'Chitral', 'Chowk Azam', 'Chowk Sarwar Shaheed', 'Dadu', 'Dalbandin', 'Dargai', 'Darya Khan',
@@ -146,6 +153,32 @@ class _ShopPageState extends State<ShopPage> {
       // Explicitly cast each element to String
       dropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
     });
+  }
+
+  Future<void> saveImage()  async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/captured_image.jpg';
+
+      // Compress the image76
+      Uint8List? compressedImageBytes = await FlutterImageCompress.compressWithFile(
+        _imageFile!.path,
+        minWidth: 400,
+        minHeight: 600,
+        quality:40,
+      );
+
+      // Save the compressed image
+      await File(filePath).writeAsBytes(compressedImageBytes!);
+
+      if (kDebugMode) {
+        print('Compressed image saved successfully at $filePath');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error compressing and saving image: $e');
+      }
+    }
   }
 
   @override
@@ -542,7 +575,70 @@ class _ShopPageState extends State<ShopPage> {
                             ),
 
                             const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  final image = await _imagePicker.getImage(
+                                    source: ImageSource.camera,
+                                    imageQuality: 40, // Adjust the quality (0 to 100)
+                                  );
 
+                                  if (image != null) {
+                                    setState(() {
+                                      _imageFile = File(image.path);
+
+                                      shopData?['imagePath'] = _imageFile!.path;
+
+                                      // // Convert the image file to bytes and store it in _imageBytes
+                                      // List<int> imageBytesList = _imageFile!.readAsBytesSync();
+                                      // _imageBytes = Uint8List.fromList(imageBytesList);
+                                    });
+
+                                    // Save only the image
+                                    await saveImage();
+
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                      content: Text('No image selected.'),
+                                    ));
+                                  }
+                                } catch (e) {
+                                  if (kDebugMode) {
+                                    print('Error capturing image: $e');
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                              ),
+                              child: const Text('+ Add Photo'),
+                            ),
+
+                            const SizedBox(height: 10),
+                            // Add the Stack widget to overlay the warning icon on top of the image
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                if (_imageFile != null)
+                                  Image.file(
+                                    _imageFile!,
+                                    height: 300,
+                                    width: 400,
+                                    fit: BoxFit.cover,
+                                  ),
+                                if (_imageFile == null)
+                                  const Icon(
+                                    Icons.warning,
+                                    color: Colors.red,
+                                    size: 48,
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
                             // Align the "save" button to the bottom right
                             Align(
                               alignment: Alignment.bottomRight,
@@ -558,7 +654,8 @@ class _ShopPageState extends State<ShopPage> {
                                       // City is valid, proceed with the rest of the code
 
                                       // Continue with the rest of the validation and data saving logic
-                                      if (shopNameController.text.isNotEmpty &&
+                                      if (_imageFile != null &&
+                                          shopNameController.text.isNotEmpty &&
                                           cityController.text.isNotEmpty &&
                                           shopAddressController.text.isNotEmpty &&
                                           ownerNameController.text.isNotEmpty &&
@@ -566,6 +663,9 @@ class _ShopPageState extends State<ShopPage> {
                                           ownerCNICController.text.isNotEmpty &&
                                           phoneNoController.text.isNotEmpty &&
                                           alternativePhoneNoController.text.isNotEmpty) {
+                                        String imagePath =  _imageFile!.path;
+                                        List<int> imageBytesList = await File(imagePath).readAsBytes();
+                                        Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
                                         var id = await customAlphabet('1234567890', 12);
 
                                         // double? latitude = currentLocation['latitude'];
@@ -584,6 +684,7 @@ class _ShopPageState extends State<ShopPage> {
                                           latitude: globalLatitude,
                                           longitude: globalLongitude,
                                           userId: userId,
+                                          body: imageBytes,
                                           // ... existing parameters ...
                                           // latitude: shopViewModel.latitude,
                                           // longitude: shopViewModel.longitude,

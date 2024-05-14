@@ -619,14 +619,14 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (isClockedIn) {
+                             // if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => const ShopPage(),
                                   ),
                                 );
-                              } else {
+                            //  } else {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -640,7 +640,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                     ],
                                   ),
                                 );
-                              }
+                           //   }
                             },
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white, backgroundColor: Colors.green,
@@ -674,14 +674,14 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           child: ElevatedButton(
                             onPressed: () {
 
-                              if (isClockedIn) {
+                              // if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ShopVisit(onBrandItemsSelected: (String) {}),
+                                    builder: (context) => const ShopVisit(),
                                   ),
                                 );
-                              } else {
+                              // } else {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -695,7 +695,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                     ],
                                   ),
                                 );
-                              }
+                              // }
                              },
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white, backgroundColor: Colors.green,
@@ -766,7 +766,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 await  outputs.checkFirstRunAccounts();
 
                                await Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => ReturnFormPage()));
+                                    builder: (context) => const ReturnFormPage()));
                               }
                               setState(() {
                                 isLoading = false; // set loading state to false after execution
@@ -842,7 +842,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                await  outputs.checkFirstRunAccounts();
 
                                await Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => RecoveryFromPage()));
+                                    builder: (context) => const RecoveryFromPage()));
                               }
 
                               setState(() {
@@ -888,7 +888,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => OrderBookingStatus(),
+                                    builder: (context) => const OrderBookingStatus(),
                                   ),
                                 );
                               // } else {

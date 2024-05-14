@@ -1,8 +1,10 @@
+import 'dart:convert' show base64Decode;
 import 'package:flutter/foundation.dart' show Key, Uint8List, kDebugMode;
-import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, Widget;
+import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueNotifier, Widget, imageCache;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator, LocationAccuracy, Position;
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -16,6 +18,7 @@ import 'package:order_booking_shop/View_Models/StockCheckItems.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
@@ -26,30 +29,112 @@ import '../View_Models/ShopVisitViewModel.dart';
 import 'FinalOrderBookingPage.dart';
 
 
+
+class ShopImageController extends GetxController {
+  final Rx<File?> _shopimageFile = Rx<File?>(null);
+
+  File? get shopImageFile => _shopimageFile.value;
+
+  void updateShopImageFile(File? file) {
+    _shopimageFile.value = file;
+  }
+  Future<void> loadImageFile(String base64Image) async {
+    Uint8List bytesImage = base64Decode(base64Image);
+    await Future.delayed(const Duration(seconds: 5));
+
+    final tempDir = await getTemporaryDirectory();
+    final file = await File('${tempDir.path}/image.jpg').writeAsBytes(bytesImage);
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Update the _shopimageFile value using the controller
+
+    updateShopImageFile(file); // directly call the method
+
+    update();
+
+    if (kDebugMode) {
+      print('Shop Image File: $shopImageFile');
+    }
+  }
+}
+
 class ShopVisit extends StatefulWidget {
-  final Function(String) onBrandItemsSelected;
+
 // Add this line
 
   const ShopVisit({
     Key? key,
-    required this.onBrandItemsSelected,
+
 
   }) : super(key: key);
 
   @override
-  _ShopVisitState createState() => _ShopVisitState();
+  ShopVisitState createState() => ShopVisitState();
 }
 
-class _ShopVisitState extends State<ShopVisit> {
+class ShopVisitState extends State<ShopVisit> {
+  final shopImageFileProvider = StateProvider<File?>((ref) => null);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   //final productsViewModel = Get.put(ProductsViewModel());
   TextEditingController ShopNameController = TextEditingController();
   final TextEditingController _brandDropDownController = TextEditingController();
   TextEditingController BookerNameController = TextEditingController();
+  TextEditingController ShopAddressController = TextEditingController();
 
+  final ShopImageController _shopImageController = Get.put(ShopImageController());
+   final Rx<File?> _shopimageFile = Rx<File?>(null); // Use Rx to manage File state
   final TextEditingController _searchController = TextEditingController();
   List<DataRow> filteredRows = [];
+  final shopisitViewModel = Get.put(ShopVisitViewModel());
+  final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
+
+  int? shopVisitId;
+  int? stockcheckitemsId;
+  String selectedShopOwner = '';
+  String? selectedShopAddress = '';
+  String? selectedOwnerContact= '';
+  String selectedShopOrderNo = '';
+  List<Map<String, dynamic>> shopOwners = [];
+  final Products productsController = Get.put(Products());
+  DBHelper dbHelper = DBHelper();
+  List<String> dropdownItems5 = [];
+  List<String> dropdownItems = [];
+  List<String> brandDropdownItems = [];
+  String selectedItem ='';
+  String? selectedDropdownValue;
+  String selectedBrand = '';
+  List<String> selectedProductNames = [];
+  // Add an instance of ProductsViewModel
+  ProductsViewModel productsViewModel = Get.put(ProductsViewModel());
+  // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
+  int ShopVisitsSerialCounter = highestSerial ?? 0;
+  late ValueNotifier<String> shopNameNotifier;
+  // int? serialCounter;
+
+  double currentBalance = 0.0;
+  String currentUserId = '';
+  String shopVisitCurruntMonth = DateFormat('MMM').format(DateTime.now());
+  get shopData => null;
+  // List<StockCheckItem> stockCheckItems = [StockCheckItem()];
+  int serialNo = 1;
+  final shopVisitViewModel = Get.put(ShopVisitViewModel());
+  //final stockcheckitemsViewModel =Get.put(StockCheckItemsViewModel());
+  final ImagePicker _imagePicker = ImagePicker();
+  File? _imageFile;
+  // File? _shopimageFile;
+  bool checkboxValue1 = false;
+  bool checkboxValue2 = false;
+  bool checkboxValue3 = false;
+  bool checkboxValue4 = false;
+  String feedbackController = '';
+  dynamic latitude = '';
+  dynamic longitude ='';
+  bool isButtonPressed = false;
+  bool isButtonPressed2 = false;
+  List<DataRow> rows = [];
+
+  // Uint8List? _imageBytes;
   void filterData(String query) {
     if (query.isEmpty) {
       setState(() {
@@ -71,69 +156,20 @@ class _ShopVisitState extends State<ShopVisit> {
       });
     }
   }
-  final shopisitViewModel = Get.put(ShopVisitViewModel());
-  final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
-  int? shopVisitId;
-  int? stockcheckitemsId;
-  String selectedShopOwner = '';
-  String selectedOwnerContact= '';
-  String selectedShopOrderNo = '';
-  List<Map<String, dynamic>> shopOwners = [];
-  final Products productsController = Get.put(Products());
-  DBHelper dbHelper = DBHelper();
-  List<String> dropdownItems5 = [];
-  List<String> dropdownItems = [];
-  List<String> brandDropdownItems = [];
-  String selectedItem ='';
-  String? selectedDropdownValue;
-  String selectedBrand = '';
-  List<String> selectedProductNames = [];
-  // Add an instance of ProductsViewModel
-  ProductsViewModel productsViewModel = Get.put(ProductsViewModel());
-  // String? latestOrderNo =  dbHelper.getLatestOrderNo(userId);
-  int ShopVisitsSerialCounter = highestSerial ?? 0;
-
-  // int? serialCounter;
-
-  double currentBalance = 0.0;
-  String currentUserId = '';
-  String shopVisitCurruntMonth = DateFormat('MMM').format(DateTime.now());
-
-  get shopData => null;
-
   void navigateToNewOrderBookingPage(String selectedBrandName) async {
     // Set the selected shop name without navigation
     setState(() {
       selectedItem = selectedBrandName;
     });
   }
-  // List<StockCheckItem> stockCheckItems = [StockCheckItem()];
-  int serialNo = 1;
-  final shopVisitViewModel = Get.put(ShopVisitViewModel());
-  //final stockcheckitemsViewModel =Get.put(StockCheckItemsViewModel());
-  final ImagePicker _imagePicker = ImagePicker();
-  File? _imageFile;
-  bool checkboxValue1 = false;
-  bool checkboxValue2 = false;
-  bool checkboxValue3 = false;
-  bool checkboxValue4 = false;
-  String feedbackController = '';
-  dynamic latitude = '';
-  dynamic longitude ='';
-  bool isButtonPressed = false;
-  bool isButtonPressed2 = false;
-  List<DataRow> rows = [];
-
-  // Uint8List? _imageBytes;
-
-
   @override
   void initState() {
 
     super.initState();
     data();
     // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
-
+    ValueNotifier<String> shopNameNotifier = ValueNotifier<String>(selectedItem);
+   shopNameNotifier = ValueNotifier<String>(selectedItem);
     //selectedDropdownValue = dropdownItems[0]; // Default value
     _fetchBrandItemsFromDatabase();
     //fetchShopData();
@@ -144,6 +180,9 @@ class _ShopVisitState extends State<ShopVisit> {
     fetchProductsNamesByBrand();
     saveCurrentLocation();
     _checkUserIdAndFetchShopNames();
+    shopNameNotifier.addListener(updateShopImage);
+   // _shopimageFile.value;
+   //  _shopImageController._shopimageFile;
     // productsController.controllers.clear();
     // removeSavedValues(index);
     if (kDebugMode) {
@@ -343,18 +382,65 @@ class _ShopVisitState extends State<ShopVisit> {
   }
 
 
+  // Method to build the Stack widget
+  Widget buildShopImageStack() {
+    return Obx(() => Stack(
+      alignment: Alignment.center,
+
+      children: [
+        if (_shopImageController.shopImageFile != null)
+
+          Center(
+
+            child: Image.file(
+              _shopImageController.shopImageFile!,
+              height: 200,
+              width: 200,
+              fit: BoxFit.cover,
+            ),
+          ),
+        if (_shopImageController.shopImageFile == null)
+          const Icon(
+            Icons.warning,
+            color: Colors.red,
+            size: 48,
+          ),
+      ],
+    ));
+  }
+  Future<void> updateShopImage() async {
+    for (var owner in shopOwners) {
+      if (owner['shop_name'] == shopNameNotifier.value) {
+        selectedShopOwner = owner['owner_name'];
+        selectedOwnerContact = owner['phone_no'];
+        selectedShopCity= owner['city'];
+        selectedShopAddress= owner['shop_address'];
+        ShopAddressController.text = selectedShopAddress ?? 'Not Address';
+        String base64Image = owner['images'];
+       await _shopImageController.loadImageFile(base64Image);
+        buildShopImageStack();
+        _onProductChange();
+      }
+    }
+  }
+  void _onProductChange() {
+    setState(() {}); // Update UI when products change
+  }
+
   @override
-  Widget build(BuildContext context) {
 
-    ShopNameController.text= selectedItem;
-    BookerNameController.text= userNames;
+    Widget build(BuildContext context) {
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Shop Visit'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
+      ShopNameController.text= selectedItem;
+      BookerNameController.text= userNames;
+
+      return ProviderScope(
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Shop Visit'),
+              centerTitle: true,
+            ),
+            body: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
@@ -401,41 +487,97 @@ class _ShopVisitState extends State<ShopVisit> {
                             title: Text(suggestion),
                           );
                         },
-                        onSuggestionSelected: (suggestion)  {
+                        onSuggestionSelected: (suggestion) async {
                           // Validate that the selected item is from the list
                           if (dropdownItems.contains(suggestion)) {
                             setState(() {
+                              imageCache.clear();
                               selectedItem = suggestion;
-                              shopName = selectedItem;
+                             // shopName = selectedItem;
+                              shopNameNotifier.value = selectedItem; // Update the shop name
                             });
+                            updateShopImage();
 
-                            for (var owner in shopOwners) {
-                              if (owner['shop_name'] == selectedItem) {
-                                setState(() {
-                                  selectedShopOwner = owner['owner_name'];
-                                  selectedOwnerContact = owner['phone_no'];
-                                  selectedShopCity= owner['city'];
-                                  if (kDebugMode) {
-                                    print(selectedShopCity);
-                                  }
-                                });
-                              }
-                            }
+
+
                             productsController.rows;
                             productsController.fetchProducts();
                             for (int i = 0; i < productsController.rows.length; i++) {
                               removeSavedValues(i);
                             }
-
-
+                            // for (var owner in shopOwners) {
+                            //   if (owner['shop_name'] == selectedItem) {
+                            //
+                            //
+                            //     selectedShopOwner = owner['owner_name'];
+                            //     selectedOwnerContact = owner['phone_no'];
+                            //     selectedShopCity= owner['city'];
+                            //     selectedShopAddress= owner['shop_address'];
+                            //     ShopAddressController.text = selectedShopAddress ?? 'Not Address';
+                            //     String base64Image = owner['images'];
+                            //     await  _shopImageController.loadImageFile(base64Image);
+                            //
+                            //     buildShopImageStack();
+                            //
+                            //
+                            //
+                            //     // Uint8List bytesImage = base64Decode(base64Image);
+                            //     //
+                            //     // // Get the temporary directory to save the file
+                            //     // final tempDir = await getTemporaryDirectory();
+                            //     // final file = await File('${tempDir.path}/image.jpg').writeAsBytes(bytesImage);
+                            //     // // Delete all files in the temporary directory
+                            //     // // await tempDir.delete(recursive: true);
+                            //     //
+                            //     // setState(() {
+                            //     //   _shopimageFile.value = file;
+                            //     // });
+                            //     // if (kDebugMode) {
+                            //     //   print('Shop Image File: $_shopimageFile');
+                            //     // }
+                            //   }
+                            // }
 
                           }
                         },
                       ),
                     ),
+                    const SizedBox(height: 10.0),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Shop Address',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 30,
+                      child: TextFormField(enabled: true, readOnly: true,
+                        controller: ShopAddressController,
 
+                        decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                          ),
+                        ),
 
-                    const SizedBox(height: 20.0),
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Add the Stack widget to overlay the warning icon on top of the image
+                    const Text(
+                      'Shop Image',
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                    ),
+                    const SizedBox(height: 10),
+                    buildShopImageStack(),
+                    const SizedBox(height: 10),
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -505,11 +647,11 @@ class _ShopVisitState extends State<ShopVisit> {
                                     globalselectedbrand = itemData;
                                   });
                                   // Call the callback to pass the selected brand to FinalOrderBookingPage
-                                  widget.onBrandItemsSelected(itemData);
-                                  if (kDebugMode) {
-                                    print('Selected Brand: $itemData');
-                                    print(globalselectedbrand);
-                                  }
+                                  // widget.onBrandItemsSelected(itemData);
+                                  // if (kDebugMode) {
+                                  //   print('Selected Brand: $itemData');
+                                  //   print(globalselectedbrand);
+                                  // }
 
                                   productsController.fetchProducts();
                                   for (int i = 0; i < productsController.rows.length; i++) {
@@ -691,8 +833,8 @@ class _ShopVisitState extends State<ShopVisit> {
                             if (_imageFile != null)
                               Image.file(
                                 _imageFile!,
-                                height: 400,
-                                width: 600,
+                                height: 300,
+                                width: 400,
                                 fit: BoxFit.cover,
                               ),
                             if (_imageFile == null)
@@ -876,7 +1018,7 @@ class _ShopVisitState extends State<ShopVisit> {
                               'ownerName': selectedShopOwner.toString(),
                               'selectedBrandName': _brandDropDownController.text,
                               'userName': BookerNameController.text,
-                              'ownerContact': selectedOwnerContact.toString(),
+                              'ownerContact': selectedOwnerContact.toString()??'No Contact',
                               //  'rowDataDetails': rowDataDetails,
 
                             };
@@ -884,7 +1026,7 @@ class _ShopVisitState extends State<ShopVisit> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => FinalOrderBookingPage(),
+                                builder: (context) => const FinalOrderBookingPage(),
                                 settings: RouteSettings(arguments: dataToPass),
 
                               ),
@@ -1078,6 +1220,7 @@ class _ShopVisitState extends State<ShopVisit> {
           ),
         ),
       ),
+          )
     );
   }
 

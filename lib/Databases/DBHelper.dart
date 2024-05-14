@@ -39,12 +39,12 @@ class DBHelper {
     return db;
   }
 _onCreate(Database db, int version) async {
-    await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT, city TEXT, brand TEXT)");
+  await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT, shop_address TEXT, images BLOB)");
+  await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT, city TEXT, brand TEXT)");
     await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
-    await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0)");
+    await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0,body BLOB)");
     await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,shopCity TEXT,posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,userId TEXT,posted INTEGER DEFAULT 0,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
-    await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT)");
     await db.execute("CREATE TABLE products(id NUMBER, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
     await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE orderDetailsData(id INTEGER,order_no TEXT, product_name TEXT, quantity_booked INTEGER, user_id TEXT, price INTEGER)");
@@ -456,28 +456,63 @@ _onCreate(Database db, int version) async {
             alternativePhoneNo: i['alternativePhoneNo'].toString(),
             latitude: i['latitude'].toString(),
              longitude: i['longitude'].toString(),
-             userId: i['userId'].toString()
+             userId: i['userId'].toString(),
+          body: i['body'] != null && i['body'].toString().isNotEmpty
+              ? Uint8List.fromList(base64Decode(i['body'].toString()))
+              : Uint8List(0),
 
         );
-        var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshop/post/',);
-        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/',);
 
-
-        if (result == true && result1 == true) {
-         // await db.rawQuery("UPDATE attendanceOut SET posted = 1 WHERE id = '${i['id']}'");
-
-          await db.rawUpdate("UPDATE shop SET posted = 1 WHERE id = ?", [i['id']]);
+          // Print image path before trying to create the file
+          if (kDebugMode) {
+            print("Image Path from Database: ${i['body']}");
+          }
+          if (kDebugMode) {
+            print("lat:${i['latitude']}");
+          }
+          // Declare imageBytes outside the if block
+          Uint8List imageBytes;
+          final directory = await getApplicationDocumentsDirectory();
+          final filePath = File('${directory.path}/captured_image.jpg');
+          if (filePath.existsSync()) {
+            // File exists, proceed with reading the file
+            List<int> imageBytesList = await filePath.readAsBytes();
+            imageBytes = Uint8List.fromList(imageBytesList);
+          } else {
+            if (kDebugMode) {
+              print("File does not exist at the specified path: ${filePath.path}");
+            }
+            continue; // Skip to the next iteration if the file doesn't exist
+          }
+          // Print information before making the API request
+          if (kDebugMode) {
+            print("Making API request for shop visit ID: ${v.id}");
+          }
+          https://apex.oracle.com/pls/apex/metaa/addshop/post/
+          http://103.149.32.30:8080/ords/metaxperts/addshop/post/
+          var result1 = await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaa/addshop/post/', imageBytes,);
+          var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/', imageBytes,);
+          if (result == true && result1 == true) {
+            await db.rawQuery('DELETE FROM shop WHERE id = ${i['id']}');
+            if (kDebugMode) {
+              print("Successfully posted data for shop visit ID: ${v.id}");
+            }
+          }
+          else {
+            if (kDebugMode) {
+              print("Failed to post data for shop visit ID: ${v.id}");
+            }
+          }
         }
+
       }
-    }
-    }catch (e) {
+    } catch (e) {
       if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        print("Error processing shop visit data: $e");
       }
       return;
     }
   }
-
 
   Future<bool> entershopdata(String shopName) async {
     final Database db = await initDatabase();

@@ -1,19 +1,15 @@
 import 'dart:async' show Future, Timer;
 import 'dart:io' show InternetAddress, Platform, SocketException;
-
 import 'dart:ui' show DartPluginRegistrant;
-
 import 'package:device_info_plus/device_info_plus.dart' show DeviceInfoPlugin;
 import 'package:firebase_core/firebase_core.dart' show Firebase;
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart' show MaterialApp, WidgetsFlutterBinding, runApp;
 import 'package:flutter/services.dart' show SystemChannels;
 import 'package:flutter_background/flutter_background.dart';
-
 import 'package:flutter_background_service/flutter_background_service.dart' show AndroidConfiguration, FlutterBackgroundService, IosConfiguration, ServiceInstance;
 import 'package:flutter_background_service_android/flutter_background_service_android.dart' show AndroidServiceInstance;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails;
-
 import 'package:order_booking_shop/Tracker/trac.dart' show startTimer;
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
 import 'package:order_booking_shop/location00.dart' show LocationService;
@@ -25,7 +21,6 @@ import 'API/Globals.dart';
 import 'Databases/DBHelper.dart';
 import 'Views/splash_screen.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-
 import 'package:upgrader/upgrader.dart' show Upgrader;
 
 Future<void> main() async {
@@ -49,7 +44,6 @@ Future<void> main() async {
 
   // await BackgroundLocator.initialize();
 
-
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   runApp(
@@ -59,6 +53,7 @@ Future<void> main() async {
     ),
   );
 }
+
 Future<void> _requestPermissions() async {
   // Request notification permission
   if (await Permission.notification.request().isDenied) {

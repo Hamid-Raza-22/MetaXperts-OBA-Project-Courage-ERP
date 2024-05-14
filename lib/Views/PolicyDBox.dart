@@ -23,11 +23,17 @@ class PolicyDialog extends StatelessWidget {
           ),
 
           const Text(
-            "- The app requires access to your camera for post image to server through APIs.",
+            "- This app requires access to your camera for post image to server through APIs.",
             style: TextStyle(fontSize: 14),
           ),
           const Text(
-            "- The app uses APIs for share app data into server.",
+            "- This app uses APIs for share app data into server.",
+            style: TextStyle(fontSize: 14),
+          ), const Text(
+            "- This app uses storage for store app data.",
+            style: TextStyle(fontSize: 14),
+          ),const Text(
+            "- This app use battery for background services.",
             style: TextStyle(fontSize: 14),
           ),
           // Add more permissions and APIs here as needed
