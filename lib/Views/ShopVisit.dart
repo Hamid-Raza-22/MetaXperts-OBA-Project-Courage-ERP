@@ -1,6 +1,6 @@
 import 'dart:convert' show base64Decode;
 import 'package:flutter/foundation.dart' show Key, Uint8List, kDebugMode;
-import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueNotifier, Widget, imageCache;
+import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, Form, FormState, GestureDetector, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, imageCache;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -18,7 +18,6 @@ import 'package:order_booking_shop/View_Models/StockCheckItems.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
 import '../Databases/DBHelper.dart';
@@ -40,11 +39,11 @@ class ShopImageController extends GetxController {
   }
   Future<void> loadImageFile(String base64Image) async {
     Uint8List bytesImage = base64Decode(base64Image);
-    await Future.delayed(const Duration(seconds: 5));
+    // await Future.delayed(const Duration(seconds: 5));
 
     final tempDir = await getTemporaryDirectory();
     final file = await File('${tempDir.path}/image.jpg').writeAsBytes(bytesImage);
-    await Future.delayed(const Duration(seconds: 2));
+    // await Future.delayed(const Duration(seconds: 2));
 
     // Update the _shopimageFile value using the controller
 
@@ -53,10 +52,15 @@ class ShopImageController extends GetxController {
     update();
 
     if (kDebugMode) {
-      print('Shop Image File: $shopImageFile');
+      print('Shop Image File: ${_shopimageFile.value}');
+      print('Shop Image File: $_shopimageFile');
     }
   }
+  void clearShopImageFile() {
+    _shopimageFile.value = null;
+  }
 }
+
 
 class ShopVisit extends StatefulWidget {
 
@@ -83,7 +87,7 @@ class ShopVisitState extends State<ShopVisit> {
   TextEditingController ShopAddressController = TextEditingController();
 
   final ShopImageController _shopImageController = Get.put(ShopImageController());
-   final Rx<File?> _shopimageFile = Rx<File?>(null); // Use Rx to manage File state
+  final Rx<File?> shopimageFile = Rx<File?>(null); // Use Rx to manage File state
   final TextEditingController _searchController = TextEditingController();
   List<DataRow> filteredRows = [];
   final shopisitViewModel = Get.put(ShopVisitViewModel());
@@ -133,7 +137,7 @@ class ShopVisitState extends State<ShopVisit> {
   bool isButtonPressed = false;
   bool isButtonPressed2 = false;
   List<DataRow> rows = [];
-
+  final FocusNode _shopNameFocusNode = FocusNode();
   // Uint8List? _imageBytes;
   void filterData(String query) {
     if (query.isEmpty) {
@@ -168,8 +172,9 @@ class ShopVisitState extends State<ShopVisit> {
     super.initState();
     data();
     // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
-    ValueNotifier<String> shopNameNotifier = ValueNotifier<String>(selectedItem);
-   shopNameNotifier = ValueNotifier<String>(selectedItem);
+  shopNameNotifier = ValueNotifier<String>(selectedItem);
+
+
     //selectedDropdownValue = dropdownItems[0]; // Default value
     _fetchBrandItemsFromDatabase();
     //fetchShopData();
@@ -180,7 +185,24 @@ class ShopVisitState extends State<ShopVisit> {
     fetchProductsNamesByBrand();
     saveCurrentLocation();
     _checkUserIdAndFetchShopNames();
-    shopNameNotifier.addListener(updateShopImage);
+    shopNameNotifier.addListener(() {
+      updateShopImage();
+      if (kDebugMode) {
+        print('shopNameNotifier value changed to: ${shopNameNotifier.value}');
+      }
+    });
+    shopNameNotifier.addListener(() {
+      _onProductChange();
+      if (kDebugMode) {
+        print('State changed ');
+      }});
+    // Add listener to FocusNode
+    _shopNameFocusNode.addListener(() {
+      if (_shopNameFocusNode.hasFocus) {
+        _shopImageController.clearShopImageFile();
+        ShopNameController.clear();
+      }
+    });
    // _shopimageFile.value;
    //  _shopImageController._shopimageFile;
     // productsController.controllers.clear();
@@ -382,31 +404,40 @@ class ShopVisitState extends State<ShopVisit> {
   }
 
 
-  // Method to build the Stack widget
   Widget buildShopImageStack() {
-    return Obx(() => Stack(
-      alignment: Alignment.center,
+    return ValueListenableBuilder<String>(
+      valueListenable: shopNameNotifier,
+      builder: (context, shopName, child) {
+        return Obx(() => Stack(
+          alignment: Alignment.center,
+          children: [
+            if (_shopImageController.shopImageFile != null)
+              Center(
+                child: Image.file(
+                  _shopImageController.shopImageFile!,
+                  height: 200,
+                  width: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            if (_shopImageController.shopImageFile == null)
+              Center(
+                child: Container(
+                  height: 200,
+                  width: 200,
+                  color: Colors.grey,
+                  child: const Icon(
+                    Icons.camera_alt,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
 
-      children: [
-        if (_shopImageController.shopImageFile != null)
-
-          Center(
-
-            child: Image.file(
-              _shopImageController.shopImageFile!,
-              height: 200,
-              width: 200,
-              fit: BoxFit.cover,
-            ),
-          ),
-        if (_shopImageController.shopImageFile == null)
-          const Icon(
-            Icons.warning,
-            color: Colors.red,
-            size: 48,
-          ),
-      ],
-    ));
+          ],
+        ));
+      },
+    );
   }
   Future<void> updateShopImage() async {
     for (var owner in shopOwners) {
@@ -418,15 +449,24 @@ class ShopVisitState extends State<ShopVisit> {
         ShopAddressController.text = selectedShopAddress ?? 'Not Address';
         String base64Image = owner['images'];
        await _shopImageController.loadImageFile(base64Image);
+
+       await _onProductChange();
         buildShopImageStack();
-        _onProductChange();
+
       }
     }
   }
-  void _onProductChange() {
+  Future<void> _onProductChange() async {
     setState(() {}); // Update UI when products change
   }
+  @override
+  void dispose() {
+    _shopImageController.clearShopImageFile();
+    ShopNameController.dispose(); // Clear the text in the shop name field
 
+    _shopNameFocusNode.dispose(); // Dispose the FocusNode
+    super.dispose();
+  }
   @override
 
     Widget build(BuildContext context) {
@@ -463,10 +503,17 @@ class ShopVisitState extends State<ShopVisit> {
                       'Shop Name',
                       style: TextStyle(fontSize: 16, color: Colors.black),
                     ),
-                    SizedBox(
+                 GestureDetector(
+                  onTap: () {
+                    _shopImageController.clearShopImageFile();
+                    ShopNameController.clear();
+                  },
+                  child: SizedBox(
                       height: 30,
                       child: TypeAheadField<String>(
                         textFieldConfiguration: TextFieldConfiguration(
+
+                          focusNode: _shopNameFocusNode, // Assign the focus node here
                           controller: TextEditingController(text: selectedItem),
                           decoration: InputDecoration(
                             enabled: false,
@@ -497,8 +544,6 @@ class ShopVisitState extends State<ShopVisit> {
                               shopNameNotifier.value = selectedItem; // Update the shop name
                             });
                             updateShopImage();
-
-
 
                             productsController.rows;
                             productsController.fetchProducts();
@@ -541,7 +586,7 @@ class ShopVisitState extends State<ShopVisit> {
                           }
                         },
                       ),
-                    ),
+                    ),),
                     const SizedBox(height: 10.0),
                     const Align(
                       alignment: Alignment.centerLeft,

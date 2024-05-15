@@ -619,14 +619,14 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () {
-                             // if (isClockedIn) {
+                             if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => const ShopPage(),
                                   ),
                                 );
-                            //  } else {
+                             } else {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -640,7 +640,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                     ],
                                   ),
                                 );
-                           //   }
+                             }
                             },
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white, backgroundColor: Colors.green,
@@ -674,14 +674,14 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           child: ElevatedButton(
                             onPressed: () {
 
-                              // if (isClockedIn) {
+                              if (isClockedIn) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => const ShopVisit(),
                                   ),
                                 );
-                              // } else {
+                              } else {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -695,7 +695,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                     ],
                                   ),
                                 );
-                              // }
+                              }
                              },
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.white, backgroundColor: Colors.green,
