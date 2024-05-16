@@ -369,5 +369,18 @@ Future<dynamic> getApi(dynamic url) async {
       }
     }
   }
+  Future<List<dynamic>?> getupdateData(dynamic url) async {
+    try {
+      final response = await http.get(Uri.parse(url));
 
+      if (response.statusCode == 200) {
+        final dynamic data = jsonDecode(response.body);
+        return data['items']; // Assuming the App data is under the 'items' key in the response
+      } else {
+        throw Exception('Failed to load  update data');
+      }
+    } catch (e) {
+      throw Exception('Error fetching update data:$e');
+     }
+    }
 }

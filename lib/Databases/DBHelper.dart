@@ -39,7 +39,7 @@ class DBHelper {
     return db;
   }
 _onCreate(Database db, int version) async {
-  await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT, shop_address TEXT, images BLOB)");
+  await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT, shop_address TEXT,created_date TEXT, user_id TEXT, images BLOB)");
   await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT, city TEXT, brand TEXT)");
     await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
     await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0,body BLOB)");

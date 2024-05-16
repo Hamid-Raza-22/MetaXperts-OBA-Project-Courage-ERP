@@ -11,6 +11,7 @@ import 'package:order_booking_shop/API/Globals.dart' show currentPostId, isClock
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
+import '../API/newDatabaseOutPuts.dart';
 import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -496,14 +497,14 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
                               if (isConnected) {
                                 // Internet connection is available
-                                DatabaseOutputs outputs = DatabaseOutputs();
+                                newDatabaseOutputs outputs = newDatabaseOutputs();
                                 // Run both functions in parallel
                                 showLoadingIndicator(context);
                                 await Future.wait([
                           //        Future.delayed(Duration(seconds: 10)),
                                   backgroundTask(),
                                   outputs.checkFirstRun(),
-                                  outputs.initializeDatalogin()
+                                 // outputs.initializeDatalogin()
                                 ]);
                                 // After 10 seconds, hide the loading indicator and perform the refresh logic
                                 Navigator.of(context, rootNavigator: true).pop();

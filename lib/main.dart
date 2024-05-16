@@ -337,7 +337,7 @@ backgroundTask() async {
         print('Internet connection is available. Initiating background data synchronization.');
       }
       await synchronizeData();
-      await outputs.initializeDatalogin();
+      // await outputs.initializeDatalogin();
 
   if (kDebugMode) {
     print('Background data synchronization completed.');

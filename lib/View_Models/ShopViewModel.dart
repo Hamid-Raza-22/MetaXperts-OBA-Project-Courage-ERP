@@ -1,5 +1,6 @@
 import 'dart:convert' show base64Encode;
 import 'package:get/get.dart';
+import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Models/ShopModel.dart';
 import 'package:order_booking_shop/Repositories/ShopRepository.dart';
 
@@ -45,6 +46,8 @@ class ShopViewModel extends GetxController{
       'phone_no': shopModel.phoneNo,
       'city': shopModel.city,
       'shop_address': shopModel.shopAddress,
+      'user_id':shopModel.userId,
+     // 'created_date':
       'images': base64Image
     });
 
