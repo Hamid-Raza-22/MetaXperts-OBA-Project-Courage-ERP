@@ -18,8 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    newDatabaseOutputs outputs = newDatabaseOutputs();
-    outputs.checkFirstRun();
+
     Timer(const Duration(seconds: 2), () async {
       bool isLoggedIn = await _checkLoginStatus();
 

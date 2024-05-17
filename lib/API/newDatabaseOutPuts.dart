@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Databases/DBHelper.dart';
-import '../main.dart';
 import 'ApiServices.dart';
+
 
 class newDatabaseOutputs {
   Future<void> checkFirstRun() async {
@@ -22,37 +22,22 @@ class newDatabaseOutputs {
         print(formattedDateTime);
       }
     } else {
+      if (kDebugMode) {
+        print("UPDATING.......................................");
+      }
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? formattedDateTime = prefs.getString('lastInitializationDateTime');
       await updateAllDatabase();
       DateTime now = DateTime.now();
       formattedDateTime = DateFormat('dd-MMM-yyyy-HH:mm:ss').format(now);
       await prefs.setString('lastInitializationDateTime', formattedDateTime);
-      if (kDebugMode) {
-        print(formattedDateTime);
-        print("UPDATING.......................................");
-      }
+      // print(formattedDateTime);
     }
   }
-
-  Future<void> initializeData() async {
+  Future<void> initializeLoginData() async {
     final api = ApiServices();
     final db = DBHelper();
-    var Productdata = await db.getProductsDB();
-    var OrderMasterdata = await db.getOrderMasterDB();
-    var OrderDetailsdata = await db.getOrderDetailsDB();
-    // var NetBalancedata = await db.getNetBalanceDB();
-    // var Accountsdata = await db.getAccoutsDB();
-    var OrderBookingStatusdata = await db.getOrderBookingStatusDB();
-    var Owerdata = await db.getOwnersDB();
     var Logindata = await db.getAllLogins();
-    var PCdata = await db.getAllPCs();
-    var RecoveryFormGetData = await db.getRecoverydataDB();
-
-    //https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/muhammad_usman/login/get/
-    // https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/
-    // var username = 'yxeRFdCC0wjh1BYjXu1HFw..';
-    // var password = 'KG-oKSMmf4DhqtFNmVtpMw..';
 
     if (Logindata == null || Logindata.isEmpty) {
       bool inserted = false;
@@ -96,6 +81,68 @@ class newDatabaseOutputs {
         }
       }
     }
+  }
+  Future<void> initializeData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    var Productdata = await db.getProductsDB();
+    var OrderMasterdata = await db.getOrderMasterDB();
+    var OrderDetailsdata = await db.getOrderDetailsDB();
+    // var NetBalancedata = await db.getNetBalanceDB();
+    // var Accountsdata = await db.getAccoutsDB();
+    var OrderBookingStatusdata = await db.getOrderBookingStatusDB();
+    var Owerdata = await db.getOwnersDB();
+   // var Logindata = await db.getAllLogins();
+    var PCdata = await db.getAllPCs();
+    var RecoveryFormGetData = await db.getRecoverydataDB();
+
+    //https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/muhammad_usman/login/get/
+    // https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/
+    // var username = 'yxeRFdCC0wjh1BYjXu1HFw..';
+    // var password = 'KG-oKSMmf4DhqtFNmVtpMw..';
+
+    // if (Logindata == null || Logindata.isEmpty) {
+    //   bool inserted = false;
+    //
+    //   try {
+    //     var response = await api.getApi(
+    //         "http://103.149.32.30:8080/ords/metaxperts/login/get/");
+    //     inserted = await db.insertLogin(response); // returns True or False
+    //
+    //     if (inserted == true) {
+    //       if (kDebugMode) {
+    //         print("Login Data inserted successfully using first API.");
+    //       }
+    //     } else {
+    //       throw Exception("Error inserting data using first API.");
+    //     }
+    //   } catch (e) {
+    //     if (kDebugMode) {
+    //       print("Error with first API. Trying second API.");
+    //     }
+    //
+    //     try {
+    //       var response = await api.getApi(
+    //           "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
+    //       inserted = await db.insertLogin(response); // returns True or False
+    //
+    //       if (inserted) {
+    //         if (kDebugMode) {
+    //           print("Login Data inserted successfully using second API.");
+    //         }
+    //       } else {
+    //         if (kDebugMode) {
+    //           print("Error inserting data using second API.");
+    //         }
+    //       }
+    //     } catch (e) {
+    //       if (kDebugMode) {
+    //         print(
+    //             "Error with second API as well. Unable to fetch or insert login data.");
+    //       }
+    //     }
+    //   }
+    // }
 
     if (Owerdata == null || Owerdata.isEmpty) {
       try {
@@ -213,12 +260,11 @@ class newDatabaseOutputs {
 
     if (OrderMasterdata == null || OrderMasterdata.isEmpty) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userid = prefs.getString('userId');
-      String? id = userid;
+      String? userId = prefs.getString('userId');
+      String? id = userId;
       try {
         var response1 = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/masterget1/get/$id");
-
         var results1 = await db.insertOrderMasterData1(
             response1); //return True or False
         if (results1) {
@@ -250,8 +296,8 @@ class newDatabaseOutputs {
 
     if (OrderDetailsdata == null || OrderDetailsdata.isEmpty) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userid = prefs.getString('userId');
-      String? id = userid;
+      String? userId = prefs.getString('userId');
+      String? id = userId;
       try {
         var response1 = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/detailsget/get/$id");
@@ -420,16 +466,16 @@ class newDatabaseOutputs {
   }
 
   Future<void> updateAllDatabase() async {
-    await updateloginData();
-    await updateOwnerData();
-    await updateorderBookingStatusData();
-    await updateproductCategoryData();
-    await updateProductsData();
-    await updateorderMasterData();
-    await updateorderDetailsData();
-    await updateaccountsData();
-    await updatenetBalanceData();
-    await updaterecoveryFormGetData();
+  // /*   updateloginData();
+  //    updateOwnerData();*/
+     updateorderBookingStatusData();
+     // updateproductCategoryData();
+     // updateProductsData();
+     updateorderMasterData();
+     updateorderDetailsData();
+     // updateaccountsData();
+     // updatenetBalanceData();
+     // updaterecoveryFormGetData();
   }
 
   Future<void> updateloginData() async {
@@ -651,34 +697,40 @@ class newDatabaseOutputs {
   Future<void> updateorderBookingStatusData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? formattedDateTime = prefs.getString('lastInitializationDateTime');
-
+    String? id = prefs.getString('userId');
     if (formattedDateTime != null) {
       String timedate = formattedDateTime;
+      String? idd = id;
       if (kDebugMode) {
         print(timedate);
       }
-      final api = ApiServices();
       final db = DBHelper();
-
+      final api = ApiServices();
+      // Fetch data from the API
       var orderBookingStatusData = await api.getupdateData(
-          "http://103.149.32.30:8080/ords/metaxperts/statusget1/get/$timedate");
-
-      if (orderBookingStatusData != null && orderBookingStatusData.isNotEmpty) {
-        bool inserted = await db.insertOrderBookingStatusData1(
-            orderBookingStatusData);
-        if (inserted) {
-          if (kDebugMode) {
-            print("login updated inserted successfully into local database.");
-            print("Inserted data: $orderBookingStatusData");
+          "http://103.149.32.30:8080/ords/metaxperts/statusgettime/get/$idd/$timedate");
+      if ( orderBookingStatusData!= null && orderBookingStatusData.isNotEmpty) {
+        // Get data from local database
+        final localData = await db.getallOrderBookingStatusDB();
+        // Compare API response with local data and update local database
+        for (var newData in orderBookingStatusData) {
+          bool dataExistsLocally = false;
+          for (var localDatum in localData!) {
+            if (localDatum['order_no'] == newData['order_no']) {
+              dataExistsLocally = true;
+              break;
+            }
           }
-        } else {
-          if (kDebugMode) {
-            print("Error inserting login updated into local database.");
+          if (!dataExistsLocally) {
+            try {
+              await db.insertOrderBookingStatusData1([newData]);
+              if (kDebugMode) {
+                print("New data inserted into ordere status local database: $newData");
+              }
+            } catch (e) {
+              print("Error inserting new data into local database: $e");
+            }
           }
-        }
-      } else {
-        if (kDebugMode) {
-          print("No login updated data available for the timedate: $timedate");
         }
       }
     }
@@ -690,48 +742,97 @@ class newDatabaseOutputs {
     }
   }
 
-  Future<void> updatenetBalanceData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? formattedDateTime = prefs.getString('lastInitializationDateTime');
 
-    if (formattedDateTime != null) {
-      String timedate = formattedDateTime;
-      if (kDebugMode) {
-        print(timedate);
-      }
-      final api = ApiServices();
-      final db = DBHelper();
+      // Future<void> updateorderBookingStatusData() async {
+      //   SharedPreferences prefs = await SharedPreferences.getInstance();
+      //   String? formattedDateTime = prefs.getString(
+      //       'lastInitializationDateTime');
+      //
+      //   if (formattedDateTime != null) {
+      //     String timedate = formattedDateTime;
+      //     if (kDebugMode) {
+      //       print(timedate);
+      //     }
+      //     final api = ApiServices();
+      //     final db = DBHelper();
+      //
+      //     var orderBookingStatusData = await api.getupdateData(
+      //         "http://103.149.32.30:8080/ords/metaxperts/statusget1/get/$timedate");
+      //
+      //     if (orderBookingStatusData != null &&
+      //         orderBookingStatusData.isNotEmpty) {
+      //       bool inserted = await db.insertOrderBookingStatusData1(
+      //           orderBookingStatusData);
+      //       if (inserted) {
+      //         if (kDebugMode) {
+      //           print(
+      //               "login updated inserted successfully into local database.");
+      //           print("Inserted data: $orderBookingStatusData");
+      //         }
+      //       } else {
+      //         if (kDebugMode) {
+      //           print("Error inserting login updated into local database.");
+      //         }
+      //       }
+      //     } else {
+      //       if (kDebugMode) {
+      //         print(
+      //             "No login updated data available for the timedate: $timedate");
+      //       }
+      //     }
+      //   }
+      //   else {
+      //     // Handle the case where the value is not found in SharedPreferences
+      //     if (kDebugMode) {
+      //       print('No formatted date and time found in SharedPreferences');
+      //     }
+      //   }
+      // }
 
-      var netBalance = await api.getupdateData(
-          "http://103.149.32.30:8080/ords/metaxperts/balance1/get/$timedate");
+      Future<void> updatenetBalanceData() async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String? formattedDateTime = prefs.getString(
+            'lastInitializationDateTime');
 
-      if (netBalance != null && netBalance.isNotEmpty) {
-        bool inserted = await db.insertNetBalanceData(netBalance);
-        if (inserted) {
+        if (formattedDateTime != null) {
+          String timedate = formattedDateTime;
           if (kDebugMode) {
-            print(
-                "netBalance updated inserted successfully into local database.");
-            print("Inserted data: $netBalance");
+            print(timedate);
           }
-        } else {
-          if (kDebugMode) {
-            print("Error inserting netBalance updated into local database.");
+          final api = ApiServices();
+          final db = DBHelper();
+
+          var netBalance = await api.getupdateData(
+              "http://103.149.32.30:8080/ords/metaxperts/balance1/get/$timedate");
+
+          if (netBalance != null && netBalance.isNotEmpty) {
+            bool inserted = await db.insertNetBalanceData(netBalance);
+            if (inserted) {
+              if (kDebugMode) {
+                print(
+                    "netBalance updated inserted successfully into local database.");
+                print("Inserted data: $netBalance");
+              }
+            } else {
+              if (kDebugMode) {
+                print(
+                    "Error inserting netBalance updated into local database.");
+              }
+            }
+          } else {
+            if (kDebugMode) {
+              print(
+                  "No netBalance updated data available for the timedate: $timedate");
+            }
           }
         }
-      } else {
-        if (kDebugMode) {
-          print(
-              "No netBalance updated data available for the timedate: $timedate");
+        else {
+          // Handle the case where the value is not found in SharedPreferences
+          if (kDebugMode) {
+            print('No formatted date and time found in SharedPreferences');
+          }
         }
       }
-    }
-    else {
-      // Handle the case where the value is not found in SharedPreferences
-      if (kDebugMode) {
-        print('No formatted date and time found in SharedPreferences');
-      }
-    }
-  }
 
   Future<void> updateaccountsData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

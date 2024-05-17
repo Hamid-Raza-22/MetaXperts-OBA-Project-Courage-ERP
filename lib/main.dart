@@ -18,12 +18,14 @@ import 'package:shared_preferences/shared_preferences.dart' show SharedPreferenc
 import 'package:workmanager/workmanager.dart' show Workmanager;
 import 'API/DatabaseOutputs.dart';
 import 'API/Globals.dart';
+import 'API/newDatabaseOutPuts.dart';
 import 'Databases/DBHelper.dart';
 import 'Views/splash_screen.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:upgrader/upgrader.dart' show Upgrader;
 
 Future<void> main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
   // Upgrader;
   // // AndroidAlarmManager.initialize();
@@ -33,6 +35,8 @@ Future<void> main() async {
   //
   // // Enable background execution
   // await FlutterBackground.enableBackgroundExecution();
+  newDatabaseOutputs outputs = newDatabaseOutputs();
+ outputs.initializeLoginData();
 
   // Request notification permissions
   await _requestPermissions();

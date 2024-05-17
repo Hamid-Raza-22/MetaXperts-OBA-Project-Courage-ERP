@@ -1084,17 +1084,17 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     if (kDebugMode) {
       print('Synchronizing data in the background.');
     }
-    await postAttendanceTable();
-    await postAttendanceOutTable();
-    await postShopTable();
-    await postShopVisitData();
-    await postStockCheckItems();
-    await postMasterTable();
-    await postOrderDetails();
-    await postReturnFormTable();
-    await postReturnFormDetails();
-    await postRecoveryFormTable();
-    await postLocationData();
+     postAttendanceTable();
+     postAttendanceOutTable();
+     postShopTable();
+     postShopVisitData();
+     postStockCheckItems();
+     postMasterTable();
+     postOrderDetails();
+     postReturnFormTable();
+     postReturnFormDetails();
+     postRecoveryFormTable();
+     postLocationData();
   }
 
   Future<void> postShopVisitData() async {

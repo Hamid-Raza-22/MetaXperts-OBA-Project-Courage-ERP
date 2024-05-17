@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, Center, Colors, Column, Container, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, MainAxisAlignment, MaterialPageRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, Text, TextEditingController, TextFormField, TextStyle, Widget, showDialog;
+import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, Center, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, MainAxisAlignment, MaterialPageRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, Text, TextEditingController, TextFormField, TextStyle, Widget;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
-import 'package:internet_connection_checker/internet_connection_checker.dart' show InternetConnectionChecker;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
-import '../API/Globals.dart' show userNames;
+import '../API/Globals.dart' show userId, userNames;
+import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/loginModel.dart';
-import 'PolicyDBox.dart' show PolicyDialog;
+import '../main.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -22,6 +22,8 @@ class LoginFormState extends State<LoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,22 +37,33 @@ class LoginFormState extends State<LoginForm> {
     // outputs.initializeData();
   }
   final dblogin = DBHelper();
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLoading = true; // Set loading to true when button is pressed
+    });
+
+    bool isConnected = await isInternetAvailable();
+    if (isConnected) {
+      await _login();
+    } else {
+      Fluttertoast.showToast(
+        msg: "No internet connection.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+
+    setState(() {
+      _isLoading = false; // Set loading to false after login function is complete
+    });
+  }
+
   _login() async {
     bool isLoggedIn = await _checkLoginStatus();
 
-    if (isLoggedIn) {
-      Map<String, dynamic> dataToPass = {
-        'userName': userNames
-      };
-      // User is already logged in, navigate to the home page directly
-      Navigator.of(context).push(
-        MaterialPageRoute(
-            builder: (context) => const HomePage(),
-            settings: RouteSettings(arguments: dataToPass)
-        ),
-      );
-      return;
-    }
     var response = await dblogin.login(
       Users(user_id: _emailController.text, password: _passwordController.text, user_name: ''),
     );
@@ -58,12 +71,10 @@ class LoginFormState extends State<LoginForm> {
       var userName = await dblogin.getUserName(_emailController.text);
       var userCity = await dblogin.getUserCity(_emailController.text);
       var designation = await dblogin.getUserDesignation(_emailController.text);
-
       if (userName != null && userCity != null && designation!= null) {
         if (kDebugMode) {
           print('User Name: $userName, City: $userCity, Designation: $designation');
         }
-
         // Store user inputs in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('userId', _emailController.text);
@@ -78,13 +89,27 @@ class LoginFormState extends State<LoginForm> {
           print('Saved userCitys: ${prefs.getString('userCitys')}');
           print('Saved userDesignation: ${prefs.getString('userDesignation')}');
         }
-
-
         Map<String, dynamic> dataToPass = {
           'userName': userName,
         };
-
-
+        if (kDebugMode) {
+          print("userId: $userId");
+        }
+        newDatabaseOutputs outputs = newDatabaseOutputs();
+        await outputs.checkFirstRun();
+        if (isLoggedIn) {
+          Map<String, dynamic> dataToPass = {
+            'userName': userNames
+          };
+          // User is already logged in, navigate to the home page directly
+          Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (context) => const HomePage(),
+                settings: RouteSettings(arguments: dataToPass)
+            ),
+          );
+          return;
+        }
 
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -248,24 +273,42 @@ class LoginFormState extends State<LoginForm> {
                 SizedBox(
                   height: 40,
                   width: 200,
+                  // child: ElevatedButton(
+                  //   onPressed: () async {
+                  //     bool isConnected = await isInternetAvailable();
+                  //     if(isConnected){
+                  //     await _login();
+                  //   }else{
+                  //       Fluttertoast.showToast(
+                  //         msg: "No internet connection.",
+                  //         toastLength: Toast.LENGTH_SHORT,
+                  //         gravity: ToastGravity.BOTTOM,
+                  //         backgroundColor: Colors.red,
+                  //         textColor: Colors.white,
+                  //         fontSize: 16.0,
+                  //       );
+                  //     }
+                  //     },
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: Colors.green,
+                  //     foregroundColor: Colors.black,
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(14.0),
+                  //     ),
+                  //   ),
+                  //   child: const Row(
+                  //     mainAxisAlignment: MainAxisAlignment.center,
+                  //     children: [
+                  //       Text(
+                  //         'Login',
+                  //         style: TextStyle(fontSize: 18),
+                  //       ),
+                  //       Icon(Icons.arrow_forward),
+                  //     ],
+                  //   ),
+                  // ),
                   child: ElevatedButton(
-                    onPressed: () async {
-                      bool isConnected = await InternetConnectionChecker().hasConnection;
-                      if(isConnected){
-                      _login();
-                       // DatabaseOutputs outputs = DatabaseOutputs();
-                       // outputs.checkFirstRun();
-                    }else{
-                        Fluttertoast.showToast(
-                          msg: "No internet connection.",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          backgroundColor: Colors.red,
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
-                      }
-                      },
+                    onPressed: _isLoading ? null : _handleLogin, // Disable button if loading
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.black,
@@ -273,7 +316,9 @@ class LoginFormState extends State<LoginForm> {
                         borderRadius: BorderRadius.circular(14.0),
                       ),
                     ),
-                    child: const Row(
+                    child: _isLoading // Show loading indicator if isLoading is true
+                        ? const CircularProgressIndicator()
+                        : const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
