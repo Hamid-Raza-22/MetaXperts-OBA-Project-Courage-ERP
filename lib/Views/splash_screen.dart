@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
+import '../API/newDatabaseOutPuts.dart';
 import 'login.dart';
 
 
@@ -17,8 +18,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    DatabaseOutputs outputs = DatabaseOutputs();
-    outputs.initializeData();
+    newDatabaseOutputs outputs = newDatabaseOutputs();
+    outputs.checkFirstRun();
     Timer(const Duration(seconds: 2), () async {
       bool isLoggedIn = await _checkLoginStatus();
 

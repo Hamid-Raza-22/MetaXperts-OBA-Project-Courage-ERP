@@ -34,17 +34,13 @@ class LoginFormState extends State<LoginForm> {
     // DatabaseOutputs outputs = DatabaseOutputs();
     // outputs.initializeData();
   }
-
   final dblogin = DBHelper();
-
   _login() async {
     bool isLoggedIn = await _checkLoginStatus();
 
     if (isLoggedIn) {
       Map<String, dynamic> dataToPass = {
-
         'userName': userNames
-
       };
       // User is already logged in, navigate to the home page directly
       Navigator.of(context).push(
@@ -58,8 +54,6 @@ class LoginFormState extends State<LoginForm> {
     var response = await dblogin.login(
       Users(user_id: _emailController.text, password: _passwordController.text, user_name: ''),
     );
-
-
     if (response == true) {
       var userName = await dblogin.getUserName(_emailController.text);
       var userCity = await dblogin.getUserCity(_emailController.text);
@@ -117,13 +111,10 @@ class LoginFormState extends State<LoginForm> {
     return userDesignation!= null && userId != null && userId.isNotEmpty && userCitys!=null && userCitys.isNotEmpty && userNames!=null && userNames.isNotEmpty;
   }
 
-
-
   // void _setFirstLoginStatus(bool value) async {
   //   SharedPreferences prefs = await SharedPreferences.getInstance();
   //   prefs.setBool('isFirstLogin', value);
   // }
-
 
   @override
   Widget build(BuildContext context) {
