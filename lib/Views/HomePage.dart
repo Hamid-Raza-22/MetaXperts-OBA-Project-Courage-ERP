@@ -763,8 +763,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                   ),
                                 );
                               } else {
-                                DatabaseOutputs outputs = DatabaseOutputs();
-                                await  outputs.checkFirstRunAccounts();
+                                newDatabaseOutputs outputs = newDatabaseOutputs();
+                               // await  outputs.checkFirstRunAccounts();
 
                                await Navigator.push(context, MaterialPageRoute(
                                     builder: (context) => const ReturnFormPage()));

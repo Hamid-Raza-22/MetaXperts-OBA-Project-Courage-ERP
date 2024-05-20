@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart' show Uint8List, kDebugMode;
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory, getDownloadsDirectory;
-import 'package:sqflite/sqflite.dart' show Database, openDatabase;
+import 'package:sqflite/sqflite.dart' show ConflictAlgorithm, Database, openDatabase;
 import 'package:path/path.dart' show join;
 import 'dart:io' as io;
 import 'dart:async' show Future;
@@ -39,19 +39,26 @@ class DBHelper {
     return db;
   }
 _onCreate(Database db, int version) async {
+
+  //   initialize with ser id and also update the data properly according to the requirments
+  await db.execute("CREATE TABLE login(user_id TEXT , password TEXT ,user_name TEXT, city TEXT, designation TEXT,images BLOB)");
+  await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT PRIMARY KEY, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT, city TEXT,brand TEXT)");
   await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT, shop_address TEXT,created_date TEXT, user_id TEXT, images BLOB)");
-  await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT, city TEXT, brand TEXT)");
-    await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
+  await db.execute("CREATE TABLE products(id NUMBER PRIMARY KEY, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
+  await db.execute("CREATE TABLE orderMasterData(order_no TEXT PRIMARY KEY, shop_name TEXT, user_id TEXT)");
+  await db.execute("CREATE TABLE orderDetailsData(id INTEGER PRIMARY KEY,order_no TEXT , product_name TEXT, quantity_booked INTEGER, user_id TEXT, price INTEGER)");
+  await db.execute("CREATE TABLE productCategory(id INTEGER,brand TEXT)");
+  await db.execute("CREATE TABLE recoveryFormGet(recovery_id TEXT, user_id TEXT)");
+  await db.execute("CREATE TABLE accounts(account_id INTEGER PRIMARY KEY, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT, user_id TEXT)");
+
+  await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
+  await db.execute("CREATE TABLE pakCities(id INTEGER,city TEXT)");
+
+  // Used for the post data
+   // await db.execute("CREATE TABLE distributors(id INTEGER PRIMARY KEY AUTOINCREMENT, bussiness_name TEXT, owner_name TEXT,brand TEXT, zone TEXT, area_name TEXT, mobile_no INTEGER)");
     await db.execute("CREATE TABLE shop(id INTEGER PRIMARY KEY AUTOINCREMENT, shopName TEXT, city TEXT,date TEXT, shopAddress TEXT, ownerName TEXT, ownerCNIC TEXT, phoneNo TEXT, alternativePhoneNo INTEGER, latitude TEXT, longitude TEXT, userId TEXT,posted INTEGER DEFAULT 0,body BLOB)");
     await db.execute("CREATE TABLE orderMaster (orderId TEXT PRIMARY KEY, date TEXT, shopName TEXT, ownerName TEXT, phoneNo TEXT, brand TEXT, userName TEXT, userId TEXT, total INTEGER, creditLimit TEXT, requiredDelivery TEXT,shopCity TEXT,posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE order_details(id INTEGER PRIMARY KEY AUTOINCREMENT,order_master_id TEXT,productName TEXT,quantity INTEGER,price INTEGER,amount INTEGER,userId TEXT,posted INTEGER DEFAULT 0,FOREIGN KEY (order_master_id) REFERENCES orderMaster(orderId))");
-    await db.execute("CREATE TABLE products(id NUMBER, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
-    await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
-    await db.execute("CREATE TABLE orderDetailsData(id INTEGER,order_no TEXT, product_name TEXT, quantity_booked INTEGER, user_id TEXT, price INTEGER)");
-    await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
-    await db.execute("CREATE TABLE accounts(account_id INTEGER, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT)");
-    await db.execute("CREATE TABLE productCategory(id INTEGER,brand TEXT)");
-    await db.execute("CREATE TABLE pakCities(id INTEGER,city TEXT)");
     await db.execute("CREATE TABLE attendance(id INTEGER PRIMARY KEY , date TEXT, timeIn TEXT, userId TEXT, latIn TEXT, lngIn TEXT, bookerName TEXT,city TEXT, designation TEXT)");
     await db.execute("CREATE TABLE attendanceOut(id INTEGER PRIMARY KEY , date TEXT, timeOut TEXT, totalTime TEXT, userId TEXT,latOut TEXT, lngOut TEXT,totalDistance TEXT, posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE recoveryForm (recoveryId TEXT, date TEXT, shopName TEXT, cashRecovery REAL, netBalance REAL, userId TEXT ,bookerName TEXT,city TEXT, brand TEXT)");
@@ -59,77 +66,697 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE return_form_details(id INTEGER PRIMARY KEY AUTOINCREMENT,returnFormId TEXT,productName TEXT,quantity TEXT,reason TEXT,bookerId TEXT,FOREIGN KEY (returnFormId) REFERENCES returnForm(returnId))");
     await db.execute("CREATE TABLE shopVisit (id TEXT PRIMARY KEY,date TEXT,shopName TEXT,userId TEXT,bookerName TEXT,brand TEXT,walkthrough TEXT,planogram TEXT,signage TEXT,productReviewed TEXT,feedback TEXT,latitude TEXT,longitude TEXT,address TEXT,body BLOB)");
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
-    await db.execute("CREATE TABLE login(user_id TEXT, password TEXT ,user_name TEXT, city TEXT, designation TEXT,images BLOB)");
-    await db.execute("CREATE TABLE recoveryFormGet (recovery_id TEXT, user_id TEXT)");
     await db.execute("CREATE TABLE location(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, fileName TEXT,userId TEXT,totalDistance TEXT,userName TEXT, posted INTEGER DEFAULT 0,body BLOB)");
 }
 
-  Future<int> updateLogin(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('login', row, where: 'user_id = ?', whereArgs: [row['user_id']]);
+  // Future<int> updateLogin(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('login', row, where: 'user_id = ?', whereArgs: [row['user_id']]);
+  // }
+  // Future<int> updateOwner(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('ownerData', row, where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  // Future<int> updateOrderBookingStutsData(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('orderBookingStatusData', row, where: 'order_no = ?', whereArgs: [row['order_no']]);
+  // }
+  // Future<int> updateRecoveryFormGetData(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('recoveryFormGet', row, where: 'recovery_id = ?', whereArgs: [row['recovery_id']]);
+  // }
+  // Future<int> updateOrderMasterData(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('orderMasterData', row, where: 'order_no = ?', whereArgs: [row['order_no']]);
+  // }
+  // Future<int> updateOrderDetailsdata(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('orderDetailsData', row, where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  // Future<int> updateProductCategorydata(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('productCategory', row, where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  // Future<int> updateProductdata(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.update('products', row, where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  //
+  // // Delete funtions
+  // Future<int> deleteLogin(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('login', where: 'user_id = ?', whereArgs: [row['user_id']]);
+  // }
+  // Future<int> deleteOwner(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('ownerData',  where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  // Future<int> deleteOrderBookingStutsData(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('orderBookingStatusData', where: 'order_no = ?', whereArgs: [row['order_no']]);
+  // }
+  // Future<int> deleteRecoveryFormGetData(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('recoveryFormGet',  where: 'recovery_id = ?', whereArgs: [row['recovery_id']]);
+  // }
+  // Future<int>deleteOrderMasterData(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('orderMasterData', where: 'order_no = ?', whereArgs: [row['order_no']]);
+  // }
+  // Future<int> deleteOrderDetailsdata(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('orderDetailsData',where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  // Future<int> deleteProductCategorydata(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('productCategory',  where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  // Future<int> deleteProductdata(Map<String, dynamic> row) async {
+  //   Database? db = await this.db;
+  //   return await db!.delete('products', where: 'id = ?', whereArgs: [row['id']]);
+  // }
+  // function for the accounts
+  Future<bool> insertAccountsData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('accounts', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting accounts data: ${e.toString()}");
+      }
+      return false;
+    }
   }
-  Future<int> updateOwner(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('ownerData', row, where: 'id = ?', whereArgs: [row['id']]);
+  Future<List<Map<String, dynamic>>?> getAllAccountsData() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> productCategory = await db.query('accounts');
+      return productCategory;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving accounts data: $e");
+      }
+      return null;
+    }
   }
-  Future<int> updateOrderBookingStutsData(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('orderBookingStatusData', row, where: 'order_no = ?', whereArgs: [row['order_no']]);
-  }
-  Future<int> updateRecoveryFormGetData(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('recoveryFormGet', row, where: 'recovery_id = ?', whereArgs: [row['recovery_id']]);
-  }
-  Future<int> updateOrderMasterData(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('orderMasterData', row, where: 'order_no = ?', whereArgs: [row['order_no']]);
-  }
-  Future<int> updateOrderDetailsdata(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('orderDetailsData', row, where: 'id = ?', whereArgs: [row['id']]);
-  }
-  Future<int> updateProductCategorydata(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('productCategory', row, where: 'id = ?', whereArgs: [row['id']]);
-  }
-  Future<int> updateProductdata(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.update('products', row, where: 'id = ?', whereArgs: [row['id']]);
+  Future<bool> updateAccountsData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['account_id'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'accounts',
+          where: 'account_id = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'accounts',
+            data,
+            where: 'account_id= ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'accounts',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating accounts table: ${e.toString()}");
+      }
+      return false;
+    }
   }
 
-  // Delete funtions
-  Future<int> deleteLogin(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('login', where: 'user_id = ?', whereArgs: [row['user_id']]);
+  // function for the recovery form get table
+  Future<bool> insertRecoveryFormGetData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('recoveryFormGet', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting recoveryFormGet data: ${e.toString()}");
+      }
+      return false;
+    }
   }
-  Future<int> deleteOwner(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('ownerData',  where: 'id = ?', whereArgs: [row['id']]);
+  Future<List<Map<String, dynamic>>?> getAllRecoveryFormGetData() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> productCategory = await db.query('recoveryFormGet');
+      return productCategory;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving recoveryFormGet data: $e");
+      }
+      return null;
+    }
   }
-  Future<int> deleteOrderBookingStutsData(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('orderBookingStatusData', where: 'order_no = ?', whereArgs: [row['order_no']]);
+  Future<bool> updateRecoveryFormGetData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['recovery_id'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'recoveryFormGet',
+          where: 'recovery_id = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'recoveryFormGet',
+            data,
+            where: 'recovery_id = ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'recoveryFormGet',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating recoveryFormGet table: ${e.toString()}");
+      }
+      return false;
+    }
   }
-  Future<int> deleteRecoveryFormGetData(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('recoveryFormGet',  where: 'recovery_id = ?', whereArgs: [row['recovery_id']]);
+
+  // function for the product category data
+  Future<bool> insertProductCategoryData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('productCategory', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting productCategory data: ${e.toString()}");
+      }
+      return false;
+    }
   }
-  Future<int>deleteOrderMasterData(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('orderMasterData', where: 'order_no = ?', whereArgs: [row['order_no']]);
+  Future<List<Map<String, dynamic>>?> getAllProductCategoryData() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> productCategory = await db.query('productCategory');
+      return productCategory;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving productCategory data: $e");
+      }
+      return null;
+    }
   }
-  Future<int> deleteOrderDetailsdata(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('orderDetailsData',where: 'id = ?', whereArgs: [row['id']]);
+  Future<bool> updateProductCategoryData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['brand'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'productCategory',
+          where: 'brand = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'productCategory',
+            data,
+            where: 'brand= ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'productCategory',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating productCategory table: ${e.toString()}");
+      }
+      return false;
+    }
   }
-  Future<int> deleteProductCategorydata(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('productCategory',  where: 'id = ?', whereArgs: [row['id']]);
+
+  // function used for the orderDetailsData table update insert and view
+  Future<bool> insertOrderDetailsData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('orderDetailsData', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting orderDetailsData data: ${e.toString()}");
+      }
+      return false;
+    }
   }
-  Future<int> deleteProductdata(Map<String, dynamic> row) async {
-    Database? db = await this.db;
-    return await db!.delete('products', where: 'id = ?', whereArgs: [row['id']]);
+  Future<List<Map<String, dynamic>>?> getAllOrderDetailsData() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> orderDetailData = await db.query('orderDetailsData');
+      return orderDetailData;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving orderDetailsData data: $e");
+      }
+      return null;
+    }
   }
+  Future<bool> updateOrderDetailsDataTable(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['id'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'orderDetailsData',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'orderDetailsData',
+            data,
+            where: 'id= ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'orderDetailsData',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating orderDetailsData table: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+
+  // function used for the orderMasterData table update insert and view
+  Future<bool> insertOrderMasterData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('orderMasterData', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting orderMasterData data: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+  Future<List<Map<String, dynamic>>?> getAllOrderMasterData() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> orderMasterData = await db.query('orderMasterData');
+      return orderMasterData;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving orderMasterData data: $e");
+      }
+      return null;
+    }
+  }
+  Future<bool> updateOrderMasterDataTable(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['order_no'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'orderMasterData',
+          where: 'order_no= ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'orderMasterData',
+            data,
+            where: 'order_no = ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'orderMasterData',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating orderMasterData table: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+
+  // function used for the products table update insert and view
+  Future<bool> insertProductsData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('products', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting products data: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+  Future<List<Map<String, dynamic>>?> getAllProductsData() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> product = await db.query('products');
+      return product;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving products data: $e");
+      }
+      return null;
+    }
+  }
+  Future<bool> updateProductsDataTable(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['id'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'products',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'products',
+            data,
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'products',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating products data table: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+
+// function used for the order booking status table update insert and view
+  Future<bool> insertOrderBookingStatusData1(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('orderBookingStatusData', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting orderBookingStatusData: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+  Future<bool> updateOrderBookingStatusData1(List<dynamic> dataList, String id) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert(
+          'orderBookingStatusData',
+          data,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating orderBookingStatusData: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+  Future<List<Map<String, dynamic>>?> getallOrderBookingStatusDB() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> orderbookingstatus = await db.query('orderBookingStatusData');
+      return  orderbookingstatus;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving products: $e");
+      }
+      return null;
+    }
+  }
+
+// function used for the login table update insert and view
+  Future<bool> insertLogin(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('login', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting login data: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+  Future<List<Map<String, dynamic>>?> getAllLogins() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> logins = await db.query('login');
+      return logins;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving products: $e");
+      }
+      return null;
+    }
+  }
+  Future<bool> updateloginTable(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['user_id'].toString(); // Ensure user_id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'login',
+          where: 'user_id = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'login',
+            data,
+            where: 'user_id = ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'login',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating login table: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+
+// function used for the ownerdata table update insert and view
+  Future<bool> insertownerData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('ownerData', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting ownerData data: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+  Future<List<Map<String, dynamic>>?> getAllownerData() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> ownerData = await db.query('ownerData');
+      return ownerData;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving owner data: $e");
+      }
+      return null;
+    }
+  }
+  Future<bool> updateownerDataTable(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['id'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'ownerData',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'ownerData',
+            data,
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'ownerData',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating owner data table: ${e.toString()}");
+      }
+      return false;
+    }
+  }
+
 
 
   Future<void> getHighestSerialNo() async {
@@ -259,21 +886,22 @@ _onCreate(Database db, int version) async {
       }
       return null;
     }
-  } Future<bool> insertOrderDetailsData(List<dynamic> dataList) async {
-    final Database db = await initDatabase();
-    try {
-      for (var data in dataList) {
-        if (data['user_id'] == userId) {
-          await db.insert('orderDetailsData', data);
-        }}
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error inserting orderDetailsGet data: ${e.toString()}");
-      }
-      return false;
-    }
   }
+  // Future<bool> insertOrderDetailsData(List<dynamic> dataList) async {
+  //   final Database db = await initDatabase();
+  //   try {
+  //     for (var data in dataList) {
+  //       if (data['user_id'] == userId) {
+  //         await db.insert('orderDetailsData', data);
+  //       }}
+  //     return true;
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error inserting orderDetailsGet data: ${e.toString()}");
+  //     }
+  //     return false;
+  //   }
+  // }
   Future<bool> insertOrderDetailsData1(List<dynamic> dataList) async {
     final Database db = await initDatabase();
     try {
@@ -886,20 +1514,20 @@ _onCreate(Database db, int version) async {
     await db.delete('orderBookingStatusData');
   }
 
-  Future<bool> insertProductsData(List<dynamic> dataList) async {
-    final Database db = await initDatabase();
-    try {
-      for (var data in dataList) {
-        await db.insert('products', data);
-      }
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error inserting product data: ${e.toString()}");
-      }
-      return false;
-    }
-  }
+  // Future<bool> insertProductsData(List<dynamic> dataList) async {
+  //   final Database db = await initDatabase();
+  //   try {
+  //     for (var data in dataList) {
+  //       await db.insert('products', data);
+  //     }
+  //     return true;
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error inserting product data: ${e.toString()}");
+  //     }
+  //     return false;
+  //   }
+  // }
   Future<List<String>> getBrandItems() async {
     final Database db = await initDatabase();
     try {
@@ -1022,20 +1650,20 @@ _onCreate(Database db, int version) async {
       return false;
     }
   }
-  Future<bool> insertOrderBookingStatusData1(List<dynamic> dataList) async {
-    final Database db = await initDatabase();
-    try {
-      for (var data in dataList) {
-          await db.insert('orderBookingStatusData', data);
-        }
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error inserting orderBookingStatusData: ${e.toString()}");
-      }
-      return false;
-    }
-  }
+  // Future<bool> insertOrderBookingStatusData1(List<dynamic> dataList) async {
+  //   final Database db = await initDatabase();
+  //   try {
+  //     for (var data in dataList) {
+  //         await db.insert('orderBookingStatusData', data);
+  //       }
+  //     return true;
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error inserting orderBookingStatusData: ${e.toString()}");
+  //     }
+  //     return false;
+  //   }
+  // }
 
   Future<bool> insertRecoveryFormData(List<dynamic> dataList) async {
     final Database db = await initDatabase();
@@ -1127,22 +1755,22 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<bool> insertOrderMasterData(List<dynamic> dataList) async {
-    final Database db = await initDatabase();
-    try {
-      for (var data in dataList) {
-        if (data['user_id'] == userId) {
-          await db.insert('orderMasterData', data);
-        }
-      }
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error inserting orderMaster data: ${e.toString()}");
-      }
-      return false;
-    }
-  }
+  // Future<bool> insertOrderMasterData(List<dynamic> dataList) async {
+  //   final Database db = await initDatabase();
+  //   try {
+  //     for (var data in dataList) {
+  //       if (data['user_id'] == userId) {
+  //         await db.insert('orderMasterData', data);
+  //       }
+  //     }
+  //     return true;
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error inserting orderMaster data: ${e.toString()}");
+  //     }
+  //     return false;
+  //   }
+  // }
 
   Future<bool> insertOrderMasterData1(List<dynamic> dataList) async {
     final Database db = await initDatabase();
@@ -1201,18 +1829,18 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getallOrderBookingStatusDB() async {
-    final Database db = await initDatabase();
-    try {
-      final List<Map<String, dynamic>> orderbookingstatus = await db.query('orderBookingStatusData');
-      return  orderbookingstatus;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error retrieving products: $e");
-      }
-      return null;
-    }
-  }
+  // Future<List<Map<String, dynamic>>?> getallOrderBookingStatusDB() async {
+  //   final Database db = await initDatabase();
+  //   try {
+  //     final List<Map<String, dynamic>> orderbookingstatus = await db.query('orderBookingStatusData');
+  //     return  orderbookingstatus;
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error retrieving products: $e");
+  //     }
+  //     return null;
+  //   }
+  // }
 
   Future<List<Map<String, dynamic>>?> getOrderMasterDataDB() async {
     final Database db = await initDatabase();
@@ -1836,20 +2464,20 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<bool> insertLogin(List<dynamic> dataList) async {
-    final Database db = await initDatabase();
-    try {
-      for (var data in dataList) {
-        await db.insert('login', data);
-      }
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error inserting login data: ${e.toString()}");
-      }
-      return false;
-    }
-  }
+  // Future<bool> insertLogin(List<dynamic> dataList) async {
+  //   final Database db = await initDatabase();
+  //   try {
+  //     for (var data in dataList) {
+  //       await db.insert('login', data);
+  //     }
+  //     return true;
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error inserting login data: ${e.toString()}");
+  //     }
+  //     return false;
+  //   }
+  // }
   Future<bool>login(Users user) async{
     final Database db = await initDatabase();
     var results=await db.rawQuery("select * from login where user_id = '${user.user_id}' AND password = '${user.password}'");
@@ -1861,18 +2489,18 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getAllLogins() async {
-    final Database db = await initDatabase();
-    try {
-      final List<Map<String, dynamic>> logins = await db.query('login');
-      return logins;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error retrieving products: $e");
-      }
-      return null;
-    }
-  }
+  // Future<List<Map<String, dynamic>>?> getAllLogins() async {
+  //   final Database db = await initDatabase();
+  //   try {
+  //     final List<Map<String, dynamic>> logins = await db.query('login');
+  //     return logins;
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error retrieving products: $e");
+  //     }
+  //     return null;
+  //   }
+  // }
   Future<String?> getUserName(String userId) async {
     final Database db = await initDatabase();
     try {

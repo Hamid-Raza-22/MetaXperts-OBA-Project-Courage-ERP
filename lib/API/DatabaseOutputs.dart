@@ -170,44 +170,44 @@ class DatabaseOutputs{
     // Decide which API response to use
     var chosenResponse = responseOwner ?? responseOwner3;
 
-
-// Process owner data
-    if (chosenResponse != null) {
-      // Process owner data
-      for (var item in chosenResponse) {
-        Map<String, dynamic>? existingItem;
-        try {
-          existingItem = Owerdata.firstWhere((element) => element['id'] == item['id']);
-        } catch (e) {
-          existingItem = null;
-        }
-
-        if (existingItem == null) {
-          var results2 = await db.insertOwnerData([item]);
-          var results3 = await db.insertOwnerData([item]);
-          if (results2 && results3) {
-            if (kDebugMode) {
-              print("Owner Data inserted successfully.");
-            }
-          } else {
-            if (kDebugMode) {
-              print("Error inserting data.");
-            }
-          }
-        } else {
-          var results2 = await db.updateOwner(item);
-          if (results2 > 0) {
-            if (kDebugMode) {
-              print(" Owner Data updated successfully.");
-            }
-          } else {
-            if (kDebugMode) {
-              print("Error updating data.");
-            }
-          }
-        }
-      }
-    }
+//
+// // Process owner data
+//     if (chosenResponse != null) {
+//       // Process owner data
+//       for (var item in chosenResponse) {
+//         Map<String, dynamic>? existingItem;
+//         try {
+//           existingItem = Owerdata.firstWhere((element) => element['id'] == item['id']);
+//         } catch (e) {
+//           existingItem = null;
+//         }
+//
+//         if (existingItem == null) {
+//           var results2 = await db.insertOwnerData([item]);
+//           var results3 = await db.insertOwnerData([item]);
+//           if (results2 && results3) {
+//             if (kDebugMode) {
+//               print("Owner Data inserted successfully.");
+//             }
+//           } else {
+//             if (kDebugMode) {
+//               print("Error inserting data.");
+//             }
+//           }
+//         } else {
+//           var results2 = await db.updateOwner(item);
+//           if (results2 > 0) {
+//             if (kDebugMode) {
+//               print(" Owner Data updated successfully.");
+//             }
+//           } else {
+//             if (kDebugMode) {
+//               print("Error updating data.");
+//             }
+//           }
+//         }
+//       }
+//     }
 
  //    // Process order Booking Status
  //    for (var item in responseOrderBookingStatusdata) {

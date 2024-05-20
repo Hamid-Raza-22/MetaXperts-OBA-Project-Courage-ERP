@@ -14,6 +14,7 @@ import 'package:order_booking_shop/View_Models/OrderViewModels/OrderDetailsViewM
 import 'package:order_booking_shop/View_Models/OrderViewModels/OrderMasterViewModel.dart';
 import 'package:order_booking_shop/View_Models/OrderViewModels/ProductsViewModel.dart';
 
+import '../API/newDatabaseOutPuts.dart';
 import 'HomePage.dart';
 import 'OrderBooking2ndPage.dart';
 import 'package:get/get.dart';
@@ -237,11 +238,11 @@ class FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
   }
 
   Future<void> onCreatee() async {
-    DatabaseOutputs db = DatabaseOutputs();
-    await db.showOrderMaster();
-    await db.showOrderDetails();
-    await db.showShopVisit();
-    await db.showStockCheckItems();
+    newDatabaseOutputs db = newDatabaseOutputs();
+    // await db.showOrderMaster();
+    // await db.showOrderDetails();
+    // await db.showShopVisit();
+    // await db.showStockCheckItems();
   }
 
   @override
