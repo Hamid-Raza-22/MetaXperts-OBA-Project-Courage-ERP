@@ -51,6 +51,7 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
     await db.execute("CREATE TABLE accounts(account_id INTEGER, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT)");
     await db.execute("CREATE TABLE productCategory(id INTEGER,brand TEXT)");
+    await db.execute("CREATE TABLE pakCities(id INTEGER,city TEXT)");
     await db.execute("CREATE TABLE attendance(id INTEGER PRIMARY KEY , date TEXT, timeIn TEXT, userId TEXT, latIn TEXT, lngIn TEXT, bookerName TEXT,city TEXT, designation TEXT)");
     await db.execute("CREATE TABLE attendanceOut(id INTEGER PRIMARY KEY , date TEXT, timeOut TEXT, totalTime TEXT, userId TEXT,latOut TEXT, lngOut TEXT,totalDistance TEXT, posted INTEGER DEFAULT 0)");
     await db.execute("CREATE TABLE recoveryForm (recoveryId TEXT, date TEXT, shopName TEXT, cashRecovery REAL, netBalance REAL, userId TEXT ,bookerName TEXT,city TEXT, brand TEXT)");
@@ -736,6 +737,18 @@ _onCreate(Database db, int version) async {
       return [];
     }
   }
+  Future<List<String>> getCitiesNames() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> citiesNames = await db.query('pakCities');
+      return citiesNames.map((map) => map['city'] as String).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving cities names: $e");
+      }
+      return [];
+    }
+  }
 
   Future<List<String>> getDistributorsNames() async {
     final Database db = await initDatabase();
@@ -824,6 +837,19 @@ _onCreate(Database db, int version) async {
       }
       return false;
     }
+  } Future<bool> insertPakCitiesData(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        await db.insert('pakCities', data);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting PakCities  data: ${e.toString()}");
+      }
+      return false;
+    }
   }
   Future<bool> insertDistributorData(List<dynamic> dataList) async {
     final Database db = await initDatabase();
@@ -908,6 +934,18 @@ _onCreate(Database db, int version) async {
     } catch (e) {
       if (kDebugMode) {
         print("Error retrieving products: $e");
+      }
+      return null;
+    }
+  }
+  Future<List<Map<String, dynamic>>?> getPakCitiesDB() async {
+    final Database db = await initDatabase();
+    try {
+      final List<Map<String, dynamic>> products = await db.query('pakCities');
+      return products;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error retrieving Pak Cities : $e");
       }
       return null;
     }

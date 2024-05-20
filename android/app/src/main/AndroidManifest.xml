@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.aafdev.my_loc">
+    package="com.aafdev1.my_loc">
 
 <!--    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
 <!--    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>-->
@@ -78,7 +78,7 @@
         =
         <!-- WorkManager Configuration -->
         <service
-            android:name="com.aafdev.my_loc.workmanager.TaskExecutor"
+            android:name="com.aafdev1.my_loc.workmanager.TaskExecutor"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -87,7 +87,7 @@
 
         <meta-data
             android:name="io.flutter.embedding.android.BackgroundExecutor"
-            android:value="com.aafdev.my_loc.workmanager.TaskExecutor" />
+            android:value="com.aafdev1.my_loc.workmanager.TaskExecutor" />
 
 
         <!-- Don't delete the meta-data below.

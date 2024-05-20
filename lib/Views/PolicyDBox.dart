@@ -27,7 +27,7 @@ class PolicyDialog extends StatelessWidget {
             style: TextStyle(fontSize: 14),
           ),
           const Text(
-            "- This app uses APIs for share app data into server.",
+            "- This app uses APIs for share app data onto server.",
             style: TextStyle(fontSize: 14),
           ), const Text(
             "- This app uses storage for store app data.",

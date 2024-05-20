@@ -221,7 +221,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       } else {
         // Generate a unique ID for the current post
         service.invoke("stopService");
-        location.enableBackgroundMode(enable: false);
+
        await Future.delayed(const Duration(seconds: 10));
         postFile();
         await Future.delayed(const Duration(seconds: 4));
@@ -249,7 +249,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           //await saveGPXFile();
           await prefs.remove('clockInId');
         });
-
+       await location.enableBackgroundMode(enable: false);
       }
     });
     await Future.delayed(const Duration(seconds: 10));
@@ -500,9 +500,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 newDatabaseOutputs outputs = newDatabaseOutputs();
                                 // Run both functions in parallel
                                 showLoadingIndicator(context);
+                               await backgroundTask();
                                 await Future.wait([
                           //        Future.delayed(Duration(seconds: 10)),
-                                  backgroundTask(),
                                   outputs.checkFirstRun(),
                                  // outputs.initializeDatalogin()
                                 ]);
@@ -1049,7 +1049,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
 
   Future<bool> isInternetConnected() async {
-    bool isConnected = await InternetConnectionChecker().hasConnection;
+    bool isConnected = await isInternetAvailable();
     if (kDebugMode) {
       print('Internet Connected: $isConnected');
     }
@@ -1084,17 +1084,17 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     if (kDebugMode) {
       print('Synchronizing data in the background.');
     }
-     postAttendanceTable();
-     postAttendanceOutTable();
-     postShopTable();
-     postShopVisitData();
-     postStockCheckItems();
-     postMasterTable();
-     postOrderDetails();
-     postReturnFormTable();
-     postReturnFormDetails();
-     postRecoveryFormTable();
-     postLocationData();
+    await postAttendanceTable();
+     await postAttendanceOutTable();
+     await postShopTable();
+     await postShopVisitData();
+    await postStockCheckItems();
+    await postMasterTable();
+    await postOrderDetails();
+    await postReturnFormTable();
+    await postReturnFormDetails();
+    await postRecoveryFormTable();
+    await postLocationData();
   }
 
   Future<void> postShopVisitData() async {

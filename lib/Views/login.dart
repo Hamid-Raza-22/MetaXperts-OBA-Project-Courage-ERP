@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, Center, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, MainAxisAlignment, MaterialPageRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, Text, TextEditingController, TextFormField, TextStyle, Widget;
+import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, Center, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, MainAxisAlignment, MaterialPageRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, Text, TextEditingController, TextFormField, TextStyle, Widget, showDialog;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
@@ -8,6 +8,7 @@ import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/loginModel.dart';
 import '../main.dart';
+import 'PolicyDBox.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});

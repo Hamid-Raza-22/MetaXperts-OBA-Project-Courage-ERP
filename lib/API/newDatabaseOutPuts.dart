@@ -55,9 +55,9 @@ class newDatabaseOutputs {
           throw Exception("Error inserting data using first API.");
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
 
         try {
           var response = await api.getApi(
@@ -95,6 +95,8 @@ class newDatabaseOutputs {
    // var Logindata = await db.getAllLogins();
     var PCdata = await db.getAllPCs();
     var RecoveryFormGetData = await db.getRecoverydataDB();
+    var PakCities= await db.getPakCitiesDB();
+
 
     //https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/muhammad_usman/login/get/
     // https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/
@@ -144,6 +146,47 @@ class newDatabaseOutputs {
     //   }
     // }
 
+    if (PakCities == null || PakCities.isEmpty) {
+      try {
+        // https://apex.oracle.com/pls/apex/metaa/owner/get/
+        //http://103.149.32.30:8080/ords/metaxperts/owner/get/
+        var response = await api.getApi(
+            "http://103.149.32.30:8080/ords/metaxperts/city/get/");
+        http://103.149.32.30:8080/ords/metaxperts/cities/get/:time
+
+        var results = await db.insertPakCitiesData(response); //return True or False
+        if (results) {
+          if (kDebugMode) {
+            print("PAK Cities Data inserted successfully using first API..");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data.");
+          }
+        }
+      } catch (e) {
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
+        var response = await api.getApi(
+            "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/city/get/");
+        var results = await db.insertPakCitiesData(response); //return True or False
+        if (results) {
+          if (kDebugMode) {
+            print("PAK Cities Data inserted successfully using second API..");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Data is available.");
+      }
+    }
+
     if (Owerdata == null || Owerdata.isEmpty) {
       try {
         // https://apex.oracle.com/pls/apex/metaa/owner/get/
@@ -162,9 +205,9 @@ class newDatabaseOutputs {
           }
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
         var response = await api.getApi(
             "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
         var results = await db.insertOwnerData(response); //return True or False
@@ -201,9 +244,9 @@ class newDatabaseOutputs {
           }
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
         var response = await api.getApi(
             "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
         var results = await db.insertOrderBookingStatusData1(
@@ -237,9 +280,9 @@ class newDatabaseOutputs {
           throw Exception('Insertion failed with first API');
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
         var response = await api.getApi(
             "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
 
@@ -276,22 +319,22 @@ class newDatabaseOutputs {
         }
       }
       catch (e) {
+        // if (kDebugMode) {
+        //   print("Error with API.");
+        // }
+
+      var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
+      var results2 = await db.insertOrderMasterData1(response2);   //return True or False
+      if (results2) {
         if (kDebugMode) {
-          print("Error with API.");
+          print("OrderMaster Data inserted successfully using second API.");
         }
+      } else {
+        if (kDebugMode) {
+          print("Error inserting data with both APIs.");
       }
-      // var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
-      // var results2 = await db.insertOrderMasterData1(response2);   //return True or False
-      // if (results2) {
-      //   if (kDebugMode) {
-      //     print("OrderMaster Data inserted successfully using second API.");
-      //   }
-      // } else {
-      //   if (kDebugMode) {
-      //     print("Error inserting data with both APIs.");
-      //}
-      //}
-      //}
+      }
+      }
     }
 
     if (OrderDetailsdata == null || OrderDetailsdata.isEmpty) {
@@ -311,26 +354,27 @@ class newDatabaseOutputs {
           throw Exception('Insertion failed');
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with API.");
+        // }
       }
-      //     var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
-      //     var results2 = await db.insertOrderDetailsData1(response2);   //return True or False
-      //     if (results2) {
-      //       if (kDebugMode) {
-      //         print("OrderDetails Data inserted successfully using second API.");
-      //       }
-      //     } else {
-      //       if (kDebugMode) {
-      //         print("Error inserting data with both APIs.");
-      //       }
-      //     }
-      //   }
-      // } else {
-      //   if (kDebugMode) {
-      //     print("Data is available.");
-      //   }
+          var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/detailget/get/");
+          var results2 = await db.insertOrderDetailsData1(response2);   //return True or False
+          if (results2) {
+            if (kDebugMode) {
+              print("OrderDetails Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data with both APIs.");
+            }
+          }
+        }
+       else {
+        if (kDebugMode) {
+          print("Data is available.");
+        }
+
     }
 
 
@@ -349,9 +393,9 @@ class newDatabaseOutputs {
           throw Exception('Insertion failed with first API');
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
         var response2 = await api.getApi(
             "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
         var results2 = await db.insertProductsData(
@@ -398,9 +442,9 @@ class newDatabaseOutputs {
           throw Exception('Insertion failed with first API');
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
         var response2 = await api.getApi(
             "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
 
@@ -466,16 +510,17 @@ class newDatabaseOutputs {
   }
 
   Future<void> updateAllDatabase() async {
-  // /*   updateloginData();
-  //    updateOwnerData();*/
+     updateloginData();
+     updateOwnerData();
+     updatePakCitiesData();
      updateorderBookingStatusData();
-     // updateproductCategoryData();
-     // updateProductsData();
+     updateproductCategoryData();
+     updateProductsData();
      updateorderMasterData();
      updateorderDetailsData();
-     // updateaccountsData();
-     // updatenetBalanceData();
-     // updaterecoveryFormGetData();
+     updateaccountsData();
+     updatenetBalanceData();
+     updaterecoveryFormGetData();
   }
 
   Future<void> updateloginData() async {
@@ -539,6 +584,48 @@ class newDatabaseOutputs {
             print(
                 "ownerData updated inserted successfully into local database.");
             print("Inserted data: $ownerData");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting ownerData updated into local database.");
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+              "No ownerData updated ownerData available for the timedate: $timedate");
+        }
+      }
+    }
+    else {
+      // Handle the case where the value is not found in SharedPreferences
+      if (kDebugMode) {
+        print('No formatted date and time found in SharedPreferences');
+      }
+    }
+  }
+  Future<void> updatePakCitiesData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? formattedDateTime = prefs.getString('lastInitializationDateTime');
+
+    if (formattedDateTime != null) {
+      String timedate = formattedDateTime;
+      if (kDebugMode) {
+        print(timedate);
+      }
+      final api = ApiServices();
+      final db = DBHelper();
+
+      var pakCitiesData = await api.getupdateData(
+          "http://103.149.32.30:8080/ords/metaxperts/cities/get/$timedate");
+
+      if (pakCitiesData != null && pakCitiesData.isNotEmpty) {
+        bool inserted = await db.insertPakCitiesData(pakCitiesData);
+        if (inserted) {
+          if (kDebugMode) {
+            print(
+                "ownerData updated inserted successfully into local database.");
+            print("Inserted data: $pakCitiesData");
           }
         } else {
           if (kDebugMode) {
@@ -663,7 +750,7 @@ class newDatabaseOutputs {
       final db = DBHelper();
 
       var orderDetailsData = await api.getupdateData(
-          "http://103.149.32.30:8080/ords/metaxperts/detailsgettime/get/:user/$idd/$timedate");
+          "http://103.149.32.30:8080/ords/metaxperts/detailsgettime/get/$idd/$timedate");
 
       if (orderDetailsData != null && orderDetailsData.isNotEmpty) {
         bool inserted = await db.insertOrderDetailsData1(orderDetailsData);

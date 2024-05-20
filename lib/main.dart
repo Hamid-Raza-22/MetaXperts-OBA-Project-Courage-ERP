@@ -30,7 +30,7 @@ Future<void> main() async {
   // Upgrader;
   // // AndroidAlarmManager.initialize();
   //
-  // // Initialize the FlutterBackground plugin
+  // Initialize the FlutterBackground plugin
   // await FlutterBackground.initialize();
   //
   // // Enable background execution

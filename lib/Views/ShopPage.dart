@@ -98,27 +98,9 @@ class _ShopPageState extends State<ShopPage> {
   File? _imageFile;
   final ImagePicker _imagePicker = ImagePicker();
   get shopData => null;
-  List<String> validCities = ['Adezai', 'Ahmed Nager Chatha', 'Ahmedpur East', 'Ali Bandar', 'Ali Pur', 'Amir Chah', 'Arifwala', 'Astor', 'Attock', 'Ayubia', 'Baden', 'Bagh', 'Bahawalnagar', 'Bahawalpur', 'Bajaur', 'Banda Daud Shah',
-    'Bannu', 'Baramula', 'Basti Malook', 'Batagram', 'Bazdar', 'Bela', 'Bellpat', 'Bhagalchur', 'Bhaipheru', 'Bhakkar', 'Bhalwal', 'Bhimber', 'Birote', 'Buner', 'Burewala', 'Burj', 'Chachro', 'Chagai',
-    'Chah Sandan', 'Chailianwala', 'Chakdara', 'Chakku', 'Chakwal', 'Chaman', 'Charsadda', 'Chhatr', 'Chichawatni', 'Chiniot', 'Chitral', 'Chowk Azam', 'Chowk Sarwar Shaheed', 'Dadu', 'Dalbandin', 'Dargai', 'Darya Khan',
-    'Daska', 'Dera Bugti', 'Dera Ghazi Khan', 'Dera Ismail Khan', 'Derawar Fort', 'Dhana Sar', 'Dhaular', 'Digri', 'Dina City', 'Dinga', 'Dipalpur', 'Diplo', 'Diwana', 'Dokri', 'Drasan', 'Drosh', 'Duki', 'Dushi', 'Duzab',
-    'Faisalabad', 'Fateh Jang', 'Gadar', 'Gadra', 'Gajar', 'Gandava', 'Garhi Khairo', 'Garruck', 'Ghakhar Mandi', 'Ghanian', 'Ghauspur', 'Ghazluna', 'Ghotki', 'Gilgit', 'Girdan', 'Gujar Khan', 'Gujranwala', 'Gujrat', 'Gulistan',
-    'Gwadar', 'Gwash', 'Hab Chauki', 'Hafizabad', 'Hala', 'Hameedabad', 'Hangu', 'Haripur', 'Harnai', 'Haroonabad', 'Hasilpur', 'Haveli Lakha', 'Hinglaj', 'Hoshab', 'Hunza', 'Hyderabad', 'Islamkot', 'Ispikan', 'Jacobabad', 'Jahania',
-    'Jalla Araain', 'Jamesabad', 'Jampur', 'Jamshoro', 'Janghar', 'Jati (Mughalbhin)', 'Jauharabad', 'Jhal', 'Jhal Jhao', 'Jhang', 'Jhatpat', 'Jhelum', 'Jhudo', 'Jiwani', 'Jungshahi', 'Kalabagh', 'Kalam', 'Kalandi', 'Kalat', 'Kamalia',
-    'Kamararod', 'Kamokey', 'Kanak', 'Kandi', 'Kandiaro', 'Kanpur', 'Kapip', 'Kappar', 'Karachi', 'Karak', 'Karodi', 'Karor Lal Esan', 'Kashmor', 'Kasur', 'Katuri', 'Keti Bandar', 'Khairpur', 'Khanaspur', 'Khanewal', 'Khanpur', 'Kharan',
-    'Kharian', 'Khokhropur', 'Khora', 'khuiratta', 'Khushab', 'Khuzdar', 'Khyber Agency', 'Kikki', 'Klupro', 'Kohan', 'Kohat', 'Kohistan', 'Kohlu', 'Korak', 'Korangi', 'Kot Addu', 'Kot Sarae', 'Kotli', 'Kotri', 'Kurram Agency', 'Laar',
-    'Lahore', 'Lahri', 'Lakki Marwat', 'Lalamusa', 'Larkana', 'Lasbela', 'Latamber', 'Layyah', 'Liari', 'Lodhran', 'Loralai', 'Lower Dir', 'Lund', 'Mach', 'Madyan', 'Mailsi', 'Makhdoom Aali', 'Malakand', 'Malakand Agency', 'Mamoori', 'Mand',
-    'Mandi Bahauddin', 'Mandi Warburton', 'Mangla', 'Manguchar', 'Mansehra', 'Mardan', 'Mashki Chah', 'Maslti', 'Mastuj', 'Mastung', 'Mathi', 'Matiari', 'Mehar', 'Mekhtar', 'Merui', 'Mian Channu', 'Mianez', 'Mianwali', 'Minawala', 'Miram Shah',
-    'Mirpur', 'Mirpur Batoro', 'Mirpur Khas', 'Mirpur Sakro', 'Mithani', 'Mithi', 'Mohmand Agency', 'Mongora', 'Moro', 'Multan', 'Murgha Kibzai', 'Muridke', 'Murree', 'Musa Khel Bazar', 'Muzaffarabad', 'Muzaffargarh', 'Nagar', 'Nagar Parkar', 'Nagha Kalat',
-    'Nal', 'Naokot', 'Narowal', 'Naseerabad', 'Naudero', 'Nauroz Kalat', 'Naushara', 'Nawabshah', 'Nazimabad', 'North Waziristan', 'Noushero Feroz', 'Nowshera', 'Nur Gamma', 'Nushki', 'Nuttal', 'Okara', 'Ormara', 'Paharpur', 'Pak Pattan', 'Palantuk', 'Panjgur',
-    'Pasni', 'Pattoki', 'Pendoo', 'Peshawar', 'Piharak', 'pirMahal', 'Pirmahal', 'Pishin', 'Plandri', 'Pokran', 'Qambar', 'Qamruddin Karez', 'Qazi Ahmad', 'Qila Abdullah', 'Qila Didar Singh', 'Qila Ladgasht', 'Qila Safed', 'Qila Saifullah', 'Quetta', 'Rabwah',
-    'Rahim Yar Khan', 'Raiwind', 'Rajan Pur', 'Rakhni', 'Ranipur', 'Ratodero', 'Rawalakot', 'Rawalpindi', 'Renala Khurd', 'Robat Thana', 'Rodkhan', 'Rohri', 'Sadiqabad', 'Safdar Abad – (Dhaban Singh)', 'Sahiwal', 'Saidu Sharif', 'Saindak', 'Sakesar', 'Sakrand',
-    'Samberial', 'Sanghar', 'Sangla Hill', 'Sanjawi', 'Sarai Alamgir', 'Sargodha', 'Saruna', 'Shabaz Kalat', 'Shadadkhot', 'Shafqat Shaheed Chowk', 'Shahbandar', 'Shahdadpur', 'Shahpur', 'Shahpur Chakar', 'Shakargarh', 'Shangla', 'Shangrila', 'Sharam Jogizai',
-    'Sheikhupura', 'Shikarpur', 'Shingar', 'Shorap', 'Sialkot', 'Sibi', 'Skardu', 'Sohawa', 'Sonmiani', 'Sooianwala', 'South Waziristan', 'Spezand', 'Spintangi', 'Sui', 'Sujawal', 'Sukkur', 'Sundar ', 'Suntsar', 'Surab', 'Swabi', 'Swat', 'Taank', 'Takhtbai',
-    'Talagang', 'Tando Adam', 'Tando Allahyar', 'Tando Bago', 'Tangi', 'Tar Ahamd Rind', 'Tarbela', 'Taxila', 'Thall', 'Thalo', 'Thatta', 'Toba Tek Singh', 'Tordher', 'Tujal', 'Tump', 'Turbat', 'Umarao', 'Umarkot', 'Uthal', 'Vehari', 'Veirwaro', 'Vitakri', 'Wadh',
-  'Wah Cantonment', 'Washap', 'Wasjuk', 'Yakmach' , 'Pasrur', 'Zafarwal', 'Waziranbad', 'Siraye Alamgir' ,'Kingra'];
+  List<String> validCities = ["Gujranwala"];
 
-  List<String> dropdownItems = [];
+  List<String> citiesDropdownItems = [];
   DBHelper dbHelper = DBHelper();
 
   List<Map<String, dynamic>> shopOwners = [];
@@ -128,30 +110,39 @@ class _ShopPageState extends State<ShopPage> {
     String? userDesignation = prefs.getString('userDesignation');
 
     if (userDesignation != 'ASM') {
-      await fetchShopNames();
+    //  await fetchShopNames();
       setState(() {
         cityController.text = userCitys;
       //  distributorNameController.text = 'M.A Traders Sialkot';
       });
 
     } else {
-      await fetchShopNames1();
+      await fetchCitiesNames();
+      //await fetchShopNames1();
     }
   }
-  Future<void> fetchShopNames() async {
-    String userCity = userCitys;
-    List<dynamic> bussinessName = await dbHelper. getDistributorNamesForCity(userCity);
-    setState(() {
-      // Explicitly cast each element to String
-      dropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
-    });
-  }
 
-  Future<void> fetchShopNames1() async {
-    List<dynamic> bussinessName = await dbHelper.getDistributorsNames();
+  // Future<void> fetchShopNames() async {
+  //   String userCity = userCitys;
+  //   List<dynamic> bussinessName = await dbHelper. getDistributorNamesForCity(userCity);
+  //   setState(() {
+  //     // Explicitly cast each element to String
+  //     dropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
+  //   });
+  // }
+  //
+  // Future<void> fetchShopNames1() async {
+  //   List<dynamic> bussinessName = await dbHelper.getDistributorsNames();
+  //   setState(() {
+  //     // Explicitly cast each element to String
+  //     dropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
+  //   });
+  // }
+  Future<void> fetchCitiesNames() async {
+    List<dynamic> bussinessName = await dbHelper.getCitiesNames();
     setState(() {
       // Explicitly cast each element to String
-      dropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
+      citiesDropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
     });
   }
 
@@ -291,7 +282,7 @@ class _ShopPageState extends State<ShopPage> {
                                   ),
                                 ),
                                 TypeAheadFormField(
-                                  enabled: userId == 'B0001' || userId == 'B0006' || userId == 'B0004',
+                                  // enabled: userId == 'B0001' || userId == 'B0006' || userId == 'B0004',
                                   textFieldConfiguration: TextFieldConfiguration(
                                     controller: cityController,
                                     decoration: InputDecoration(
@@ -303,27 +294,7 @@ class _ShopPageState extends State<ShopPage> {
                                       ),
                                     ),),
                                   suggestionsCallback: (pattern) {
-                                    return [
-                                      'Adezai', 'Ahmed Nager Chatha', 'Ahmedpur East', 'Ali Bandar', 'Ali Pur', 'Amir Chah', 'Arifwala', 'Astor', 'Attock', 'Ayubia', 'Baden', 'Bagh', 'Bahawalnagar', 'Bahawalpur', 'Bajaur', 'Banda Daud Shah',
-                                      'Bannu', 'Baramula', 'Basti Malook', 'Batagram', 'Bazdar', 'Bela', 'Bellpat', 'Bhagalchur', 'Bhaipheru', 'Bhakkar', 'Bhalwal', 'Bhimber', 'Birote', 'Buner', 'Burewala', 'Burj', 'Chachro', 'Chagai',
-                                      'Chah Sandan', 'Chailianwala', 'Chakdara', 'Chakku', 'Chakwal', 'Chaman', 'Charsadda', 'Chhatr', 'Chichawatni', 'Chiniot', 'Chitral', 'Chowk Azam', 'Chowk Sarwar Shaheed', 'Dadu', 'Dalbandin', 'Dargai', 'Darya Khan',
-                                      'Daska', 'Dera Bugti', 'Dera Ghazi Khan', 'Dera Ismail Khan', 'Derawar Fort', 'Dhana Sar', 'Dhaular', 'Digri', 'Dina City', 'Dinga', 'Dipalpur', 'Diplo', 'Diwana', 'Dokri', 'Drasan', 'Drosh', 'Duki', 'Dushi', 'Duzab',
-                                      'Faisalabad', 'Fateh Jang', 'Gadar', 'Gadra', 'Gajar', 'Gandava', 'Garhi Khairo', 'Garruck', 'Ghakhar Mandi', 'Ghanian', 'Ghauspur', 'Ghazluna', 'Ghotki', 'Gilgit', 'Girdan', 'Gujar Khan', 'Gujranwala', 'Gujrat', 'Gulistan',
-                                      'Gwadar', 'Gwash', 'Hab Chauki', 'Hafizabad', 'Hala', 'Hameedabad', 'Hangu', 'Haripur', 'Harnai', 'Haroonabad', 'Hasilpur', 'Haveli Lakha', 'Hinglaj', 'Hoshab', 'Hunza', 'Hyderabad', 'Islamkot', 'Ispikan', 'Jacobabad', 'Jahania',
-                                      'Jalla Araain', 'Jamesabad', 'Jampur', 'Jamshoro', 'Janghar', 'Jati (Mughalbhin)', 'Jauharabad', 'Jhal', 'Jhal Jhao', 'Jhang', 'Jhatpat', 'Jhelum', 'Jhudo', 'Jiwani', 'Jungshahi', 'Kalabagh', 'Kalam', 'Kalandi', 'Kalat', 'Kamalia',
-                                      'Kamararod', 'Kamokey', 'Kanak', 'Kandi', 'Kandiaro', 'Kanpur', 'Kapip', 'Kappar', 'Karachi', 'Karak', 'Karodi', 'Karor Lal Esan', 'Kashmor', 'Kasur', 'Katuri', 'Keti Bandar', 'Khairpur', 'Khanaspur', 'Khanewal', 'Khanpur', 'Kharan',
-                                      'Kharian', 'Khokhropur', 'Khora', 'khuiratta', 'Khushab', 'Khuzdar', 'Khyber Agency', 'Kikki', 'Klupro', 'Kohan', 'Kohat', 'Kohistan', 'Kohlu', 'Korak', 'Korangi', 'Kot Addu', 'Kot Sarae', 'Kotli', 'Kotri', 'Kurram Agency', 'Laar',
-                                      'Lahore', 'Lahri', 'Lakki Marwat', 'Lalamusa', 'Larkana', 'Lasbela', 'Latamber', 'Layyah', 'Liari', 'Lodhran', 'Loralai', 'Lower Dir', 'Lund', 'Mach', 'Madyan', 'Mailsi', 'Makhdoom Aali', 'Malakand', 'Malakand Agency', 'Mamoori', 'Mand',
-                                      'Mandi Bahauddin', 'Mandi Warburton', 'Mangla', 'Manguchar', 'Mansehra', 'Mardan', 'Mashki Chah', 'Maslti', 'Mastuj', 'Mastung', 'Mathi', 'Matiari', 'Mehar', 'Mekhtar', 'Merui', 'Mian Channu', 'Mianez', 'Mianwali', 'Minawala', 'Miram Shah',
-                                      'Mirpur', 'Mirpur Batoro', 'Mirpur Khas', 'Mirpur Sakro', 'Mithani', 'Mithi', 'Mohmand Agency', 'Mongora', 'Moro', 'Multan', 'Murgha Kibzai', 'Muridke', 'Murree', 'Musa Khel Bazar', 'Muzaffarabad', 'Muzaffargarh', 'Nagar', 'Nagar Parkar', 'Nagha Kalat',
-                                      'Nal', 'Naokot', 'Narowal', 'Naseerabad', 'Naudero', 'Nauroz Kalat', 'Naushara', 'Nawabshah', 'Nazimabad', 'North Waziristan', 'Noushero Feroz', 'Nowshera', 'Nur Gamma', 'Nushki', 'Nuttal', 'Okara', 'Ormara', 'Paharpur', 'Pak Pattan', 'Palantuk', 'Panjgur',
-                                      'Pasni', 'Pattoki', 'Pendoo', 'Peshawar', 'Piharak', 'pirMahal', 'Pirmahal', 'Pishin', 'Plandri', 'Pokran', 'Qambar', 'Qamruddin Karez', 'Qazi Ahmad', 'Qila Abdullah', 'Qila Didar Singh', 'Qila Ladgasht', 'Qila Safed', 'Qila Saifullah', 'Quetta', 'Rabwah',
-                                      'Rahim Yar Khan', 'Raiwind', 'Rajan Pur', 'Rakhni', 'Ranipur', 'Ratodero', 'Rawalakot', 'Rawalpindi', 'Renala Khurd', 'Robat Thana', 'Rodkhan', 'Rohri', 'Sadiqabad', 'Safdar Abad – (Dhaban Singh)', 'Sahiwal', 'Saidu Sharif', 'Saindak', 'Sakesar', 'Sakrand',
-                                      'Samberial', 'Sanghar', 'Sangla Hill', 'Sanjawi', 'Sarai Alamgir', 'Sargodha', 'Saruna', 'Shabaz Kalat', 'Shadadkhot', 'Shafqat Shaheed Chowk', 'Shahbandar', 'Shahdadpur', 'Shahpur', 'Shahpur Chakar', 'Shakargarh', 'Shangla', 'Shangrila', 'Sharam Jogizai',
-                                      'Sheikhupura', 'Shikarpur', 'Shingar', 'Shorap', 'Sialkot', 'Sibi', 'Skardu', 'Sohawa', 'Sonmiani', 'Sooianwala', 'South Waziristan', 'Spezand', 'Spintangi', 'Sui', 'Sujawal', 'Sukkur', 'Sundar ', 'Suntsar', 'Surab', 'Swabi', 'Swat', 'Taank', 'Takhtbai',
-                                      'Talagang', 'Tando Adam', 'Tando Allahyar', 'Tando Bago', 'Tangi', 'Tar Ahamd Rind', 'Tarbela', 'Taxila', 'Thall', 'Thalo', 'Thatta', 'Toba Tek Singh', 'Tordher', 'Tujal', 'Tump', 'Turbat', 'Umarao', 'Umarkot', 'Uthal', 'Vehari', 'Veirwaro', 'Vitakri', 'Wadh',
-                                      'Wah Cantonment', 'Washap', 'Wasjuk', 'Yakmach' , 'Pasrur', 'Zafarwal', 'Waziranbad', 'Siraye Alamgir' ,'Kingra'
-                                    ].where((city) => city.toLowerCase().contains(pattern.toLowerCase())).toList();
+                                    return citiesDropdownItems.where((city) => city.toLowerCase().contains(pattern.toLowerCase())).toList();
                                   },
                                   itemBuilder: (context, suggestion) {
                                     return ListTile(
@@ -332,30 +303,7 @@ class _ShopPageState extends State<ShopPage> {
                                   },
                                   onSuggestionSelected: (suggestion) {
                                     // Validate that the selected city is from the list
-                                    if (['Adezai', 'Ahmed Nager Chatha', 'Ahmedpur East', 'Ali Bandar', 'Ali Pur', 'Amir Chah', 'Arifwala', 'Astor', 'Attock', 'Ayubia',
-                                      'Baden', 'Bagh', 'Bahawalnagar', 'Bahawalpur', 'Bajaur', 'Banda Daud Shah', 'Bannu', 'Baramula', 'Basti Malook', 'Batagram', 'Bazdar',
-                                      'Bela', 'Bellpat', 'Bhagalchur', 'Bhaipheru', 'Bhakkar', 'Bhalwal', 'Bhimber', 'Birote', 'Buner', 'Burewala', 'Burj', 'Chachro', 'Chagai',
-                                      'Chah Sandan', 'Chailianwala', 'Chakdara', 'Chakku', 'Chakwal', 'Chaman', 'Charsadda', 'Chhatr', 'Chichawatni', 'Chiniot', 'Chitral', 'Chowk Azam',
-                                      'Chowk Sarwar Shaheed', 'Dadu', 'Dalbandin', 'Dargai', 'Darya Khan', 'Daska', 'Dera Bugti', 'Dera Ghazi Khan', 'Dera Ismail Khan', 'Derawar Fort', 'Dhana Sar',
-                                      'Dhaular', 'Digri', 'Dina', 'Dinga', 'Dipalpur', 'Diplo', 'Diwana', 'Dokri', 'Drasan', 'Drosh', 'Duki', 'Dushi', 'Duzab', 'Faisalabad', 'Fateh Jang', 'Gadar', 'Gadra',
-                                      'Gajar', 'Gandava', 'Garhi Khairo', 'Garruck', 'Ghakhar Mandi', 'Ghanian', 'Ghauspur', 'Ghazluna', 'Ghotki', 'Gilgit', 'Girdan', 'Gujar Khan', 'Gujranwala', 'Gujrat', 'Gulistan',
-                                      'Gwadar', 'Gwash', 'Hab Chauki', 'Hafizabad', 'Hala', 'Hameedabad', 'Hangu', 'Haripur', 'Harnai', 'Haroonabad', 'Hasilpur', 'Haveli Lakha', 'Hinglaj', 'Hoshab', 'Hunza', 'Hyderabad',
-                                      'Islamkot', 'Ispikan', 'Jacobabad', 'Jahania', 'Jalla Araain', 'Jamesabad', 'Jampur', 'Jamshoro', 'Janghar', 'Jati (Mughalbhin)', 'Jauharabad', 'Jhal', 'Jhal Jhao', 'Jhang', 'Jhatpat',
-                                      'Jhelum', 'Jhudo', 'Jiwani', 'Jungshahi', 'Kalabagh', 'Kalam', 'Kalandi', 'Kalat', 'Kamalia', 'Kamararod', 'Kamokey', 'Kanak', 'Kandi', 'Kandiaro', 'Kanpur', 'Kapip', 'Kappar', 'Karachi',
-                                      'Karak', 'Karodi', 'Karor Lal Esan', 'Kashmor', 'Kasur', 'Katuri', 'Keti Bandar', 'Khairpur', 'Khanaspur', 'Khanewal', 'Khanpur', 'Kharan', 'Kharian', 'Khokhropur', 'Khora', 'khuiratta',
-                                      'Khushab', 'Khuzdar', 'Khyber Agency', 'Kikki', 'Klupro', 'Kohan', 'Kohat', 'Kohistan', 'Kohlu', 'Korak', 'Korangi', 'Kot Addu', 'Kot Sarae', 'Kotli', 'Kotri', 'Kurram Agency', 'Laar', 'Lahore',
-                                      'Lahri', 'Lakki Marwat', 'Lalamusa', 'Larkana', 'Lasbela', 'Latamber', 'Layyah', 'Liari', 'Lodhran', 'Loralai', 'Lower Dir', 'Lund', 'Mach', 'Madyan', 'Mailsi', 'Makhdoom Aali', 'Malakand', 'Malakand Agency',
-                                      'Mamoori', 'Mand', 'Mandi Bahauddin', 'Mandi Warburton', 'Mangla', 'Manguchar', 'Mansehra', 'Mardan', 'Mashki Chah', 'Maslti', 'Mastuj', 'Mastung', 'Mathi', 'Matiari', 'Mehar', 'Mekhtar', 'Merui', 'Mian Channu',
-                                      'Mianez', 'Mianwali', 'Minawala', 'Miram Shah', 'Mirpur', 'Mirpur Batoro', 'Mirpur Khas', 'Mirpur Sakro', 'Mithani', 'Mithi', 'Mohmand Agency', 'Mongora', 'Moro', 'Multan', 'Murgha Kibzai', 'Muridke', 'Murree',
-                                      'Musa Khel Bazar', 'Muzaffarabad', 'Muzaffargarh', 'Nagar', 'Nagar Parkar', 'Nagha Kalat', 'Nal', 'Naokot', 'Narowal', 'Naseerabad', 'Naudero', 'Nauroz Kalat', 'Naushara', 'Nawabshah', 'Nazimabad', 'North Waziristan',
-                                      'Noushero Feroz', 'Nowshera', 'Nur Gamma', 'Nushki', 'Nuttal', 'Okara', 'Ormara', 'Paharpur', 'Pak Pattan', 'Palantuk', 'Panjgur', 'Pasni', 'Pattoki', 'Pendoo', 'Peshawar', 'Piharak', 'pirMahal', 'Pirmahal', 'Pishin',
-                                      'Plandri', 'Pokran', 'Qambar', 'Qamruddin Karez', 'Qazi Ahmad', 'Qila Abdullah', 'Qila Didar Singh', 'Qila Ladgasht', 'Qila Safed', 'Qila Saifullah', 'Quetta', 'Rabwah', 'Rahim Yar Khan', 'Raiwind', 'Rajan Pur', 'Rakhni',
-                                      'Ranipur', 'Ratodero', 'Rawalakot', 'Rawalpindi', 'Renala Khurd', 'Robat Thana', 'Rodkhan', 'Rohri', 'Sadiqabad', 'Safdar Abad – (Dhaban Singh)', 'Sahiwal', 'Saidu Sharif', 'Saindak', 'Sakesar', 'Sakrand', 'Samberial',
-                                      'Sanghar', 'Sangla Hill', 'Sanjawi', 'Sarai Alamgir', 'Sargodha', 'Saruna', 'Shabaz Kalat', 'Shadadkhot', 'Shafqat Shaheed Chowk', 'Shahbandar', 'Shahdadpur', 'Shahpur', 'Shahpur Chakar', 'Shakargarh', 'Shangla', 'Shangrila',
-                                      'Sharam Jogizai', 'Sheikhupura', 'Shikarpur', 'Shingar', 'Shorap', 'Sialkot', 'Sibi', 'Skardu', 'Sohawa', 'Sonmiani', 'Sooianwala', 'South Waziristan', 'Spezand', 'Spintangi', 'Sui', 'Sujawal', 'Sukkur', 'Sundar', 'Suntsar',
-                                      'Surab', 'Swabi', 'Swat', 'Taank', 'Takhtbai', 'Talagang', 'Tando Adam', 'Tando Allahyar', 'Tando Bago', 'Tangi', 'Tar Ahamd Rind', 'Tarbela', 'Taxila', 'Thall', 'Thalo', 'Thatta', 'Toba Tek Singh', 'Tordher', 'Tujal', 'Tump',
-                                      'Turbat', 'Umarao', 'Umarkot', 'Uthal', 'Vehari', 'Veirwaro', 'Vitakri', 'Wadh', 'Wah Cantonment', 'Washap', 'Wasjuk', 'Yakmach', 'Pasrur', 'Zafarwal', 'Waziranbad', 'Siraye Alamgir' ,'Kingra'
-                                    ].contains(suggestion)) {
+                                    if (citiesDropdownItems.contains(suggestion)) {
                                       setState(() {
                                         cityController.text = suggestion;
                                       });
@@ -733,7 +681,7 @@ class _ShopPageState extends State<ShopPage> {
                                           fontSize: 16.0,
                                         );
                                       }
-                                    } else {
+                                   } else {
                                       // Show toast message for invalid city
                                       Fluttertoast.showToast(
                                         msg: 'Please select a valid city.',
@@ -745,7 +693,7 @@ class _ShopPageState extends State<ShopPage> {
                                         fontSize: 16.0,
                                       );
                                     }
-                                  },
+                                   },
                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: Colors.white, backgroundColor: Colors.green,
                                     shape: RoundedRectangleBorder(
