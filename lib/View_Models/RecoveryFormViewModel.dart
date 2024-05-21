@@ -40,5 +40,9 @@ class RecoveryFormViewModel extends GetxController{
     recoveryformRepository.delete(id);
     fetchAllRecoveryForm();
   }
+  postRecoveryForm(){
+    recoveryformRepository.postRecoveryFormTable();
+    fetchAllRecoveryForm();
+  }
 
 }

@@ -157,17 +157,33 @@ class LocationService {
     return (distanceInMeters / 1000); // Multiply the result by 2
   }
 
-  Future<void> deleteDocument() async {
-    await FirebaseFirestore.instance
-        .collection('location')
-        .doc(userIdForLocation)
-        .delete()
-        .then(
-          (doc) => print("Document deleted"),
-      onError: (e) => print("Error updating document $e"),
-    );
-  }
+  // Future<void> deleteDocument() async {
+  //   await FirebaseFirestore.instance
+  //       .collection('location')
+  //       .doc(userIdForLocation)
+  //       .delete()
+  //       .then(
+  //         (doc) => print("Document deleted"),
+  //     onError: (e) => print("Error updating document $e"),
+  //   );
+  // }
 
+  Future<void> deleteDocument() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('location')
+          .doc(userIdForLocation)
+          .delete();
+
+      if (kDebugMode) {
+        print("Document deleted");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error deleting document $e");
+      }
+    }
+  }
   Future<void> stopListening() async {
     try {
       //WakelockPlus.disable();
@@ -175,7 +191,9 @@ class LocationService {
       SharedPreferences pref = await SharedPreferences.getInstance();
       pref.setDouble("TotalDistance", totalDistance);
     } catch (e) {
-      print("ERROR ${e.toString()}");
+      if (kDebugMode) {
+        print("ERROR ${e.toString()}");
+      }
     }
   }
 }

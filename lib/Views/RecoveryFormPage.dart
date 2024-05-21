@@ -637,8 +637,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                           ),
                                         );
 
-                                        DBHelper dbrecoveryform = DBHelper();
-                                        dbrecoveryform.postRecoveryFormTable();
+                                        await recoveryformViewModel.postRecoveryForm();
 
                                     Navigator.push(
                                       context,

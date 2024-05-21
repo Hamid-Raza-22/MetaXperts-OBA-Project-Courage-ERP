@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../Models/LocationModel.dart';
 import '../Repositories/LocationRepository.dart';
+import '../Tracker/trac.dart';
 
 
 class LocationViewModel extends GetxController{
@@ -10,11 +11,13 @@ class LocationViewModel extends GetxController{
   LocationRepository locationRepository = LocationRepository();
 
 
+
   @override
   void onInit() {
     super.onInit();
     fetchAllLocation();
   }
+
 
   fetchAllLocation() async {
     var location = await locationRepository.getLocation();
@@ -40,6 +43,10 @@ class LocationViewModel extends GetxController{
     locationRepository.delete(id);
     fetchAllLocation();
   }
+  postLocation(){
+    locationRepository.postlocationdata();
+  }
+
 }
 
 

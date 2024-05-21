@@ -109,7 +109,7 @@ class _ShopPageState extends State<ShopPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation != 'ASM') {
+    if (userDesignation != 'ASM'&& userDesignation != 'SPO' ) {
     //  await fetchShopNames();
       setState(() {
         cityController.text = userCitys;
@@ -650,9 +650,11 @@ class _ShopPageState extends State<ShopPage> {
                                         phoneNoController.text = "";
                                         alternativePhoneNoController.text = "";
 
-                                        DBHelper dbmaster = DBHelper();
+                                        shopViewModel.postShop();
 
-                                        dbmaster.postShopTable();
+                                        // DBHelper dbmaster = DBHelper();
+                                        //
+                                        // dbmaster.postShopTable();
 
                                         // Navigate to the home page after saving
                                         // Inside the ShopPage where you navigate back to HomePage

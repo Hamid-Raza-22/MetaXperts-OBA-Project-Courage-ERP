@@ -56,5 +56,9 @@ class OrderDetailsViewModel extends GetxController{
     orderdetailsRepository.delete(id);
     fetchAllOrderDetails();
   }
+  postOrderDetails(){
+    orderdetailsRepository.postOrderDetails();
+
+  }
 
 }

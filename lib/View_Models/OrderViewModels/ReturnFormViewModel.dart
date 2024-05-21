@@ -40,5 +40,9 @@ class ReturnFormViewModel extends GetxController{
     returnformRepository.delete(id);
     fetchAllReturnForm();
   }
+ postReturnForm(){
+    returnformRepository.postReturnFormTable();
+
+  }
 
 }

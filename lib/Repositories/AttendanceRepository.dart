@@ -1,5 +1,8 @@
 
 
+import 'package:flutter/foundation.dart';
+
+import '../API/ApiServices.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/AttendanceModel.dart';
 
@@ -17,7 +20,73 @@ class AttendanceRepository {
     }
     return attendance;
   }
+  Future<void> postAttendanceTable() async {
+    var db = await dbHelper.db;
+    final ApiServices api = ApiServices();
 
+    try {
+      final products = await db!.rawQuery('select * from attendance');
+
+      if (products.isNotEmpty) {
+        for (var i in products) {
+          if (kDebugMode) {
+            print("Posting attendance for ${i['id']}");
+          }
+
+          AttendanceModel v = AttendanceModel(
+            id: i['id'].toString(),
+            date: i['date'].toString(),
+            userId: i['userId'].toString(),
+            timeIn: i['timeIn'].toString(),
+            latIn: i['latIn'].toString(),
+            lngIn: i['lngIn'].toString(),
+            bookerName: i['bookerName'].toString(),
+            city: i['city'].toString(),
+            designation: i['designation'].toString(),
+          );
+
+          var result = await api.masterPost(
+            v.toMap(),
+            'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
+
+          );
+
+          var result1 = await api.masterPost(
+            v.toMap(),
+            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
+          );
+
+          if (result == true && result1 == true) {
+            await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
+          } else if (result != true) {
+            final results = await api.masterPost(
+              v.toMap(),
+              'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
+            );
+            if (results == true) {
+              await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
+            }
+          } else if (result1 != true) {
+            final results = await api.masterPost(
+              v.toMap(),
+              'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
+            );
+            if (results == true) {
+              await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
+            }
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print("Attendance table is empty.");
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error posting attendance: $e");
+      }
+    }
+  }
   // Future<List<AttendanceModel>> getShopName() async {
   //   var dbClient = await dbHelper.db;
   //   List<Map> maps = await dbClient!.query('shop', columns: ['id', 'shopName']);
@@ -58,7 +127,47 @@ class AttendanceRepository {
     }
     return attendanceout;
   }
+  Future<void> postAttendanceOutTable() async {
+    var db = await dbHelper.db;
 
+    final ApiServices api = ApiServices();
+    try {
+      final products = await db!.rawQuery('select * from attendanceOut');
+
+      if (products.isNotEmpty || products != null) {  // Check if the table is not empty
+        for (var i in products) {
+          if (kDebugMode) {
+            print("FIRST ${i.toString()}");
+          }
+
+          AttendanceOutModel v = AttendanceOutModel(
+              id: i['id'].toString(),
+              date: i['date'].toString(),
+              userId: i['userId'].toString(),
+              timeOut: i['timeOut'].toString(),
+              totalTime: i['totalTime'].toString(),
+              latOut: i['latOut'].toString(),
+              lngOut: i['lngOut'].toString(),
+              totalDistance: i['totalDistance'].toString()
+          );
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendanceout/post/',);
+
+          if (result == true && result1 == true) {
+            if (kDebugMode) {
+              print('successfully post');
+            }
+            await db.rawDelete("DELETE FROM attendanceOut WHERE id = '${i['id']}'");
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("ErrorRRRRRRRRR: $e");
+      }
+      return;
+    }
+  }
   Future<int> addOut(AttendanceOutModel attendanceoutModel) async{
     var dbClient = await dbHelper.db;
     return await dbClient!.insert('attendanceOut' , attendanceoutModel.toMap());

@@ -1,8 +1,10 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 
 import 'package:order_booking_shop/Models/OrderModels/OrderMasterModel.dart';
 
+import '../../API/ApiServices.dart';
 import '../../Databases/DBHelper.dart';
 
 class OrderMasterRepository{
@@ -19,6 +21,59 @@ class OrderMasterRepository{
     }
 
     return ordermaster;
+  }
+  Future<void> postMasterTable() async {
+    var db = await dbHelper.db;
+    final ApiServices api = ApiServices();
+
+    try {
+      final List<Map<String, dynamic>> records = await db!.query('orderMaster');
+
+      // Print each record
+      for (var record in records) {
+        if (kDebugMode) {
+          print(record.toString());
+        }
+      }
+      // Select only the records that have not been posted yet
+      final products = await db.rawQuery('SELECT * FROM orderMaster WHERE posted = 0');
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (var i in products) {
+          if (kDebugMode) {
+            print("FIRST ${i.toString()}");
+          }
+
+          OrderMasterModel v = OrderMasterModel(
+              orderId: i['orderId'].toString(),
+              shopName: i['shopName'].toString(),
+              ownerName: i['ownerName'].toString(),
+              phoneNo: i['phoneNo'].toString(),
+              brand: i['brand'].toString(),
+              date: i['date'].toString(),
+              userId: i['userId'].toString(),
+              userName: i['userName'].toString(),
+              shopCity: i['shopCity'].toString(),
+              total: i['total'].toString(),
+              // subTotal: i['subTotal'].toString(),
+              // discount: i['discount'].toString(),
+              creditLimit: i['creditLimit'].toString(),
+              requiredDelivery: i['requiredDelivery'].toString()
+          );
+
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/',);
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/ordermaster/post/',);
+
+          if (result == true&& result1 == true) {
+            await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
+
+          }
+        }
+      } }catch (e) {
+      if (kDebugMode) {
+        print("ErrorRRRRRRRRR: $e");
+      }
+      return;
+    }
   }
   //
   // Future<String> getLastOrderId() async {

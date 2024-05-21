@@ -759,6 +759,66 @@ class newDatabaseOutputs {
       }
     }
   }
+  // functions for the Cities data table
+  Future<void> updateCitiesData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? formattedDateTime = prefs.getString('lastInitializationDateTime');
+    // String? id = prefs.getString('userId');
+    if (formattedDateTime != null) {
+      final db = DBHelper();
+      final api = ApiServices();
+      List<dynamic>? citydata;
+      try {
+        citydata = await api.getupdateData(
+            "http://103.149.32.30:8080/ords/metaxperts/city/get/$formattedDateTime");
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching data from API: $e");
+        }
+      }
+      if (citydata != null && citydata.isNotEmpty) {
+        bool result = await db.updateCitiesDataTable(citydata);
+        if (result) {
+          if (kDebugMode) {
+            print("Data Updated Successfully for Cities table");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error updating Cities table");
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print("No data found for update in Cities table");
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print('No formatted date and time found in SharedPreferences');
+      }
+    }showCityData();
+  }
+  Future<void> showCityData() async {
+    if (kDebugMode) {
+      print("************Tables SHOWING**************");
+    }
+    if (kDebugMode) {
+      print("************Cites data Table**************");
+    }
+    final db = DBHelper();
+    try {
+      var data = await db.getPakCitiesDB();
+      int totalCount = data?.length ?? 0;
+
+      if (kDebugMode) {
+        print("TOTAL number of Cities data in the table is $totalCount");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching Cities data: ${e.toString()}");
+      }
+    }
+  }
 
   // Future<void> showOwnerData() async {
   //   if (kDebugMode) {
@@ -983,6 +1043,7 @@ class newDatabaseOutputs {
     await updateRecoveryFormGetData();
     await updateAccountsData();
     await updateloginData();
+    await updateCitiesData();
   }
 
 }

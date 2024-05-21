@@ -90,13 +90,10 @@ Future<void> postFile() async {
   if (kDebugMode) {
     print(userNames);
   }
-  postLocationData();
+  await locationViewModel.postLocation();
 }
 
-Future<void> postLocationData() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postlocationdata();
-}
+
 
 
 String _getFormattedDate1() {

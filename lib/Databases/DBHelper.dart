@@ -52,6 +52,7 @@ _onCreate(Database db, int version) async {
   await db.execute("CREATE TABLE accounts(account_id INTEGER PRIMARY KEY, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT, user_id TEXT)");
 
   await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT, credit TEXT)");
+  await db.execute("CREATE TABLE Balance(id NUMBER, balance NUMBER)");
   await db.execute("CREATE TABLE pakCities(id INTEGER,city TEXT)");
 
   // Used for the post data
@@ -756,6 +757,50 @@ _onCreate(Database db, int version) async {
       return false;
     }
   }
+  Future<bool> updateCitiesDataTable(List<dynamic> dataList) async {
+    final Database db = await initDatabase();
+    try {
+      for (var data in dataList) {
+        String id = data['id'].toString(); // Ensure id is treated as a string
+
+        // Check if the ID already exists in the database
+        var result = await db.query(
+          'pakCities',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+
+        if (result.isNotEmpty) {
+          // Update existing record
+          await db.update(
+            'pakCities',
+            data,
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+          if (kDebugMode) {
+            print("Updated data: $data");
+          }
+        } else {
+          // Insert new record
+          await db.insert(
+            'pakCities',
+            data,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          if (kDebugMode) {
+            print("Inserted data: $data");
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error updating pakCities data table: ${e.toString()}");
+      }
+      return false;
+    }
+  }
 
 
 
@@ -1051,97 +1096,97 @@ _onCreate(Database db, int version) async {
       return null;
     }
   }
-  Future<void> postShopTable() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-
-    try {
-      final List<Map<String, dynamic>> records = await db.query('shop');
-
-      // Print each record
-      for (var record in records) {
-        if (kDebugMode) {
-          print(record.toString());
-        }
-      }
-      // Select only the records that have not been posted yet
-      final products = await db.rawQuery('SELECT * FROM shop WHERE posted = 0');
-      if (products.isNotEmpty) {  // Check if the table is not empty
-        for (var i in products) {
-          if (kDebugMode) {
-            print("FIRST ${i.toString()}");
-          }
-
-
-        ShopModel v = ShopModel(
-            id: "${i['id']}",
-            shopName: i['shopName'].toString(),
-            city: i['city'].toString(),
-            date: i['date'].toString(),
-            shopAddress: i['shopAddress'].toString(),
-            ownerName: i['ownerName'].toString(),
-            ownerCNIC: i['ownerCNIC'].toString(),
-            phoneNo: i['phoneNo'].toString(),
-            alternativePhoneNo: i['alternativePhoneNo'].toString(),
-            latitude: i['latitude'].toString(),
-             longitude: i['longitude'].toString(),
-             userId: i['userId'].toString(),
-          body: i['body'] != null && i['body'].toString().isNotEmpty
-              ? Uint8List.fromList(base64Decode(i['body'].toString()))
-              : Uint8List(0),
-
-        );
-
-          // Print image path before trying to create the file
-          if (kDebugMode) {
-            print("Image Path from Database: ${i['body']}");
-          }
-          if (kDebugMode) {
-            print("lat:${i['latitude']}");
-          }
-          // Declare imageBytes outside the if block
-          Uint8List imageBytes;
-          final directory = await getApplicationDocumentsDirectory();
-          final filePath = File('${directory.path}/captured_image.jpg');
-          if (filePath.existsSync()) {
-            // File exists, proceed with reading the file
-            List<int> imageBytesList = await filePath.readAsBytes();
-            imageBytes = Uint8List.fromList(imageBytesList);
-          } else {
-            if (kDebugMode) {
-              print("File does not exist at the specified path: ${filePath.path}");
-            }
-            continue; // Skip to the next iteration if the file doesn't exist
-          }
-          // Print information before making the API request
-          if (kDebugMode) {
-            print("Making API request for shop visit ID: ${v.id}");
-          }
-          https://apex.oracle.com/pls/apex/metaa/addshop/post/
-          http://103.149.32.30:8080/ords/metaxperts/addshop/post/
-          var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshops/post/', imageBytes,);
-          var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/', imageBytes,);
-          if (result == true && result1 == true) {
-            await db.rawQuery('DELETE FROM shop WHERE id = ${i['id']}');
-            if (kDebugMode) {
-              print("Successfully posted data for shop visit ID: ${v.id}");
-            }
-          }
-          else {
-            if (kDebugMode) {
-              print("Failed to post data for shop visit ID: ${v.id}");
-            }
-          }
-        }
-
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error processing shop visit data: $e");
-      }
-      return;
-    }
-  }
+  // Future<void> postShopTable() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     final List<Map<String, dynamic>> records = await db.query('shop');
+  //
+  //     // Print each record
+  //     for (var record in records) {
+  //       if (kDebugMode) {
+  //         print(record.toString());
+  //       }
+  //     }
+  //     // Select only the records that have not been posted yet
+  //     final products = await db.rawQuery('SELECT * FROM shop WHERE posted = 0');
+  //     if (products.isNotEmpty) {  // Check if the table is not empty
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("FIRST ${i.toString()}");
+  //         }
+  //
+  //
+  //       ShopModel v = ShopModel(
+  //           id: "${i['id']}",
+  //           shopName: i['shopName'].toString(),
+  //           city: i['city'].toString(),
+  //           date: i['date'].toString(),
+  //           shopAddress: i['shopAddress'].toString(),
+  //           ownerName: i['ownerName'].toString(),
+  //           ownerCNIC: i['ownerCNIC'].toString(),
+  //           phoneNo: i['phoneNo'].toString(),
+  //           alternativePhoneNo: i['alternativePhoneNo'].toString(),
+  //           latitude: i['latitude'].toString(),
+  //            longitude: i['longitude'].toString(),
+  //            userId: i['userId'].toString(),
+  //         body: i['body'] != null && i['body'].toString().isNotEmpty
+  //             ? Uint8List.fromList(base64Decode(i['body'].toString()))
+  //             : Uint8List(0),
+  //
+  //       );
+  //
+  //         // Print image path before trying to create the file
+  //         if (kDebugMode) {
+  //           print("Image Path from Database: ${i['body']}");
+  //         }
+  //         if (kDebugMode) {
+  //           print("lat:${i['latitude']}");
+  //         }
+  //         // Declare imageBytes outside the if block
+  //         Uint8List imageBytes;
+  //         final directory = await getApplicationDocumentsDirectory();
+  //         final filePath = File('${directory.path}/captured_image.jpg');
+  //         if (filePath.existsSync()) {
+  //           // File exists, proceed with reading the file
+  //           List<int> imageBytesList = await filePath.readAsBytes();
+  //           imageBytes = Uint8List.fromList(imageBytesList);
+  //         } else {
+  //           if (kDebugMode) {
+  //             print("File does not exist at the specified path: ${filePath.path}");
+  //           }
+  //           continue; // Skip to the next iteration if the file doesn't exist
+  //         }
+  //         // Print information before making the API request
+  //         if (kDebugMode) {
+  //           print("Making API request for shop visit ID: ${v.id}");
+  //         }
+  //         https://apex.oracle.com/pls/apex/metaa/addshop/post/
+  //         http://103.149.32.30:8080/ords/metaxperts/addshop/post/
+  //         var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshops/post/', imageBytes,);
+  //         var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/', imageBytes,);
+  //         if (result == true && result1 == true) {
+  //           await db.rawQuery('DELETE FROM shop WHERE id = ${i['id']}');
+  //           if (kDebugMode) {
+  //             print("Successfully posted data for shop visit ID: ${v.id}");
+  //           }
+  //         }
+  //         else {
+  //           if (kDebugMode) {
+  //             print("Failed to post data for shop visit ID: ${v.id}");
+  //           }
+  //         }
+  //       }
+  //
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error processing shop visit data: $e");
+  //     }
+  //     return;
+  //   }
+  // }
 
   Future<bool> entershopdata(String shopName) async {
     final Database db = await initDatabase();
@@ -1254,104 +1299,104 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<void> postMasterTable() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-
-    try {
-      final List<Map<String, dynamic>> records = await db.query('orderMaster');
-
-      // Print each record
-      for (var record in records) {
-        if (kDebugMode) {
-          print(record.toString());
-        }
-      }
-      // Select only the records that have not been posted yet
-      final products = await db.rawQuery('SELECT * FROM orderMaster WHERE posted = 0');
-      if (products.isNotEmpty) {  // Check if the table is not empty
-        for (var i in products) {
-          if (kDebugMode) {
-            print("FIRST ${i.toString()}");
-          }
-
-        OrderMasterModel v = OrderMasterModel(
-            orderId: i['orderId'].toString(),
-            shopName: i['shopName'].toString(),
-            ownerName: i['ownerName'].toString(),
-            phoneNo: i['phoneNo'].toString(),
-            brand: i['brand'].toString(),
-            date: i['date'].toString(),
-            userId: i['userId'].toString(),
-            userName: i['userName'].toString(),
-            shopCity: i['shopCity'].toString(),
-            total: i['total'].toString(),
-            // subTotal: i['subTotal'].toString(),
-            // discount: i['discount'].toString(),
-            creditLimit: i['creditLimit'].toString(),
-            requiredDelivery: i['requiredDelivery'].toString()
-        );
-
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/',);
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/ordermaster/post/',);
-
-        if (result == true&& result1 == true) {
-          await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
-
-        }
-      }
-    } }catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
-      }
-      return;
-    }
-  }
-
-  Future<void> postOrderDetails() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-    try {
-
-      final List<Map<String, dynamic>> records = await db.query('order_details');
-
-      // Print each record
-      for (var record in records) {
-        if (kDebugMode) {
-          print(record.toString());
-        }
-      }
-      // Select only the records that have not been posted yet
-      final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
-      if (products.isNotEmpty) {  // Check if the table is not empty
-        for (var i in products) {
-          if (kDebugMode) {
-            print("FIRST ${i.toString()}");
-          }
-
-        OrderDetailsModel v = OrderDetailsModel(
-            id: i['id'].toString(),
-            orderMasterId: i['order_master_id'].toString(),
-            productName: i['productName'].toString(),
-            price: i['price'].toString(),
-            quantity: i['quantity'].toString(),
-            amount: i['amount'].toString(),
-            userId: i['userId'].toString(),
-        );
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
-        if(result == true&& result1 == true){
-          await db.rawQuery("UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
-        }
-      }}
-
-    } catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
-      }
-      return;
-    }
-  }
+  // Future<void> postMasterTable() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     final List<Map<String, dynamic>> records = await db.query('orderMaster');
+  //
+  //     // Print each record
+  //     for (var record in records) {
+  //       if (kDebugMode) {
+  //         print(record.toString());
+  //       }
+  //     }
+  //     // Select only the records that have not been posted yet
+  //     final products = await db.rawQuery('SELECT * FROM orderMaster WHERE posted = 0');
+  //     if (products.isNotEmpty) {  // Check if the table is not empty
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("FIRST ${i.toString()}");
+  //         }
+  //
+  //       OrderMasterModel v = OrderMasterModel(
+  //           orderId: i['orderId'].toString(),
+  //           shopName: i['shopName'].toString(),
+  //           ownerName: i['ownerName'].toString(),
+  //           phoneNo: i['phoneNo'].toString(),
+  //           brand: i['brand'].toString(),
+  //           date: i['date'].toString(),
+  //           userId: i['userId'].toString(),
+  //           userName: i['userName'].toString(),
+  //           shopCity: i['shopCity'].toString(),
+  //           total: i['total'].toString(),
+  //           // subTotal: i['subTotal'].toString(),
+  //           // discount: i['discount'].toString(),
+  //           creditLimit: i['creditLimit'].toString(),
+  //           requiredDelivery: i['requiredDelivery'].toString()
+  //       );
+  //
+  //         var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/',);
+  //         var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/ordermaster/post/',);
+  //
+  //       if (result == true&& result1 == true) {
+  //         await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
+  //
+  //       }
+  //     }
+  //   } }catch (e) {
+  //     if (kDebugMode) {
+  //       print("ErrorRRRRRRRRR: $e");
+  //     }
+  //     return;
+  //   }
+  // }
+  //
+  // Future<void> postOrderDetails() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //   try {
+  //
+  //     final List<Map<String, dynamic>> records = await db.query('order_details');
+  //
+  //     // Print each record
+  //     for (var record in records) {
+  //       if (kDebugMode) {
+  //         print(record.toString());
+  //       }
+  //     }
+  //     // Select only the records that have not been posted yet
+  //     final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
+  //     if (products.isNotEmpty) {  // Check if the table is not empty
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("FIRST ${i.toString()}");
+  //         }
+  //
+  //       OrderDetailsModel v = OrderDetailsModel(
+  //           id: i['id'].toString(),
+  //           orderMasterId: i['order_master_id'].toString(),
+  //           productName: i['productName'].toString(),
+  //           price: i['price'].toString(),
+  //           quantity: i['quantity'].toString(),
+  //           amount: i['amount'].toString(),
+  //           userId: i['userId'].toString(),
+  //       );
+  //         var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
+  //         var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
+  //       if(result == true&& result1 == true){
+  //         await db.rawQuery("UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
+  //       }
+  //     }}
+  //
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("ErrorRRRRRRRRR: $e");
+  //     }
+  //     return;
+  //   }
+  // }
 
   Future<List<String>> getShopNames() async {
     final Database db = await initDatabase();
@@ -1869,115 +1914,115 @@ _onCreate(Database db, int version) async {
     }
   }
 
+  //
+  // Future<void> postAttendanceTable() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     final products = await db.rawQuery('select * from attendance');
+  //
+  //     if (products.isNotEmpty) {
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("Posting attendance for ${i['id']}");
+  //         }
+  //
+  //         AttendanceModel v = AttendanceModel(
+  //           id: i['id'].toString(),
+  //           date: i['date'].toString(),
+  //           userId: i['userId'].toString(),
+  //           timeIn: i['timeIn'].toString(),
+  //           latIn: i['latIn'].toString(),
+  //           lngIn: i['lngIn'].toString(),
+  //           bookerName: i['bookerName'].toString(),
+  //           city: i['city'].toString(),
+  //           designation: i['designation'].toString(),
+  //         );
+  //
+  //         var result = await api.masterPost(
+  //           v.toMap(),
+  //           'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
+  //
+  //         );
+  //
+  //         var result1 = await api.masterPost(
+  //           v.toMap(),
+  //           'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
+  //         );
+  //
+  //         if (result == true && result1 == true) {
+  //           await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
+  //         } else if (result != true) {
+  //          final results = await api.masterPost(
+  //             v.toMap(),
+  //             'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
+  //           );
+  //           if (results == true) {
+  //             await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
+  //           }
+  //         } else if (result1 != true) {
+  //           final results = await api.masterPost(
+  //             v.toMap(),
+  //             'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
+  //           );
+  //           if (results == true) {
+  //             await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
+  //           }
+  //         }
+  //       }
+  //     } else {
+  //       if (kDebugMode) {
+  //         print("Attendance table is empty.");
+  //       }
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error posting attendance: $e");
+  //     }
+  //   }
+  // }
 
-  Future<void> postAttendanceTable() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-
-    try {
-      final products = await db.rawQuery('select * from attendance');
-
-      if (products.isNotEmpty) {
-        for (var i in products) {
-          if (kDebugMode) {
-            print("Posting attendance for ${i['id']}");
-          }
-
-          AttendanceModel v = AttendanceModel(
-            id: i['id'].toString(),
-            date: i['date'].toString(),
-            userId: i['userId'].toString(),
-            timeIn: i['timeIn'].toString(),
-            latIn: i['latIn'].toString(),
-            lngIn: i['lngIn'].toString(),
-            bookerName: i['bookerName'].toString(),
-            city: i['city'].toString(),
-            designation: i['designation'].toString(),
-          );
-
-          var result = await api.masterPost(
-            v.toMap(),
-            'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
-
-          );
-
-          var result1 = await api.masterPost(
-            v.toMap(),
-            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
-          );
-
-          if (result == true && result1 == true) {
-            await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
-          } else if (result != true) {
-           final results = await api.masterPost(
-              v.toMap(),
-              'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
-            );
-            if (results == true) {
-              await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
-            }
-          } else if (result1 != true) {
-            final results = await api.masterPost(
-              v.toMap(),
-              'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
-            );
-            if (results == true) {
-              await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
-            }
-          }
-        }
-      } else {
-        if (kDebugMode) {
-          print("Attendance table is empty.");
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error posting attendance: $e");
-      }
-    }
-  }
-
-  Future<void> postAttendanceOutTable() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-    try {
-      final products = await db.rawQuery('select * from attendanceOut');
-
-      if (products.isNotEmpty || products != null) {  // Check if the table is not empty
-        for (var i in products) {
-          if (kDebugMode) {
-            print("FIRST ${i.toString()}");
-          }
-
-          AttendanceOutModel v = AttendanceOutModel(
-            id: i['id'].toString(),
-            date: i['date'].toString(),
-            userId: i['userId'].toString(),
-            timeOut: i['timeOut'].toString(),
-            totalTime: i['totalTime'].toString(),
-            latOut: i['latOut'].toString(),
-            lngOut: i['lngOut'].toString(),
-            totalDistance: i['totalDistance'].toString()
-          );
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendanceout/post/',);
-
-          if (result == true && result1 == true) {
-            if (kDebugMode) {
-              print('successfully post');
-            }
-            await db.rawDelete("DELETE FROM attendanceOut WHERE id = '${i['id']}'");
-          }
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
-      }
-      return;
-    }
-  }
+  // Future<void> postAttendanceOutTable() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //   try {
+  //     final products = await db.rawQuery('select * from attendanceOut');
+  //
+  //     if (products.isNotEmpty || products != null) {  // Check if the table is not empty
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("FIRST ${i.toString()}");
+  //         }
+  //
+  //         AttendanceOutModel v = AttendanceOutModel(
+  //           id: i['id'].toString(),
+  //           date: i['date'].toString(),
+  //           userId: i['userId'].toString(),
+  //           timeOut: i['timeOut'].toString(),
+  //           totalTime: i['totalTime'].toString(),
+  //           latOut: i['latOut'].toString(),
+  //           lngOut: i['lngOut'].toString(),
+  //           totalDistance: i['totalDistance'].toString()
+  //         );
+  //         var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
+  //         var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendanceout/post/',);
+  //
+  //         if (result == true && result1 == true) {
+  //           if (kDebugMode) {
+  //             print('successfully post');
+  //           }
+  //           await db.rawDelete("DELETE FROM attendanceOut WHERE id = '${i['id']}'");
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("ErrorRRRRRRRRR: $e");
+  //     }
+  //     return;
+  //   }
+  // }
 
 
   Future<bool> insertProductCategory(List<dynamic> dataList) async {
@@ -2059,47 +2104,47 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<void> postRecoveryFormTable() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-
-    try {
-      final products = await db.rawQuery('select * from recoveryForm');
-      if (products.isNotEmpty || products != null)  { // Check if the table is not empty
-
-        for (var i in products) {
-          if (kDebugMode) {
-            print("FIRST ${i.toString()}");
-          }
-
-          RecoveryFormModel v = RecoveryFormModel(
-              recoveryId: i['recoveryId'].toString(),
-              shopName: i['shopName'].toString(),
-              date: i['date'].toString(),
-              cashRecovery: i['cashRecovery'].toString(),
-              netBalance: i['netBalance'].toString(),
-              userId: i['userId'].toString(),
-              bookerName: i['bookerName'].toString(),
-            city: i['city'].toString(),
-            brand: i['brand'].toString(),
-          );
-
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/recoveryform/post/',);
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recoveryform/post/',);
-
-          if (result == true&& result1 == true){
-            db.rawQuery(
-                "DELETE FROM recoveryForm WHERE recoveryId = '${i['recoveryId']}'");
-          }
-        }
-      }
-    }catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
-      }
-      return;
-    }
-  }
+  // Future<void> postRecoveryFormTable() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     final products = await db.rawQuery('select * from recoveryForm');
+  //     if (products.isNotEmpty || products != null)  { // Check if the table is not empty
+  //
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("FIRST ${i.toString()}");
+  //         }
+  //
+  //         RecoveryFormModel v = RecoveryFormModel(
+  //             recoveryId: i['recoveryId'].toString(),
+  //             shopName: i['shopName'].toString(),
+  //             date: i['date'].toString(),
+  //             cashRecovery: i['cashRecovery'].toString(),
+  //             netBalance: i['netBalance'].toString(),
+  //             userId: i['userId'].toString(),
+  //             bookerName: i['bookerName'].toString(),
+  //           city: i['city'].toString(),
+  //           brand: i['brand'].toString(),
+  //         );
+  //
+  //         var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/recoveryform/post/',);
+  //         var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recoveryform/post/',);
+  //
+  //         if (result == true&& result1 == true){
+  //           db.rawQuery(
+  //               "DELETE FROM recoveryForm WHERE recoveryId = '${i['recoveryId']}'");
+  //         }
+  //       }
+  //     }
+  //   }catch (e) {
+  //     if (kDebugMode) {
+  //       print("ErrorRRRRRRRRR: $e");
+  //     }
+  //     return;
+  //   }
+  // }
   Future<List<Map<String, dynamic>>> getReturnFormDetailsDB() async {
     final db = _db;
     try {
@@ -2129,80 +2174,80 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<void> postReturnFormTable() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-
-    try {
-      final products = await db.rawQuery('select * from returnForm');
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-
-      for (var i in products) {
-        if (kDebugMode) {
-          print("FIRST ${i.toString()}");
-        }
-
-        ReturnFormModel v =  ReturnFormModel(
-          returnId: i['returnId'].toString(),
-          shopName: i['shopName'].toString(),
-          date: i['date'].toString(),
-          returnAmount: i['returnAmount'].toString(),
-          bookerId: i['bookerId'].toString(),
-          bookerName: i['bookerName'].toString(),
-          city: i['city'].toString(),
-          brand: i['brand'].toString(),
-        );
-
-        bool result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnform/post/',);
-        bool result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnform/post/',);
-
-        if (result == true && result1 == true) {
-          db.rawQuery("DELETE FROM returnForm WHERE returnId = '${i['returnId']}'");
-
-        }
-      }
-    }} catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
-      }
-      return;
-    }
-  }
-
-  Future<void> postReturnFormDetails() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-    try {
-      final products = await db.rawQuery('select * from return_form_details');
-      var count = 0;
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-
-        for(var i in products){
-        if (kDebugMode) {
-          print(i.toString());
-        }
-        count++;
-        ReturnFormDetailsModel v = ReturnFormDetailsModel(
-          id: "${i['id']}".toString(),
-          returnformId: i['returnFormId'].toString(),
-          productName: i['productName'].toString(),
-          reason: i['reason'].toString(),
-          quantity: i['quantity'].toString(),
-          bookerId: i['bookerId'].toString(),
-        );
-        final result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post');
-        final result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');
-        if(result == true && result1 == true){
-          db.rawQuery('DELETE FROM return_form_details WHERE id = ${i['id']}');
-        }
-      }
-    }} catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
-      }
-      return;
-    }
-  }
+  // Future<void> postReturnFormTable() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     final products = await db.rawQuery('select * from returnForm');
+  //     if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+  //
+  //     for (var i in products) {
+  //       if (kDebugMode) {
+  //         print("FIRST ${i.toString()}");
+  //       }
+  //
+  //       ReturnFormModel v =  ReturnFormModel(
+  //         returnId: i['returnId'].toString(),
+  //         shopName: i['shopName'].toString(),
+  //         date: i['date'].toString(),
+  //         returnAmount: i['returnAmount'].toString(),
+  //         bookerId: i['bookerId'].toString(),
+  //         bookerName: i['bookerName'].toString(),
+  //         city: i['city'].toString(),
+  //         brand: i['brand'].toString(),
+  //       );
+  //
+  //       bool result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnform/post/',);
+  //       bool result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnform/post/',);
+  //
+  //       if (result == true && result1 == true) {
+  //         db.rawQuery("DELETE FROM returnForm WHERE returnId = '${i['returnId']}'");
+  //
+  //       }
+  //     }
+  //   }} catch (e) {
+  //     if (kDebugMode) {
+  //       print("ErrorRRRRRRRRR: $e");
+  //     }
+  //     return;
+  //   }
+  // }
+  //
+  // Future<void> postReturnFormDetails() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //   try {
+  //     final products = await db.rawQuery('select * from return_form_details');
+  //     var count = 0;
+  //     if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+  //
+  //       for(var i in products){
+  //       if (kDebugMode) {
+  //         print(i.toString());
+  //       }
+  //       count++;
+  //       ReturnFormDetailsModel v = ReturnFormDetailsModel(
+  //         id: "${i['id']}".toString(),
+  //         returnformId: i['returnFormId'].toString(),
+  //         productName: i['productName'].toString(),
+  //         reason: i['reason'].toString(),
+  //         quantity: i['quantity'].toString(),
+  //         bookerId: i['bookerId'].toString(),
+  //       );
+  //       final result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post');
+  //       final result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');
+  //       if(result == true && result1 == true){
+  //         db.rawQuery('DELETE FROM return_form_details WHERE id = ${i['id']}');
+  //       }
+  //     }
+  //   }} catch (e) {
+  //     if (kDebugMode) {
+  //       print("ErrorRRRRRRRRR: $e");
+  //     }
+  //     return;
+  //   }
+  // }
 
   Future<void> addStockCheckItems(List<StockCheckItemsModel> stockCheckItemsList) async {
     final db = _db;
@@ -2267,202 +2312,202 @@ _onCreate(Database db, int version) async {
     }
   }
 
-  Future<void> postShopVisitData() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-
-
-
-    try {
-      final products = await db.rawQuery('''SELECT *, 
-      CASE WHEN walkthrough = 1 THEN 'True' ELSE 'False' END AS walkthrough,
-      CASE WHEN planogram = 1 THEN 'True' ELSE 'False' END AS planogram,
-      CASE WHEN signage = 1 THEN 'True' ELSE 'False' END AS signage,
-      CASE WHEN productReviewed = 1 THEN 'True' ELSE 'False' END AS productReviewed
-      FROM shopVisit
-      ''');
-      await db.rawQuery('VACUUM');
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-      for (Map<dynamic, dynamic> i in products) {
-        if (kDebugMode) {
-          print("FIRST $i");
-        }
-
-        ShopVisitModel v = ShopVisitModel(
-          id: i['id'].toString(),
-          date: i['date'].toString(),
-          userId: i['userId'].toString(),
-          shopName: i['shopName'].toString(),
-          bookerName: i['bookerName'].toString(),
-          brand: i['brand'].toString(),
-          walkthrough: i['walkthrough'].toString(),
-          planogram: i['planogram'].toString(),
-          signage: i['signage'].toString(),
-          productReviewed: i['productReviewed'].toString(),
-          feedback: i['feedback'].toString(),
-          latitude: i['latitude'].toString(),
-          longitude: i['longitude'].toString(),
-          address: i['address'].toString(),
-          body: i['body'] != null && i['body'].toString().isNotEmpty
-              ? Uint8List.fromList(base64Decode(i['body'].toString()))
-              : Uint8List(0),
-
-        );
-
-        // Print image path before trying to create the file
-        if (kDebugMode) {
-          print("Image Path from Database: ${i['body']}");
-        }
-        if (kDebugMode) {
-          print("lat:${i['latitude']}");
-        }
-
-        // Declare imageBytes outside the if block
-        Uint8List imageBytes;
-        final directory = await getApplicationDocumentsDirectory();
-        final filePath = File('${directory.path}/captured_image.jpg');
-        if (filePath.existsSync()) {
-          // File exists, proceed with reading the file
-          List<int> imageBytesList = await filePath.readAsBytes();
-          imageBytes = Uint8List.fromList(imageBytesList);
-        } else {
-          if (kDebugMode) {
-            print("File does not exist at the specified path: ${filePath.path}");
-          }
-          continue; // Skip to the next iteration if the file doesn't exist
-        }
-        // Print information before making the API request
-        if (kDebugMode) {
-          print("Making API request for shop visit ID: ${v.id}");
-        }
-        var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes,);
-        var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/report/post/', imageBytes,);
-        if (result == true && result1 == true) {
-          await db.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
-          if (kDebugMode) {
-            print("Successfully posted data for shop visit ID: ${v.id}");
-          }
-         }
-        else {
-          if (kDebugMode) {
-            print("Failed to post data for shop visit ID: ${v.id}");
-          }
-      }
-      }
-
-    }
-      } catch (e) {
-      if (kDebugMode) {
-        print("Error processing shop visit data: $e");
-      }
-      return;
-    }
-  }
-  Future<void> postlocationdata() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-
-    try {
-      final products = await db.rawQuery('SELECT * FROM location WHERE posted = 0');
-      await db.rawQuery('VACUUM');
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-        for (Map<dynamic, dynamic> i in products) {
-          if (kDebugMode) {
-            print("FIRST $i");
-          }
-
-          LocationModel v = LocationModel(
-            id: i['id'].toString(),
-            date: i['date'].toString(),
-            userId: i['userId'].toString(),
-            userName: i['userName'].toString(),
-            fileName: i['fileName'].toString(),
-            totalDistance: i['totalDistance'].toString(),
-            body: i['body'] != null && i['body'].toString().isNotEmpty
-                ? Uint8List.fromList(base64Decode(i['body'].toString()))
-                : Uint8List(0),
-          );
-
-          // Print image path before trying to create the file
-          if (kDebugMode) {
-            print("Image Path from Database: ${i['body']}");
-          }
-          final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-
-          // Declare imageBytes outside the if block
-
-          Uint8List gpxBytes;
-          final downloadDirectory = await getDownloadsDirectory();
-           final filePath = File('${downloadDirectory?.path}/track$date.gpx');
-          if (filePath.existsSync()) {
-            // File exists, proceed with reading the file
-            List<int> imageBytesList = await filePath.readAsBytes();
-            gpxBytes = Uint8List.fromList(imageBytesList);
-          } else {
-            if (kDebugMode) {
-              print("File does not exist at the specified path: ${filePath.path}");
-            }
-            continue; // Skip to the next iteration if the file doesn't exist
-          }
-          // Print information before making the API request
-          if (kDebugMode) {
-            print("Making API request for shop visit ID: ${v.id}");
-          }
-          var result1 = await api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes,);
-          var result = await api.masterPostWithGPX(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/', gpxBytes,);
-          if (result == true && result1 == true) {
-            await db.rawUpdate("UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
-            if (kDebugMode) {
-              print("Successfully posted data for shop visit ID: ${v.id}");
-            }
-          }
-          else {
-            if (kDebugMode) {
-              print("Failed to post data for shop visit ID: ${v.id}");
-            }
-          }
-        }
-
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error processing shop visit data: $e");
-      }
-      return;
-    }
-  }
-  Future<void> postStockCheckItems() async {
-    final Database db = await initDatabase();
-    final ApiServices api = ApiServices();
-    try {
-      final products = await db.rawQuery('select * from Stock_Check_Items');
-      var count = 0;
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-
-        for(var i in products){
-        if (kDebugMode) {
-          print(i.toString());
-        }
-        count++;
-        StockCheckItemsModel v =StockCheckItemsModel(
-          id: "${i['id']}${i['shopvisitId']}".toString(),
-          shopvisitId: i['shopvisitId'].toString(),
-          itemDesc: i['itemDesc'].toString(),
-          qty: i['qty'].toString(),
-        );
-        var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/');
-        var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/shopvisit/post/');
-        if(result == true && result1 == true){
-          db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
-        }
-      }
-    } }catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
-      }
-      return;
-    }
-  }
+  // Future<void> postShopVisitData() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //
+  //
+  //
+  //   try {
+  //     final products = await db.rawQuery('''SELECT *,
+  //     CASE WHEN walkthrough = 1 THEN 'True' ELSE 'False' END AS walkthrough,
+  //     CASE WHEN planogram = 1 THEN 'True' ELSE 'False' END AS planogram,
+  //     CASE WHEN signage = 1 THEN 'True' ELSE 'False' END AS signage,
+  //     CASE WHEN productReviewed = 1 THEN 'True' ELSE 'False' END AS productReviewed
+  //     FROM shopVisit
+  //     ''');
+  //     await db.rawQuery('VACUUM');
+  //     if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+  //     for (Map<dynamic, dynamic> i in products) {
+  //       if (kDebugMode) {
+  //         print("FIRST $i");
+  //       }
+  //
+  //       ShopVisitModel v = ShopVisitModel(
+  //         id: i['id'].toString(),
+  //         date: i['date'].toString(),
+  //         userId: i['userId'].toString(),
+  //         shopName: i['shopName'].toString(),
+  //         bookerName: i['bookerName'].toString(),
+  //         brand: i['brand'].toString(),
+  //         walkthrough: i['walkthrough'].toString(),
+  //         planogram: i['planogram'].toString(),
+  //         signage: i['signage'].toString(),
+  //         productReviewed: i['productReviewed'].toString(),
+  //         feedback: i['feedback'].toString(),
+  //         latitude: i['latitude'].toString(),
+  //         longitude: i['longitude'].toString(),
+  //         address: i['address'].toString(),
+  //         body: i['body'] != null && i['body'].toString().isNotEmpty
+  //             ? Uint8List.fromList(base64Decode(i['body'].toString()))
+  //             : Uint8List(0),
+  //
+  //       );
+  //
+  //       // Print image path before trying to create the file
+  //       if (kDebugMode) {
+  //         print("Image Path from Database: ${i['body']}");
+  //       }
+  //       if (kDebugMode) {
+  //         print("lat:${i['latitude']}");
+  //       }
+  //
+  //       // Declare imageBytes outside the if block
+  //       Uint8List imageBytes;
+  //       final directory = await getApplicationDocumentsDirectory();
+  //       final filePath = File('${directory.path}/captured_image.jpg');
+  //       if (filePath.existsSync()) {
+  //         // File exists, proceed with reading the file
+  //         List<int> imageBytesList = await filePath.readAsBytes();
+  //         imageBytes = Uint8List.fromList(imageBytesList);
+  //       } else {
+  //         if (kDebugMode) {
+  //           print("File does not exist at the specified path: ${filePath.path}");
+  //         }
+  //         continue; // Skip to the next iteration if the file doesn't exist
+  //       }
+  //       // Print information before making the API request
+  //       if (kDebugMode) {
+  //         print("Making API request for shop visit ID: ${v.id}");
+  //       }
+  //       var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes,);
+  //       var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/report/post/', imageBytes,);
+  //       if (result == true && result1 == true) {
+  //         await db.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
+  //         if (kDebugMode) {
+  //           print("Successfully posted data for shop visit ID: ${v.id}");
+  //         }
+  //        }
+  //       else {
+  //         if (kDebugMode) {
+  //           print("Failed to post data for shop visit ID: ${v.id}");
+  //         }
+  //     }
+  //     }
+  //
+  //   }
+  //     } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error processing shop visit data: $e");
+  //     }
+  //     return;
+  //   }
+  // }
+  // Future<void> postlocationdata() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     final products = await db.rawQuery('SELECT * FROM location WHERE posted = 0');
+  //     await db.rawQuery('VACUUM');
+  //     if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+  //       for (Map<dynamic, dynamic> i in products) {
+  //         if (kDebugMode) {
+  //           print("FIRST $i");
+  //         }
+  //
+  //         LocationModel v = LocationModel(
+  //           id: i['id'].toString(),
+  //           date: i['date'].toString(),
+  //           userId: i['userId'].toString(),
+  //           userName: i['userName'].toString(),
+  //           fileName: i['fileName'].toString(),
+  //           totalDistance: i['totalDistance'].toString(),
+  //           body: i['body'] != null && i['body'].toString().isNotEmpty
+  //               ? Uint8List.fromList(base64Decode(i['body'].toString()))
+  //               : Uint8List(0),
+  //         );
+  //
+  //         // Print image path before trying to create the file
+  //         if (kDebugMode) {
+  //           print("Image Path from Database: ${i['body']}");
+  //         }
+  //         final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  //
+  //         // Declare imageBytes outside the if block
+  //
+  //         Uint8List gpxBytes;
+  //         final downloadDirectory = await getDownloadsDirectory();
+  //          final filePath = File('${downloadDirectory?.path}/track$date.gpx');
+  //         if (filePath.existsSync()) {
+  //           // File exists, proceed with reading the file
+  //           List<int> imageBytesList = await filePath.readAsBytes();
+  //           gpxBytes = Uint8List.fromList(imageBytesList);
+  //         } else {
+  //           if (kDebugMode) {
+  //             print("File does not exist at the specified path: ${filePath.path}");
+  //           }
+  //           continue; // Skip to the next iteration if the file doesn't exist
+  //         }
+  //         // Print information before making the API request
+  //         if (kDebugMode) {
+  //           print("Making API request for shop visit ID: ${v.id}");
+  //         }
+  //         var result1 = await api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes,);
+  //         var result = await api.masterPostWithGPX(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/', gpxBytes,);
+  //         if (result == true && result1 == true) {
+  //           await db.rawUpdate("UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
+  //           if (kDebugMode) {
+  //             print("Successfully posted data for shop visit ID: ${v.id}");
+  //           }
+  //         }
+  //         else {
+  //           if (kDebugMode) {
+  //             print("Failed to post data for shop visit ID: ${v.id}");
+  //           }
+  //         }
+  //       }
+  //
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error processing shop visit data: $e");
+  //     }
+  //     return;
+  //   }
+  // }
+  // Future<void> postStockCheckItems() async {
+  //   final Database db = await initDatabase();
+  //   final ApiServices api = ApiServices();
+  //   try {
+  //     final products = await db.rawQuery('select * from Stock_Check_Items');
+  //     var count = 0;
+  //     if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+  //
+  //       for(var i in products){
+  //       if (kDebugMode) {
+  //         print(i.toString());
+  //       }
+  //       count++;
+  //       StockCheckItemsModel v =StockCheckItemsModel(
+  //         id: "${i['id']}${i['shopvisitId']}".toString(),
+  //         shopvisitId: i['shopvisitId'].toString(),
+  //         itemDesc: i['itemDesc'].toString(),
+  //         qty: i['qty'].toString(),
+  //       );
+  //       var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/');
+  //       var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/shopvisit/post/');
+  //       if(result == true && result1 == true){
+  //         db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
+  //       }
+  //     }
+  //   } }catch (e) {
+  //     if (kDebugMode) {
+  //       print("ErrorRRRRRRRRR: $e");
+  //     }
+  //     return;
+  //   }
+  // }
 
   // Future<bool> insertLogin(List<dynamic> dataList) async {
   //   final Database db = await initDatabase();

@@ -65,5 +65,8 @@ class OrderMasterViewModel extends GetxController{
     ordermasterRepository.delete(id);
     fetchAllOrderMaster();
   }
+  postOrderMaster(){
+    ordermasterRepository.postMasterTable();
+  }
 
 }

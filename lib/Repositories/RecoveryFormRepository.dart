@@ -1,5 +1,8 @@
 
 
+import 'package:flutter/foundation.dart';
+
+import '../API/ApiServices.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/RecoveryFormModel.dart';
 
@@ -16,6 +19,47 @@ class RecoveryFormRepository{
       recoveryform.add(RecoveryFormModel.fromMap(maps[i]));
     }
     return recoveryform;
+  }
+  Future<void> postRecoveryFormTable() async {
+    var db = await dbHelperRecoveryForm.db;
+    final ApiServices api = ApiServices();
+
+    try {
+      final products = await db!.rawQuery('select * from recoveryForm');
+      if (products.isNotEmpty || products != null)  { // Check if the table is not empty
+
+        for (var i in products) {
+          if (kDebugMode) {
+            print("FIRST ${i.toString()}");
+          }
+
+          RecoveryFormModel v = RecoveryFormModel(
+            recoveryId: i['recoveryId'].toString(),
+            shopName: i['shopName'].toString(),
+            date: i['date'].toString(),
+            cashRecovery: i['cashRecovery'].toString(),
+            netBalance: i['netBalance'].toString(),
+            userId: i['userId'].toString(),
+            bookerName: i['bookerName'].toString(),
+            city: i['city'].toString(),
+            brand: i['brand'].toString(),
+          );
+
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/recoveryform/post/',);
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recoveryform/post/',);
+
+          if (result == true&& result1 == true){
+            db.rawQuery(
+                "DELETE FROM recoveryForm WHERE recoveryId = '${i['recoveryId']}'");
+          }
+        }
+      }
+    }catch (e) {
+      if (kDebugMode) {
+        print("ErrorRRRRRRRRR: $e");
+      }
+      return;
+    }
   }
   //
   // Future<String> getLastId() async {

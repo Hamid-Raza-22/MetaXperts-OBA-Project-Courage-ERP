@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show Uint8List, kDebugMode;
 import 'package:flutter/material.dart' show Align, Alignment, AppBar, Border, BorderRadius, BorderSide, BoxDecoration, BuildContext, Colors, Column, Container, CrossAxisAlignment, EdgeInsets, ElevatedButton, Expanded, InputBorder, InputDecoration, ListView, MaterialPageRoute, Navigator, RoundedRectangleBorder, Row, Scaffold, SizedBox, StatelessWidget, Text, TextAlign, TextEditingController, TextField, TextStyle, Widget, WillPopScope;
 import 'package:flutter/services.dart' show TextAlign, Uint8List, rootBundle;
 import 'package:order_booking_shop/API/Globals.dart' show userNames;
-import 'package:pdf/pdf.dart' show PdfColors, PdfPageFormat;
+import 'package:pdf/pdf.dart' show PdfColors;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';

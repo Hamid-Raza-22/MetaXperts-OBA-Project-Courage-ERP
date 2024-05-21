@@ -754,8 +754,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           setState(() {
             isButtonDisabled = true; // Mark the button as disabled after being pressed
           });
-          await dbreturnform.postReturnFormTable();
-          await dbreturnform.postReturnFormDetails();
+          await returnformViewModel.postReturnForm() ;
+          await returnformdetailsViewModel.postReturnFormDetails();
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => const HomePage(),

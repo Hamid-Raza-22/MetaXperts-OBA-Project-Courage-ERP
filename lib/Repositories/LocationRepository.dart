@@ -1,4 +1,12 @@
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../API/ApiServices.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/LocationModel.dart';
 
@@ -16,6 +24,79 @@ class LocationRepository {
       location.add(LocationModel.fromMap(maps[i]));
     }
     return location;
+  }
+  Future<void> postlocationdata() async {
+    var db = await dbHelper.db;
+    final ApiServices api = ApiServices();
+
+    try {
+      final products = await db!.rawQuery('SELECT * FROM location WHERE posted = 0');
+      await db.rawQuery('VACUUM');
+      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+        for (Map<dynamic, dynamic> i in products) {
+          if (kDebugMode) {
+            print("FIRST $i");
+          }
+
+          LocationModel v = LocationModel(
+            id: i['id'].toString(),
+            date: i['date'].toString(),
+            userId: i['userId'].toString(),
+            userName: i['userName'].toString(),
+            fileName: i['fileName'].toString(),
+            totalDistance: i['totalDistance'].toString(),
+            body: i['body'] != null && i['body'].toString().isNotEmpty
+                ? Uint8List.fromList(base64Decode(i['body'].toString()))
+                : Uint8List(0),
+          );
+
+          // Print image path before trying to create the file
+          if (kDebugMode) {
+            print("Image Path from Database: ${i['body']}");
+          }
+          final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+
+          // Declare imageBytes outside the if block
+
+          Uint8List gpxBytes;
+          final downloadDirectory = await getDownloadsDirectory();
+          final filePath = File('${downloadDirectory?.path}/track$date.gpx');
+          if (filePath.existsSync()) {
+            // File exists, proceed with reading the file
+            List<int> imageBytesList = await filePath.readAsBytes();
+            gpxBytes = Uint8List.fromList(imageBytesList);
+          } else {
+            if (kDebugMode) {
+              print("File does not exist at the specified path: ${filePath.path}");
+            }
+            continue; // Skip to the next iteration if the file doesn't exist
+          }
+          // Print information before making the API request
+          if (kDebugMode) {
+            print("Making API request for shop visit ID: ${v.id}");
+          }
+          var result1 = await api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes,);
+          var result = await api.masterPostWithGPX(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/', gpxBytes,);
+          if (result == true && result1 == true) {
+            await db.rawUpdate("UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
+            if (kDebugMode) {
+              print("Successfully posted data for shop visit ID: ${v.id}");
+            }
+          }
+          else {
+            if (kDebugMode) {
+              print("Failed to post data for shop visit ID: ${v.id}");
+            }
+          }
+        }
+
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error processing shop visit data: $e");
+      }
+      return;
+    }
   }
   Future<int> add(LocationModel locationModel) async{
     var dbClient = await dbHelper.db;
