@@ -250,9 +250,9 @@ class FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
     final shopData = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
     final shopName = shopData['shopName'];
-    final ownerName = shopData['ownerName'];
+    final ownerName = shopData['ownerName']??'No Name';
     final selectedBrandName = shopData['selectedBrandName'];
-    final ownerContact = shopData['ownerContact'];
+    final ownerContact = shopData['ownerContact']?? 'No Contact';
 
     _ShopNameController.text = shopName!;
     _ownerNameController.text = ownerName!;

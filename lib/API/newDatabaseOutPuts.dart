@@ -121,7 +121,23 @@ class newDatabaseOutputs {
         }
       }
     }
-
+    if (netBalancedata == null || netBalancedata.isEmpty ) {
+      var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/allbalance/get/$id");
+      var results3 = await db.insertNetBalanceData(response3);
+      // var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
+      //
+      // var results2 = await db.insertNetBalanceData(response2);   //return True or False
+      //return True or False
+      if ( results3) {
+        if (kDebugMode) {
+          print(" Net Balance Data inserted successfully.");
+        }
+      } else {
+        if (kDebugMode) {
+          print("Error inserting data.");
+        }
+      }
+    }
     if (recoveryFormGetData == null || recoveryFormGetData.isEmpty) {
       try {
         var response = await api.getApi(
@@ -294,9 +310,9 @@ class newDatabaseOutputs {
           throw Exception('Insertion failed with first API');
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
         var response2 = await api.getApi(
             "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
         var results2 = await db.insertProductsData(
@@ -335,9 +351,9 @@ class newDatabaseOutputs {
           }
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
         var response = await api.getApi(
             "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
         var results = await db.insertownerData(response); //return True or False
@@ -638,6 +654,70 @@ class newDatabaseOutputs {
       print("TOTAL of no of Order Master in table is $co");
     }
   }
+  // functions for the order master data table
+  Future<void> updateBalanceData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? formattedDateTime = prefs.getString('lastInitializationDateTime');
+    String? id = prefs.getString('userId');
+    String? shopname = prefs.getString('selectedShopName');
+    if (kDebugMode) {
+      print("ssssssssssssssssssssssssshopname: $shopname");
+    }
+    if (formattedDateTime != null) {
+      final db = DBHelper();
+      final api = ApiServices();
+      List<dynamic>? balance;
+      try {
+        balance = await api.getupdateData(
+            "http://103.149.32.30:8080/ords/metaxperts/totalbalance/get/$shopname/$id");
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching data from API: $e");
+        }
+      }
+      if (balance != null && balance.isNotEmpty) {
+        bool result = await db.updateBalanceData(balance);
+        if (result) {
+          if (kDebugMode) {
+            print("Data Updated Successfully for Balance table");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error updating SHop Balance table");
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print("No data found for update in Shop Balance table");
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print('No formatted date and time found in SharedPreferences');
+      }
+    }
+    showBalanceData();
+  }
+  Future<void> showBalanceData() async {
+    if (kDebugMode) {
+      print("************Tables SHOWING**************");
+    }
+    if (kDebugMode) {
+      print("************Shop Balance table**************");
+    }
+    final db = DBHelper();
+    var data = await db.getNetBalanceDB();
+    int co = 0;
+    for (var i in data!) {
+      co++;
+      if (kDebugMode) {
+        print("$co | ${i.toString()} \n");
+      }
+    }
+    if (kDebugMode) {
+      print("TOTAL of no of Shop Balance in table is $co");
+    }
+  }
 
   // functions for the products data table
   Future<void> updateProductsData() async {
@@ -756,6 +836,66 @@ class newDatabaseOutputs {
     } catch (e) {
       if (kDebugMode) {
         print("Error fetching owner data: ${e.toString()}");
+      }
+    }
+  }
+  // functions for the Cities data table
+  Future<void> updateCitiesData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? formattedDateTime = prefs.getString('lastInitializationDateTime');
+    // String? id = prefs.getString('userId');
+    if (formattedDateTime != null) {
+      final db = DBHelper();
+      final api = ApiServices();
+      List<dynamic>? citydata;
+      try {
+        citydata = await api.getupdateData(
+            "http://103.149.32.30:8080/ords/metaxperts/city/get/$formattedDateTime");
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching data from API: $e");
+        }
+      }
+      if (citydata != null && citydata.isNotEmpty) {
+        bool result = await db.updateCitiesDataTable(citydata);
+        if (result) {
+          if (kDebugMode) {
+            print("Data Updated Successfully for Cities table");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error updating Cities table");
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print("No data found for update in Cities table");
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print('No formatted date and time found in SharedPreferences');
+      }
+    }showCityData();
+  }
+  Future<void> showCityData() async {
+    if (kDebugMode) {
+      print("************Tables SHOWING**************");
+    }
+    if (kDebugMode) {
+      print("************Cites data Table**************");
+    }
+    final db = DBHelper();
+    try {
+      var data = await db.getPakCitiesDB();
+      int totalCount = data?.length ?? 0;
+
+      if (kDebugMode) {
+        print("TOTAL number of Cities data in the table is $totalCount");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching Cities data: ${e.toString()}");
       }
     }
   }
@@ -983,6 +1123,8 @@ class newDatabaseOutputs {
     await updateRecoveryFormGetData();
     await updateAccountsData();
     await updateloginData();
+    await updateCitiesData();
+    await updateBalanceData();
   }
 
 }

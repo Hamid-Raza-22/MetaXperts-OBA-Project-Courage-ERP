@@ -54,6 +54,12 @@ class AttendanceViewModel extends GetxController{
     fetchAllAttendance();
 
   }
+  postAttendance(){
+    attendanceRepository.postAttendanceTable();
+  }
+  postAttendanceOut(){
+    attendanceRepository.postAttendanceOutTable();
+  }
 }
 
 

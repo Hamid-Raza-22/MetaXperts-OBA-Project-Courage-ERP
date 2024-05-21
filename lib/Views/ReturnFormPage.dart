@@ -9,8 +9,10 @@ import 'package:nanoid/async.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Models/ReturnFormDetails.dart';
 import 'package:order_booking_shop/View_Models/OrderViewModels/ReturnFormViewModel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import '../API/DatabaseOutputs.dart';
+import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/ReturnFormModel.dart';
 import '../View_Models/OrderViewModels/ReturnFormDetailsViewModel.dart';
@@ -68,31 +70,32 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
   List<Map<String, dynamic>> productOwners = [];
   DBHelper dbHelper = DBHelper();
   double? amountControllerNetBalance;
+  double recoveryFormCurrentBalance = 0.0;
   TextEditingController amountController = TextEditingController();
   DBHelper dbreturnform = DBHelper();
   final ProductController productController = Get.put(ProductController());
   final ProductController productController1 = Get.put(ProductController());
-  Future<void> fetchShopNamesAndTotals() async {
-    DBHelper dbHelper = DBHelper();
-
-    // Calculate total debits, credits, and debits minus credits per shop
-    Map<String, dynamic> debitsAndCredits = await dbHelper.getDebitsAndCreditsTotal();
-    Map<String, double> debitsMinusCreditsPerShop = await dbHelper.getDebitsMinusCreditsPerShop();
-
-    // Extract shop names, debits, credits, and debits minus credits per shop
-    List<String> shopNames = debitsAndCredits['debits'].keys.toList();
-    Map<String, double> shopDebits = debitsAndCredits['debits'];
-    Map<String, double> shopCredits = debitsAndCredits['credits'];
-
-    // Print or use the shop names, debits, credits, and debits minus credits per shop as needed
-    if (kDebugMode) {
-      print("Shop Names: $shopNames");
-      print("Shop Debits: $shopDebits");
-      print("Shop Credits: $shopCredits");
-      print("Shop Debits - Credits: $debitsMinusCreditsPerShop");
-    }
-    // You can update the state or perform other actions with the data here
-  }
+  // Future<void> fetchShopNamesAndTotals() async {
+  //   DBHelper dbHelper = DBHelper();
+  //
+  //   // Calculate total debits, credits, and debits minus credits per shop
+  //   Map<String, dynamic> debitsAndCredits = await dbHelper.getDebitsAndCreditsTotal();
+  //   Map<String, double> debitsMinusCreditsPerShop = await dbHelper.getDebitsMinusCreditsPerShop();
+  //
+  //   // Extract shop names, debits, credits, and debits minus credits per shop
+  //   List<String> shopNames = debitsAndCredits['debits'].keys.toList();
+  //   Map<String, double> shopDebits = debitsAndCredits['debits'];
+  //   Map<String, double> shopCredits = debitsAndCredits['credits'];
+  //
+  //   // Print or use the shop names, debits, credits, and debits minus credits per shop as needed
+  //   if (kDebugMode) {
+  //     print("Shop Names: $shopNames");
+  //     print("Shop Debits: $shopDebits");
+  //     print("Shop Credits: $shopCredits");
+  //     print("Shop Debits - Credits: $debitsMinusCreditsPerShop");
+  //   }
+  //   // You can update the state or perform other actions with the data here
+  // }
 
   bool isValidQuantity(String quantity) {
     try {
@@ -112,9 +115,9 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
     onCreatee();
     fetchShopData();
     fetchProductDataForSelectedShop(_selectedShopController.text);
-    fetchShopNamesAndTotals();
+    // fetchShopNamesAndTotals();
   }
-
+  //
   Future<void> fetchNetBalanceForShop(String shopName) async {
     DBHelper dbHelper = DBHelper();
     double shopDebits = 0.0;
@@ -390,7 +393,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         ),
                       );
                     },
-                    onSuggestionSelected: (suggestion) {
+                    onSuggestionSelected: (suggestion) async {
                       setState(() {
                         _selectedShopController.text = suggestion;
                         selectedorderno = getOrderNoForSelectedShop();
@@ -399,7 +402,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         }
                         fetchProductDataForSelectedShop(suggestion);
                         printOrderNoForSelectedShop();
-                        fetchNetBalanceForShop(suggestion);
+                        // fetchNetBalanceForShop(suggestion);
                       });
                       for (var owner in shopOwners) {
                         if (owner['shop_name'] == suggestion) {
@@ -412,6 +415,16 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                           });
                         }
                       }
+                      SharedPreferences prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('selectedShopName', suggestion);
+                      newDatabaseOutputs outputs = newDatabaseOutputs();
+                      await outputs.updateBalanceData();
+                      setState(() {
+                        String balance = prefs.getString('balance') ?? 'no data';
+                        // Update the current balance field with the calculated net balance
+                        recoveryFormCurrentBalance = double.parse(balance);
+                          globalnetBalance  = recoveryFormCurrentBalance;
+                      });
                     },
                     textFieldConfiguration: TextFieldConfiguration(
                       controller: _selectedShopController,
@@ -740,7 +753,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
 
           for (int i = 0; i < firstTypeAheadControllers.length; i++) {
             var id = await customAlphabet('1234567890', 12);
-            await returnformdetailsViewModel.addReturnFormDetail(
+             returnformdetailsViewModel.addReturnFormDetail(
               ReturnFormDetailsModel(
                 id: int.parse(id),
                 returnformId: returnformid ?? 0,
@@ -754,8 +767,8 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           setState(() {
             isButtonDisabled = true; // Mark the button as disabled after being pressed
           });
-          await dbreturnform.postReturnFormTable();
-          await dbreturnform.postReturnFormDetails();
+           returnformViewModel.postReturnForm() ;
+           returnformdetailsViewModel.postReturnFormDetails();
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => const HomePage(),

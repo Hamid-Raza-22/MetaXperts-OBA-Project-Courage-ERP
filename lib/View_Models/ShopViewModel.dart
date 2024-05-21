@@ -1,14 +1,21 @@
-import 'dart:convert' show base64Encode;
+import 'dart:convert' show base64Decode, base64Encode;
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:order_booking_shop/API/Globals.dart';
+import 'package:order_booking_shop/Databases/DBHelper.dart';
 import 'package:order_booking_shop/Models/ShopModel.dart';
 import 'package:order_booking_shop/Repositories/ShopRepository.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../API/ApiServices.dart';
 
 
 class ShopViewModel extends GetxController{
 
   var allShop = <ShopModel>[].obs;
   ShopRepository shopRepository = ShopRepository();
+  DBHelper database = DBHelper();
 
 
 
@@ -65,6 +72,10 @@ class ShopViewModel extends GetxController{
     fetchAllShop();
 
   }
+  postShop(){
+    shopRepository.postShopTable();
+  }
+
 }
 
 

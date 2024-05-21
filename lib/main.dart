@@ -10,6 +10,7 @@ import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' show AndroidConfiguration, FlutterBackgroundService, IosConfiguration, ServiceInstance;
 import 'package:flutter_background_service_android/flutter_background_service_android.dart' show AndroidServiceInstance;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails;
+import 'package:get/get.dart';
 import 'package:order_booking_shop/Tracker/trac.dart' show startTimer;
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
 import 'package:order_booking_shop/location00.dart' show LocationService;
@@ -20,9 +21,19 @@ import 'API/DatabaseOutputs.dart';
 import 'API/Globals.dart';
 import 'API/newDatabaseOutPuts.dart';
 import 'Databases/DBHelper.dart';
+import 'View_Models/AttendanceViewModel.dart';
+import 'View_Models/ShopVisitViewModel.dart';
+import 'View_Models/StockCheckItems.dart';
 import 'Views/splash_screen.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:upgrader/upgrader.dart' show Upgrader;
+import '../View_Models/LocationViewModel.dart';
+import '../View_Models/OrderViewModels/OrderDetailsViewModel.dart';
+import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
+import '../View_Models/OrderViewModels/ReturnFormDetailsViewModel.dart';
+import '../View_Models/OrderViewModels/ReturnFormViewModel.dart';
+import '../View_Models/RecoveryFormViewModel.dart';
+import '../View_Models/ShopViewModel.dart';
 
 Future<void> main() async {
 
@@ -57,7 +68,16 @@ Future<void> main() async {
     ),
   );
 }
-
+final attendanceViewModel = Get.put(AttendanceViewModel());
+final shopisitViewModel = Get.put(ShopVisitViewModel());
+final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
+final shopViewModel = Get.put(ShopViewModel());
+final recoveryformViewModel = Get.put(RecoveryFormViewModel());
+final returnformdetailsViewModel = Get.put(ReturnFormDetailsViewModel());
+final returnformViewModel = Get.put(ReturnFormViewModel());
+final ordermasterViewModel = Get.put(OrderMasterViewModel());
+final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
+final locationViewModel = Get.put(LocationViewModel());
 Future<void> _requestPermissions() async {
   // Request notification permission
   if (await Permission.notification.request().isDenied) {
@@ -361,78 +381,19 @@ Future<void> synchronizeData() async {
   if (kDebugMode) {
     print('Synchronizing data in the background.');
   }
-  await postAttendanceTable();
-  await postAttendanceOutTable();
-  await postLocationData();
-  await postShopTable();
-  await postShopVisitData();
-  await postStockCheckItems();
-  await postMasterTable();
-  await postOrderDetails();
-  await postReturnFormTable();
-  await postReturnFormDetails();
-  await postRecoveryFormTable();
-
-}
-Future<void> postLocationData() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postlocationdata();
-}
-Future<void> postShopVisitData() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postShopVisitData();
+  await attendanceViewModel.postAttendance();
+  await attendanceViewModel.postAttendanceOut();
+  await locationViewModel.postLocation();
+  await shopViewModel.postShop();
+  await shopisitViewModel.postShopVisit();
+  await stockcheckitemsViewModel.postStockCheckItems();
+  await ordermasterViewModel.postOrderMaster();
+  await orderdetailsViewModel.postOrderDetails();
+  await returnformViewModel.postReturnForm();
+  await returnformdetailsViewModel.postReturnFormDetails();
+  await recoveryformViewModel.postRecoveryForm();
 }
 
-Future<void> postStockCheckItems() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postStockCheckItems();
-}
-
-Future<void> postAttendanceOutTable() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postAttendanceOutTable();
-}
-
-Future<void> postAttendanceTable() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postAttendanceTable();
-}
-
-Future<void> postMasterTable() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postMasterTable();
-}
-
-Future<void> postOrderDetails() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postOrderDetails();
-}
-
-Future<void> postShopTable() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postShopTable();
-}
-
-Future<void> postReturnFormTable() async {
-  if (kDebugMode) {
-    print('Attempting to post Return data');
-  }
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postReturnFormTable();
-  if (kDebugMode) {
-    print('Return data posted successfully');
-  }
-}
-
-Future<void> postReturnFormDetails() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postReturnFormDetails();
-}
-
-Future<void> postRecoveryFormTable() async {
-  DBHelper dbHelper = DBHelper();
-  await dbHelper.postRecoveryFormTable();
-}
 
 
 

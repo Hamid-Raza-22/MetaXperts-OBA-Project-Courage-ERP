@@ -1,6 +1,8 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
 
+import '../../API/ApiServices.dart';
 import '../../Models/StockCheckItems.dart';
 
 class StockCheckItemsRepository {
@@ -17,6 +19,40 @@ class StockCheckItemsRepository {
     }
     return stockcheckitems;
   }
+  Future<void> postStockCheckItems() async {
+    var db= await dbHelperStockCheckItems.db;
+
+    final ApiServices api = ApiServices();
+    try {
+      final products = await db!.rawQuery('select * from Stock_Check_Items');
+      var count = 0;
+      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+
+        for(var i in products){
+          if (kDebugMode) {
+            print(i.toString());
+          }
+          count++;
+          StockCheckItemsModel v =StockCheckItemsModel(
+            id: "${i['id']}${i['shopvisitId']}".toString(),
+            shopvisitId: i['shopvisitId'].toString(),
+            itemDesc: i['itemDesc'].toString(),
+            qty: i['qty'].toString(),
+          );
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/');
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/shopvisit/post/');
+          if(result == true && result1 == true){
+            db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
+          }
+        }
+      } }catch (e) {
+      if (kDebugMode) {
+        print("ErrorRRRRRRRRR: $e");
+      }
+      return;
+    }
+  }
+
   // Future<void> addStockCheckItems(StockCheckItemsModel stockCheckItemsList) async {
   //   final db = await dbHelperStockCheckItems.db;
   //   for (var stockCheckItems in stockCheckItemsList) {

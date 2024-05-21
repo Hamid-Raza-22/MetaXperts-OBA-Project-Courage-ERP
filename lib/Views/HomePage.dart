@@ -15,6 +15,15 @@ import '../API/newDatabaseOutPuts.dart';
 import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import '../View_Models/LocationViewModel.dart';
+import '../View_Models/OrderViewModels/OrderDetailsViewModel.dart';
+import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
+import '../View_Models/OrderViewModels/ReturnFormDetailsViewModel.dart';
+import '../View_Models/OrderViewModels/ReturnFormViewModel.dart';
+import '../View_Models/RecoveryFormViewModel.dart';
+import '../View_Models/ShopViewModel.dart';
+import '../View_Models/ShopVisitViewModel.dart';
+import '../View_Models/StockCheckItems.dart';
 import 'OrderBookingStatus.dart';
 import 'RecoveryFormPage.dart';
 import 'ReturnFormPage.dart';
@@ -71,6 +80,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   final attendanceViewModel = Get.put(AttendanceViewModel());
+  final shopisitViewModel = Get.put(ShopVisitViewModel());
+  final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
+  final shopViewModel = Get.put(ShopViewModel());
+  final recoveryformViewModel = Get.put(RecoveryFormViewModel());
+  final returnformdetailsViewModel = Get.put(ReturnFormDetailsViewModel());
+  final returnformViewModel = Get.put(ReturnFormViewModel());
+  final ordermasterViewModel = Get.put(OrderMasterViewModel());
+  final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
+  final locationViewModel = Get.put(LocationViewModel());
 // Add this line
   List<String> shopList = [];
   String? selectedShop2;
@@ -204,6 +222,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
            city: userCitys,
            designation: userDesignation
         ));
+         await attendanceViewModel.postAttendance();
         //startTimer();
         // _saveCurrentTime();
         // _saveClockStatus(true);
@@ -211,8 +230,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         // //getLocation();
         // _clockRefresh();
         // isClockedIn = true;
-        DBHelper dbmaster = DBHelper();
-        dbmaster.postAttendanceTable();
+
 
         if (kDebugMode) {
           print('HomePage:$currentPostId');
@@ -222,10 +240,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         // Generate a unique ID for the current post
         service.invoke("stopService");
 
-       await Future.delayed(const Duration(seconds: 10));
-        postFile();
+
         await Future.delayed(const Duration(seconds: 4));
-        attendanceViewModel.addAttendanceOut(AttendanceOutModel(
+      await  attendanceViewModel.addAttendanceOut(AttendanceOutModel(
           id: prefs.getString('clockInId'),
           timeOut: _getFormattedtime(),
           totalTime: _formatDuration(newsecondpassed.toString()),
@@ -236,10 +253,13 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           totalDistance: prefs.getDouble("TotalDistance").toString()
           // posted: postedController
         ));
+
         isClockedIn = false;
         _saveClockStatus(false);
-        DBHelper dbmaster = DBHelper();
-        dbmaster.postAttendanceOutTable();
+        await Future.delayed(const Duration(seconds: 10));
+       await postFile();
+
+       await attendanceViewModel.postAttendanceOut();
 
         _stopTimer();
         setState(() async {
@@ -765,7 +785,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 );
                               } else {
                                 newDatabaseOutputs outputs = newDatabaseOutputs();
-                               // await  outputs.checkFirstRunAccounts();
+                                await outputs.updateOrderBookingStatusData();
+                                await  outputs.updateAccountsData();
 
                                await Navigator.push(context, MaterialPageRoute(
                                     builder: (context) => const ReturnFormPage()));
@@ -841,6 +862,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 );
                               } else {
                                 newDatabaseOutputs outputs = newDatabaseOutputs();
+                                await outputs.updateOrderBookingStatusData();
                                await  outputs.updateAccountsData();
 
                                await Navigator.push(context, MaterialPageRoute(
@@ -1085,78 +1107,21 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     if (kDebugMode) {
       print('Synchronizing data in the background.');
     }
-    await postAttendanceTable();
-     await postAttendanceOutTable();
-     await postShopTable();
-     await postShopVisitData();
-    await postStockCheckItems();
-    await postMasterTable();
-    await postOrderDetails();
-    await postReturnFormTable();
-    await postReturnFormDetails();
-    await postRecoveryFormTable();
-    await postLocationData();
+
+    await attendanceViewModel.postAttendance();
+    await attendanceViewModel.postAttendanceOut();
+    await locationViewModel.postLocation();
+    await shopViewModel.postShop();
+    await shopisitViewModel.postShopVisit();
+    await stockcheckitemsViewModel.postStockCheckItems();
+    await ordermasterViewModel.postOrderMaster();
+    await orderdetailsViewModel.postOrderDetails();
+    await returnformViewModel.postReturnForm();
+    await returnformdetailsViewModel.postReturnFormDetails();
+    await recoveryformViewModel.postRecoveryForm();
+
   }
 
-  Future<void> postShopVisitData() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postShopVisitData();
-  }
-
-  Future<void> postStockCheckItems() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postStockCheckItems();
-  }
-
-  Future<void> postAttendanceOutTable() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postAttendanceOutTable();
-  }
-  Future<void> postLocationData() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postlocationdata();
-  }
-
-  Future<void> postAttendanceTable() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postAttendanceTable();
-  }
-
-  Future<void> postMasterTable() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postMasterTable();
-  }
-
-  Future<void> postOrderDetails() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postOrderDetails();
-  }
-
-  Future<void> postShopTable() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postShopTable();
-  }
-
-  Future<void> postReturnFormTable() async {
-    if (kDebugMode) {
-      print('Attempting to post Return data');
-    }
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postReturnFormTable();
-    if (kDebugMode) {
-      print('Return data posted successfully');
-    }
-  }
-
-  Future<void> postReturnFormDetails() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postReturnFormDetails();
-  }
-
-  Future<void> postRecoveryFormTable() async {
-    DBHelper dbHelper = DBHelper();
-    await dbHelper.postRecoveryFormTable();
-  }
   _requestPermission() async {
     var status = await Permission.location.request();
     if (status.isGranted) {

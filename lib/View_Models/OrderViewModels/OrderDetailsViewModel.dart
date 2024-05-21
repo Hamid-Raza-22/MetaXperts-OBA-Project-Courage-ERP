@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 
@@ -44,7 +45,9 @@ class OrderDetailsViewModel extends GetxController{
       // Set the products in the allProducts list
       allGetOrderDetails.value = getorderdetails;
     } catch (e) {
-      print("Error fetching products by Order No: $e");
+      if (kDebugMode) {
+        print("Error fetching products by Order No: $e");
+      }
     }
   }
   updateOrderDetails(OrderDetailsModel orderdetailsModel){
@@ -55,6 +58,10 @@ class OrderDetailsViewModel extends GetxController{
   deleteOrderDetails(int id){
     orderdetailsRepository.delete(id);
     fetchAllOrderDetails();
+  }
+  postOrderDetails(){
+    orderdetailsRepository.postOrderDetails();
+
   }
 
 }

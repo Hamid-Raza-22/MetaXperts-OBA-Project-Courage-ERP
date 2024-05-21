@@ -36,5 +36,9 @@ class StockCheckItemsViewModel extends GetxController{
     stockcheckitemsRepository.delete(id);
     fetchAllOStockCheckItems();
   }
+  postStockCheckItems(){
+    stockcheckitemsRepository.postStockCheckItems();
+
+  }
 
 }

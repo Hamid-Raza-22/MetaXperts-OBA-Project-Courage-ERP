@@ -38,5 +38,9 @@ class ReturnFormDetailsViewModel extends GetxController{
     returnformdetailsRepository.delete(id);
     fetchAllReturnFormDetails();
   }
+ postReturnFormDetails(){
+    returnformdetailsRepository.postReturnFormDetails();
+
+  }
 
 }

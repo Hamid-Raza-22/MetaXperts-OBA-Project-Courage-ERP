@@ -1,6 +1,8 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 
+import '../../API/ApiServices.dart';
 import '../../Databases/DBHelper.dart';
 import '../../Models/OrderModels/OrderDetailsModel.dart';
 
@@ -18,7 +20,50 @@ class OrderDetailsRepository {
     }
     return orderdetails;
   }
+  Future<void> postOrderDetails() async {
+    var db = await dbHelper.db;
+    final ApiServices api = ApiServices();
+    try {
 
+      final List<Map<String, dynamic>> records = await db!.query('order_details');
+
+      // Print each record
+      for (var record in records) {
+        if (kDebugMode) {
+          print(record.toString());
+        }
+      }
+      // Select only the records that have not been posted yet
+      final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (var i in products) {
+          if (kDebugMode) {
+            print("FIRST ${i.toString()}");
+          }
+
+          OrderDetailsModel v = OrderDetailsModel(
+            id: i['id'].toString(),
+            orderMasterId: i['order_master_id'].toString(),
+            productName: i['productName'].toString(),
+            price: i['price'].toString(),
+            quantity: i['quantity'].toString(),
+            amount: i['amount'].toString(),
+            userId: i['userId'].toString(),
+          );
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
+          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
+          if(result == true&& result1 == true){
+            await db.rawQuery("UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
+          }
+        }}
+
+    } catch (e) {
+      if (kDebugMode) {
+        print("ErrorRRRRRRRRR: $e");
+      }
+      return;
+    }
+  }
   Future<int> add(OrderDetailsModel orderdetailsModel) async {
     var dbClient = await dbHelperOrderDetails.db;
     return await dbClient!.insert('order_details', orderdetailsModel.toMap());

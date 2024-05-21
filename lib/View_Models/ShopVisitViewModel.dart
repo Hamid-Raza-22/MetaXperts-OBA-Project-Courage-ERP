@@ -38,5 +38,9 @@ class ShopVisitViewModel extends GetxController{
     shopvisitRepository.delete(id);
     fetchAllShopVisit();
   }
+  postShopVisit(){
+    shopvisitRepository.postShopVisitData();
+
+  }
 
 }

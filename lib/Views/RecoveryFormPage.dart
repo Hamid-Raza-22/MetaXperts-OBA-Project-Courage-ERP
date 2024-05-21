@@ -12,6 +12,7 @@ import 'package:order_booking_shop/View_Models/RecoveryFormViewModel.dart';
 import 'package:order_booking_shop/Views/RecoveryForm_2ndPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
+import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
 
 class RecoveryFromPage extends StatefulWidget {
@@ -62,7 +63,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
     if (kDebugMode) {
       print(RecoveryhighestSerial);
     }
-    fetchShopNamesAndTotals();
+    // fetchShopNamesAndTotals();
     fetchAccountsData();
     fetchShopData1();
     // Add this line
@@ -167,55 +168,56 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   //   });
   // }
 
-  Future<void> fetchShopNamesAndTotals() async {
-    DBHelper dbHelper = DBHelper();
+  // Future<void> fetchShopNamesAndTotals() async {
+  //   DBHelper dbHelper = DBHelper();
+  //
+  //   // Calculate total debits, credits, and debits minus credits per shop
+  //   Map<String, dynamic> debitsAndCredits = await dbHelper.getDebitsAndCreditsTotal();
+  //   Map<String, double> debitsMinusCreditsPerShop = await dbHelper.getDebitsMinusCreditsPerShop();
+  //
+  //   // Extract shop names, debits, credits, and debits minus credits per shop
+  //   List<String> shopNames = debitsAndCredits['debits'].keys.toList();
+  //   Map<String, double> shopDebits = debitsAndCredits['debits'];
+  //   Map<String, double> shopCredits = debitsAndCredits['credits'];
+  //
+  //   // Print or use the shop names, debits, credits, and debits minus credits per shop as needed
+  //   if (kDebugMode) {
+  //     print("Shop Names: $shopNames");
+  //     print("Shop Debits: $shopDebits");
+  //     print("Shop Credits: $shopCredits");
+  //     print("Shop Debits - Credits: $debitsMinusCreditsPerShop");
+  //   }
+  //
+  //   // You can update the state or perform other actions with the data here
+  // }
+  // Future<void> fetchNetBalanceForShop(String shopName) async {
+  //   DBHelper dbHelper = DBHelper();
+  //   double shopDebits = 0.0;
+  //   double shopCredits = 0.0;
+  //
+  //   // Fetch net balance for the selected shop
+  //   List<Map<String, dynamic>>? netBalanceData = await dbHelper.getNetBalanceDB();
+  //   for (var row in netBalanceData!) {
+  //     if (row['shop_name'] == shopName) {
+  //       shopDebits += double.parse(row['debit'] ?? '0');
+  //       shopCredits += double.parse(row['credit'] ?? '0');
+  //     }
+  //   }
+  //
+  //   // Calculate net balance (shop debits - shop credits)
+  //   double netBalance = shopDebits - shopCredits;
+  //
+  //   // Ensure net balance is not less than 0
+  //   netBalance = netBalance < 0 ? 0 : netBalance;
+  //
+  //   setState(() {
+  //     // Update the current balance field with the calculated net balance
+  //     recoveryFormCurrentBalance = netBalance;
+  //     // globalnetBalance = netBalance;
+  //     _currentBalanceController.text = recoveryFormCurrentBalance.toString();
+  //   });
+  // }
 
-    // Calculate total debits, credits, and debits minus credits per shop
-    Map<String, dynamic> debitsAndCredits = await dbHelper.getDebitsAndCreditsTotal();
-    Map<String, double> debitsMinusCreditsPerShop = await dbHelper.getDebitsMinusCreditsPerShop();
-
-    // Extract shop names, debits, credits, and debits minus credits per shop
-    List<String> shopNames = debitsAndCredits['debits'].keys.toList();
-    Map<String, double> shopDebits = debitsAndCredits['debits'];
-    Map<String, double> shopCredits = debitsAndCredits['credits'];
-
-    // Print or use the shop names, debits, credits, and debits minus credits per shop as needed
-    if (kDebugMode) {
-      print("Shop Names: $shopNames");
-      print("Shop Debits: $shopDebits");
-      print("Shop Credits: $shopCredits");
-      print("Shop Debits - Credits: $debitsMinusCreditsPerShop");
-    }
-
-    // You can update the state or perform other actions with the data here
-  }
-  Future<void> fetchNetBalanceForShop(String shopName) async {
-    DBHelper dbHelper = DBHelper();
-    double shopDebits = 0.0;
-    double shopCredits = 0.0;
-
-    // Fetch net balance for the selected shop
-    List<Map<String, dynamic>>? netBalanceData = await dbHelper.getNetBalanceDB();
-    for (var row in netBalanceData!) {
-      if (row['shop_name'] == shopName) {
-        shopDebits += double.parse(row['debit'] ?? '0');
-        shopCredits += double.parse(row['credit'] ?? '0');
-      }
-    }
-
-    // Calculate net balance (shop debits - shop credits)
-    double netBalance = shopDebits - shopCredits;
-
-    // Ensure net balance is not less than 0
-    netBalance = netBalance < 0 ? 0 : netBalance;
-
-    setState(() {
-      // Update the current balance field with the calculated net balance
-      recoveryFormCurrentBalance = netBalance;
-      // globalnetBalance = netBalance;
-      _currentBalanceController.text = recoveryFormCurrentBalance.toString();
-    });
-  }
   Future<bool> isInternetAvailable() async {
     try {
       final result = await InternetAddress.lookup('google.com');
@@ -415,12 +417,12 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                 title: Text(suggestion),
                               );
                             },
-                            onSuggestionSelected: (suggestion) {
+                            onSuggestionSelected: (suggestion) async {
                               setState(() {
                                 selectedDropdownValue = suggestion;
                                 selectedShopName = suggestion;
                                 // Fetch and display the net balance for the selected shop
-                                fetchNetBalanceForShop(selectedDropdownValue!);
+                                // fetchNetBalanceForShop(selectedDropdownValue!);
                                 fetchAccountsData();
                               });
                               for (var owner in shopOwners) {
@@ -433,7 +435,25 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                     }
                                   });
                                 }
-                              }
+                              }  // Save the selected shop name in SharedPreferences
+                              SharedPreferences prefs = await SharedPreferences.getInstance();
+                              await prefs.setString('selectedShopName', selectedShopName!);
+                              newDatabaseOutputs outputs = newDatabaseOutputs();
+                              await outputs.updateBalanceData();
+                             // await Future.delayed(const Duration(seconds: 3));
+
+                              // SetState() {
+                              //   _currentBalanceController.text =
+                              //       prefs.getString('balance') ?? 'no data';
+                              // }
+                              setState(() {
+                                String balance = prefs.getString('balance') ?? 'no data';
+                                // Update the current balance field with the calculated net balance
+                                recoveryFormCurrentBalance = double.parse(balance);
+                                // globalnetBalance = netBalance;
+                                _currentBalanceController.text = recoveryFormCurrentBalance.toString();
+                              });
+
                             },
                           ),
                           const SizedBox(height: 10),
@@ -546,7 +566,9 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
 
                                             // Convert values to double for comparison
                                             double cashRecovery = double.parse(value);
-                                            double currentBalance = double.parse(_currentBalanceController.text);
+                                            String balanceText = _currentBalanceController.text;
+                                            double currentBalance = double.tryParse(balanceText) ?? 0.0;
+                                           // double currentBalance = double.parse(_currentBalanceController.text);
 
                                             // Check if cash recovery is greater than current balance
                                             if (cashRecovery > currentBalance) {
@@ -637,8 +659,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                           ),
                                         );
 
-                                        DBHelper dbrecoveryform = DBHelper();
-                                        dbrecoveryform.postRecoveryFormTable();
+                                        await recoveryformViewModel.postRecoveryForm();
 
                                     Navigator.push(
                                       context,

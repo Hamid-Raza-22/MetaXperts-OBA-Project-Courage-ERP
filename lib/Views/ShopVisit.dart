@@ -236,7 +236,7 @@ class ShopVisitState extends State<ShopVisit> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation == 'ASM') {
+    if (userDesignation == 'ASM' && userDesignation == 'SPO') {
       await fetchShopNames1();
     } else {
       await fetchShopNames();
@@ -1053,9 +1053,9 @@ class ShopVisitState extends State<ShopVisit> {
                               await stockcheckitemsViewModel.addStockCheckItems(stockCheckItems);
                             }
 
-                            DBHelper dbShop = DBHelper();
-                            dbShop.postShopVisitData();
-                            dbShop.postStockCheckItems();
+                            await shopisitViewModel.postShopVisit();
+                            await stockcheckitemsViewModel.postStockCheckItems();
+
 
                             // Navigate to the FinalOrderBookingPage only if all validations pass
                             Map<String, dynamic> dataToPass = {
@@ -1216,10 +1216,9 @@ class ShopVisitState extends State<ShopVisit> {
                             }
 
 
-                            DBHelper dbshop = DBHelper();
+                            await shopisitViewModel.postShopVisit();
+                            await stockcheckitemsViewModel.postStockCheckItems();
 
-                            dbshop.postShopVisitData();
-                            dbshop.postStockCheckItems();
 
 
 

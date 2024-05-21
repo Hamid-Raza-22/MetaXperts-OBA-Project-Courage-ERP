@@ -1,4 +1,7 @@
 
+import 'package:flutter/foundation.dart';
+
+import '../../API/ApiServices.dart';
 import '../../Databases/DBHelper.dart';
 import '../../Models/ReturnFormDetails.dart';
 
@@ -16,7 +19,40 @@ class ReturnFormDetailsRepository {
     }
     return returnformdetails;
   }
+  Future<void> postReturnFormDetails() async {
+    var db= await dbHelperReturnFormDetails.db;
+    final ApiServices api = ApiServices();
+    try {
+      final products = await db!.rawQuery('select * from return_form_details');
+      var count = 0;
+      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
 
+        for(var i in products){
+          if (kDebugMode) {
+            print(i.toString());
+          }
+          count++;
+          ReturnFormDetailsModel v = ReturnFormDetailsModel(
+            id: "${i['id']}".toString(),
+            returnformId: i['returnFormId'].toString(),
+            productName: i['productName'].toString(),
+            reason: i['reason'].toString(),
+            quantity: i['quantity'].toString(),
+            bookerId: i['bookerId'].toString(),
+          );
+          final result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post');
+          final result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');
+          if(result == true && result1 == true){
+            db.rawQuery('DELETE FROM return_form_details WHERE id = ${i['id']}');
+          }
+        }
+      }} catch (e) {
+      if (kDebugMode) {
+        print("ErrorRRRRRRRRR: $e");
+      }
+      return;
+    }
+  }
   Future<int> add(ReturnFormDetailsModel returnformdetailsModel) async {
     var dbClient = await dbHelperReturnFormDetails.db;
     return await dbClient!.insert('return_form_details', returnformdetailsModel.toMap());

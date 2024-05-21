@@ -218,7 +218,7 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                                   shopCity: selectedShopCity,
                                   requiredDelivery: requiredDelivery,
                                 ));
-                                await saveRowDataDetailsToDatabase(rowDataDetails);
+                                 saveRowDataDetailsToDatabase(rowDataDetails);
 
                                 Fluttertoast.showToast(
                                   msg: "Order confirmed!",
@@ -232,8 +232,8 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                                 });
 
 
-                                await dbmaster.postMasterTable();
-                                await dbmaster.postOrderDetails();
+                                 ordermasterViewModel.postOrderMaster();
+                                orderdetailsViewModel.postOrderDetails();
                               },
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white,
