@@ -12,7 +12,7 @@ class newDatabaseOutputs {
     if (firstrun == true) {
       await SP.setBool('firstrun', false);
       await initializeData();
-      await showRecoveryFormGetData();
+      await showTables();
       DateTime now = DateTime.now();
       String formattedDateTime = DateFormat('dd-MMM-yyyy-HH:mm:ss').format(now);
       await prefs.setString('lastInitializationDateTime', formattedDateTime);
@@ -39,10 +39,10 @@ class newDatabaseOutputs {
   Future<void> initializeLoginData() async {
     final api = ApiServices();
     final db = DBHelper();
-    var Logindata = await db.getAllLogins();
+    var logindata = await db.getAllLogins();
 
 
-    if (Logindata == null || Logindata.isEmpty) {
+    if (logindata == null || logindata.isEmpty) {
       bool inserted = false;
 
       try {
@@ -90,21 +90,21 @@ class newDatabaseOutputs {
     final api = ApiServices();
     final db = DBHelper();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? formattedDateTime = prefs.getString('lastInitializationDateTime');
+    // String? formattedDateTime = prefs.getString('lastInitializationDateTime');
     String? id = prefs.getString('userId');
 
-    var OrderBookingStatusdata = await db.getallOrderBookingStatusDB();
-    var Owerdata = await db.getAllownerData();
-    var Productdata = await db.getAllProductsData();
-    var OrderMasterdata = await db.getAllOrderMasterData();
-    var OrderDetailsdata = await db.getAllOrderDetailsData();
-    var PCdata = await db.getAllProductCategoryData();
-    var RecoveryFormGetData = await db.getAllRecoveryFormGetData();
-    var PakCities= await db.getPakCitiesDB();
-    // var NetBalancedata = await db.getNetBalanceDB();
-    var Accountsdata = await db.getAccoutsDB();
+    var orderBookingStatusdata = await db.getallOrderBookingStatusDB();
+    var owerdata = await db.getAllownerData();
+    var productdata = await db.getAllProductsData();
+    var orderMasterdata = await db.getAllOrderMasterData();
+    var orderDetailsdata = await db.getAllOrderDetailsData();
+    var pCdata = await db.getAllProductCategoryData();
+    var recoveryFormGetData = await db.getAllRecoveryFormGetData();
+    var pakCities= await db.getPakCitiesDB();
+    var netBalancedata = await db.getNetBalanceDB();
+    var accountsdata = await db.getAccoutsDB();
 
-    if (Accountsdata == null || Accountsdata.isEmpty ) {
+    if (accountsdata == null || accountsdata.isEmpty ) {
       var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/accounts/get/$id");
       var results3 = await db.insertAccountsData(response3);
       // var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
@@ -122,7 +122,7 @@ class newDatabaseOutputs {
       }
     }
 
-    if (RecoveryFormGetData == null || RecoveryFormGetData.isEmpty) {
+    if (recoveryFormGetData == null || recoveryFormGetData.isEmpty) {
       try {
         var response = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/recovery1/get/$id");
@@ -158,7 +158,7 @@ class newDatabaseOutputs {
       }
     }
     // function for the product category
-    if (PCdata == null || PCdata.isEmpty) {
+    if (pCdata == null || pCdata.isEmpty) {
       try {
         var response1 = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/brand/get/");
@@ -195,7 +195,7 @@ class newDatabaseOutputs {
         print("Data is available.");
       }
     }
-    if (PakCities == null || PakCities.isEmpty) {
+    if (pakCities == null || pakCities.isEmpty) {
       try {
         // https://apex.oracle.com/pls/apex/metaa/owner/get/
         //http://103.149.32.30:8080/ords/metaxperts/owner/get/
@@ -237,10 +237,7 @@ class newDatabaseOutputs {
     }
 
     // function for the order details table
-    if (OrderDetailsdata == null || OrderDetailsdata.isEmpty) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      // String? userId = prefs.getString('userId');
-      // String? id = userId;
+    if (orderDetailsdata == null || orderDetailsdata.isEmpty) {
       try {
         var response1 = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/detailsget/get/$id");
@@ -260,10 +257,7 @@ class newDatabaseOutputs {
       }
     }
     //funcion for the order master data
-    if (OrderMasterdata == null || OrderMasterdata.isEmpty) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      // String? userId = prefs.getString('userId');
-      // String? id = userId;
+    if (orderMasterdata == null || orderMasterdata.isEmpty) {
       try {
         var response1 = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/masterget1/get/$id");
@@ -282,24 +276,11 @@ class newDatabaseOutputs {
           print("Error with API.");
         }
       }
-      var response2 = await api.getApi(
-          "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/masterget/get/");
-      var results2 = await db.insertOrderMasterData(
-          response2); //return True or False
-      if (results2) {
-        if (kDebugMode) {
-          print("OrderMaster Data inserted successfully using second API.");
-        }
-      } else {
-        if (kDebugMode) {
-          print("Error inserting data with both APIs.");
-        }
-      }
     }
 
 
 // function for the products data table
-    if (Productdata == null || Productdata.isEmpty) {
+    if (productdata == null || productdata.isEmpty) {
       try {
         var response1 = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/product/get/");
@@ -336,7 +317,7 @@ class newDatabaseOutputs {
       }
     }
     //for the owner data
-    if (Owerdata == null || Owerdata.isEmpty) {
+    if (owerdata == null || owerdata.isEmpty) {
       try {
         // https://apex.oracle.com/pls/apex/metaa/owner/get/
         //http://103.149.32.30:8080/ords/metaxperts/owner/get/
@@ -376,7 +357,7 @@ class newDatabaseOutputs {
       }
     }
 //for the order booking Status table
-    if (OrderBookingStatusdata == null || OrderBookingStatusdata.isEmpty) {
+    if (orderBookingStatusdata == null || orderBookingStatusdata.isEmpty) {
       try {
         var response = await api.getApi(
             "http://103.149.32.30:8080/ords/metaxperts/statusget1/get/$id");
@@ -452,8 +433,8 @@ class newDatabaseOutputs {
         print('No formatted date and time found in SharedPreferences');
       }
     }
+    showRecoveryFormGetData();
   }
-
   Future<void> showRecoveryFormGetData() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -479,7 +460,7 @@ class newDatabaseOutputs {
   Future<void> updateProductCategoryData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? formattedDateTime = prefs.getString('lastInitializationDateTime');
-    String? id = prefs.getString('userId');
+    // String? id = prefs.getString('userId');
     if (formattedDateTime != null) {
       final db = DBHelper();
       final api = ApiServices();
@@ -488,25 +469,32 @@ class newDatabaseOutputs {
         ProductCat = await api.getupdateData(
             "http://103.149.32.30:8080/ords/metaxperts/brands/get/$formattedDateTime");
       } catch (e) {
-        print("Error fetching data from API: $e");
+        if (kDebugMode) {
+          print("Error fetching data from API: $e");
+        }
       }
       if (ProductCat != null && ProductCat.isNotEmpty) {
         bool result = await db.updateProductCategoryData(ProductCat);
         if (result) {
-          print("Data Updated Successfully for Product Category table");
+          if (kDebugMode) {
+            print("Data Updated Successfully for Product Category table");
+          }
         } else {
-          print("Error updating Product Category table");
+          if (kDebugMode) {
+            print("Error updating Product Category table");
+          }
         }
       } else {
-        print("No data found for update in Product Category table");
+        if (kDebugMode) {
+          print("No data found for update in Product Category table");
+        }
       }
     } else {
       if (kDebugMode) {
         print('No formatted date and time found in SharedPreferences');
       }
-    }
+    } showProductCategoryData();
   }
-
   Future<void> showProductCategoryData() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -566,8 +554,8 @@ class newDatabaseOutputs {
         print('No formatted date and time found in SharedPreferences');
       }
     }
+    showOrderDetailsData();
   }
-
   Future<void> showOrderDetailsData() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -628,8 +616,8 @@ class newDatabaseOutputs {
         print('No formatted date and time found in SharedPreferences');
       }
     }
+    showOrderMasterData();
   }
-
   Future<void> showOrderMasterData() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -655,7 +643,7 @@ class newDatabaseOutputs {
   Future<void> updateProductsData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? formattedDateTime = prefs.getString('lastInitializationDateTime');
-    String? id = prefs.getString('userId');
+    // String? id = prefs.getString('userId');
     if (formattedDateTime != null) {
       final db = DBHelper();
       final api = ApiServices();
@@ -688,9 +676,8 @@ class newDatabaseOutputs {
       if (kDebugMode) {
         print('No formatted date and time found in SharedPreferences');
       }
-    }
+    }showProductsData();
   }
-
   Future<void> showProductsData() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -716,7 +703,7 @@ class newDatabaseOutputs {
   Future<void> updateOwnerData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? formattedDateTime = prefs.getString('lastInitializationDateTime');
-    String? id = prefs.getString('userId');
+    // String? id = prefs.getString('userId');
     if (formattedDateTime != null) {
       final db = DBHelper();
       final api = ApiServices();
@@ -749,9 +736,8 @@ class newDatabaseOutputs {
       if (kDebugMode) {
         print('No formatted date and time found in SharedPreferences');
       }
-    }
+    }showOwnerData();
   }
-
   Future<void> showOwnerData() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -832,9 +818,8 @@ class newDatabaseOutputs {
         print('No formatted date and time found in SharedPreferences');
       }
     }
-    //showstatus();
+    showstatus();
   }
-
   Future<void> showstatus() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -861,7 +846,7 @@ class newDatabaseOutputs {
   Future<void> updateloginData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? formattedDateTime = prefs.getString('lastInitializationDateTime');
-    String? id = prefs.getString('userId');
+    // String? id = prefs.getString('userId');
     if (formattedDateTime != null) {
       final db = DBHelper();
       final api = ApiServices();
@@ -894,9 +879,8 @@ class newDatabaseOutputs {
       if (kDebugMode) {
         print('No formatted date and time found in SharedPreferences');
       }
-    }
+    }showlogintable();
   }
-
   Future<void> showlogintable() async {
     if (kDebugMode) {
       print("************Tables SHOWING**************");
@@ -917,6 +901,7 @@ class newDatabaseOutputs {
       print("TOTAL of no of login in table is $co");
     }
   }
+
   // function for the accounts data table
   Future<void> updateAccountsData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -930,23 +915,31 @@ class newDatabaseOutputs {
         accounts = await api.getupdateData(
             "http://103.149.32.30:8080/ords/metaxperts/accounttime/get/$id/$formattedDateTime");
       } catch (e) {
-        print("Error fetching data from API: $e");
+        if (kDebugMode) {
+          print("Error fetching data from API: $e");
+        }
       }
       if (accounts != null && accounts.isNotEmpty) {
         bool result = await db.updateAccountsData(accounts);
         if (result) {
-          print("Data Updated Successfully for accounts table");
+          if (kDebugMode) {
+            print("Data Updated Successfully for accounts table");
+          }
         } else {
-          print("Error updating accounts table");
+          if (kDebugMode) {
+            print("Error updating accounts table");
+          }
         }
       } else {
-        print("No data found for update in accounts table");
+        if (kDebugMode) {
+          print("No data found for update in accounts table");
+        }
       }
     } else {
       if (kDebugMode) {
         print('No formatted date and time found in SharedPreferences');
       }
-    }
+    }showAccountsData();
   }
   Future<void> showAccountsData() async {
     if (kDebugMode) {
@@ -968,4 +961,28 @@ class newDatabaseOutputs {
       print("TOTAL of no of Accounts in table is $co");
     }
   }
+
+  Future<void> showTables() async{
+    await showOwnerData();
+    await showAccountsData();
+    await showRecoveryFormGetData();
+    await showProductCategoryData();
+     await showOrderDetailsData();
+     await showOrderMasterData();
+     await showProductsData();
+     await showstatus();
+  }
+
+  Future<void> refreshData() async{
+    await updateOwnerData();
+    await updateOrderMasterData();
+    await updateOrderDetailsData();
+    await updateProductsData();
+    await updateProductCategoryData();
+    await updateOrderBookingStatusData();
+    await updateRecoveryFormGetData();
+    await updateAccountsData();
+    await updateloginData();
+  }
+
 }

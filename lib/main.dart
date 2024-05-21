@@ -27,7 +27,7 @@ import 'package:upgrader/upgrader.dart' show Upgrader;
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
-  // Upgrader;
+   Upgrader;
   // // AndroidAlarmManager.initialize();
   //
   // Initialize the FlutterBackground plugin

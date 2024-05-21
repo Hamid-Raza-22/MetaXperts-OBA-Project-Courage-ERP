@@ -503,7 +503,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                await backgroundTask();
                                 await Future.wait([
                           //        Future.delayed(Duration(seconds: 10)),
-                                  outputs.checkFirstRun(),
+                                  //outputs.checkFirstRun(),
+                                  outputs.refreshData(),
                                  // outputs.initializeDatalogin()
                                 ]);
                                 // After 10 seconds, hide the loading indicator and perform the refresh logic
@@ -839,8 +840,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                   ),
                                 );
                               } else {
-                                DatabaseOutputs outputs = DatabaseOutputs();
-                               await  outputs.checkFirstRunAccounts();
+                                newDatabaseOutputs outputs = newDatabaseOutputs();
+                               await  outputs.updateAccountsData();
 
                                await Navigator.push(context, MaterialPageRoute(
                                     builder: (context) => const RecoveryFromPage()));

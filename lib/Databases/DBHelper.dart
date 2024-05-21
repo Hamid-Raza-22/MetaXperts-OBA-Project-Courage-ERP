@@ -45,13 +45,13 @@ _onCreate(Database db, int version) async {
   await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT PRIMARY KEY, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT, city TEXT,brand TEXT)");
   await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT, shop_address TEXT,created_date TEXT, user_id TEXT, images BLOB)");
   await db.execute("CREATE TABLE products(id NUMBER PRIMARY KEY, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
-  await db.execute("CREATE TABLE orderMasterData(order_no TEXT PRIMARY KEY, shop_name TEXT, user_id TEXT)");
-  await db.execute("CREATE TABLE orderDetailsData(id INTEGER PRIMARY KEY,order_no TEXT , product_name TEXT, quantity_booked INTEGER, user_id TEXT, price INTEGER)");
+  await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
+  await db.execute("CREATE TABLE orderDetailsData(id INTEGER, order_no TEXT, product_name TEXT, quantity_booked INTEGER, user_id TEXT, price INTEGER)");
   await db.execute("CREATE TABLE productCategory(id INTEGER,brand TEXT)");
   await db.execute("CREATE TABLE recoveryFormGet(recovery_id TEXT, user_id TEXT)");
   await db.execute("CREATE TABLE accounts(account_id INTEGER PRIMARY KEY, shop_name TEXT, order_date TEXT, credit TEXT, booker_name TEXT, user_id TEXT)");
 
-  await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT,credit TEXT)");
+  await db.execute("CREATE TABLE netBalance(shop_name TEXT, debit TEXT, credit TEXT)");
   await db.execute("CREATE TABLE pakCities(id INTEGER,city TEXT)");
 
   // Used for the post data
@@ -1119,7 +1119,7 @@ _onCreate(Database db, int version) async {
           }
           https://apex.oracle.com/pls/apex/metaa/addshop/post/
           http://103.149.32.30:8080/ords/metaxperts/addshop/post/
-          var result1 = await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaa/addshop/post/', imageBytes,);
+          var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshops/post/', imageBytes,);
           var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/', imageBytes,);
           if (result == true && result1 == true) {
             await db.rawQuery('DELETE FROM shop WHERE id = ${i['id']}');
