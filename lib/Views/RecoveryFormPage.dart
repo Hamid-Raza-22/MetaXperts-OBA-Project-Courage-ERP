@@ -401,10 +401,13 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                               decoration: InputDecoration(
                                 hintText: '--Select Shop--',
                                 border: OutlineInputBorder(
-
                                   borderRadius: BorderRadius.circular(5.0),
                                 ),
                               ),
+                              onTap: () {
+                                // Clear the current balance controller when the field is tapped
+                                _currentBalanceController.clear();
+                              },
                             ),
                             suggestionsCallback: (pattern) {
                               return dropdownItems1
@@ -440,7 +443,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                               await prefs.setString('selectedShopName', selectedShopName!);
                               newDatabaseOutputs outputs = newDatabaseOutputs();
                               await outputs.updateBalanceData();
-                             // await Future.delayed(const Duration(seconds: 3));
+                              // await Future.delayed(const Duration(seconds: 3));
 
                               // SetState() {
                               //   _currentBalanceController.text =

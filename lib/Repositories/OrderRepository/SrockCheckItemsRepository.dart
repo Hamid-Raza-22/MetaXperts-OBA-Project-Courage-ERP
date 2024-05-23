@@ -40,7 +40,7 @@ class StockCheckItemsRepository {
             qty: i['qty'].toString(),
           );
           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/');
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/shopvisit/post/');
+          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/shopvisit/post/');
           if(result == true && result1 == true){
             db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
           }

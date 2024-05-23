@@ -61,9 +61,9 @@ class OrderMasterRepository{
           );
 
           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/',);
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/ordermaster/post/',);
+          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/',);
 
-          if (result == true&& result1 == true) {
+          if (result == true && result1 == true) {
             await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
 
           }

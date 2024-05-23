@@ -53,7 +53,7 @@ class AttendanceRepository {
 
           var result1 = await api.masterPost(
             v.toMap(),
-            'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
+            'https://apex.oracle.com/pls/apex/metaxpertss/attendance/post/',
           );
 
           if (result == true && result1 == true) {
@@ -69,7 +69,7 @@ class AttendanceRepository {
           } else if (result1 != true) {
             final results = await api.masterPost(
               v.toMap(),
-              'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendance/post/',
+              'https://apex.oracle.com/pls/apex/metaxpertss/attendance/post/',
             );
             if (results == true) {
               await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
@@ -151,7 +151,7 @@ class AttendanceRepository {
               totalDistance: i['totalDistance'].toString()
           );
           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/attendanceout/post/',);
+          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendanceout/post/',);
 
           if (result == true && result1 == true) {
             if (kDebugMode) {

@@ -28,6 +28,7 @@ class OrderDetailsViewModel extends GetxController{
     orderdetailsRepository.add(orderdetailsModel);
     var dbClient = await orderdetailsRepository.dbHelperOrderDetails.db;
     await dbClient!.insert('orderDetailsData', {
+      'id':orderdetailsModel.id,
     'order_no': orderdetailsModel.orderMasterId,
     'product_name':orderdetailsModel.productName,
     'quantity_booked': orderdetailsModel.quantity,

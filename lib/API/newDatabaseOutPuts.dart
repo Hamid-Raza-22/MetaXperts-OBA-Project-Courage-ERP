@@ -64,7 +64,7 @@ class newDatabaseOutputs {
 
         try {
           var response = await api.getApi(
-              "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/login/get/");
+              "https://apex.oracle.com/pls/apex/metaxpertss/login/get/");
           inserted = await db.insertLogin(response); // returns True or False
 
           if (inserted) {
@@ -105,9 +105,10 @@ class newDatabaseOutputs {
     var accountsdata = await db.getAccoutsDB();
 
     if (accountsdata == null || accountsdata.isEmpty ) {
+      try{
       var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/accounts/get/$id");
       var results3 = await db.insertAccountsData(response3);
-      // var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/account/get/");
+      // var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/account/get/");
       //
       // var results2 = await db.insertAccoutsData(response2);   //return True or False
       //return True or False
@@ -120,23 +121,65 @@ class newDatabaseOutputs {
           print("Error inserting data.");
         }
       }
+    }catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        var response = await api.getApi(
+            "https://apex.oracle.com/pls/apex/metaxpertss/accounts/get/$id");
+
+        var results2 = await db.insertAccountsData(
+            response); //return True or False
+        if (results2) {
+          if (kDebugMode) {
+            print(
+                "RecoveryFormGetData Data inserted successfully using second API.");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data with both APIs.");
+          }
+        }
+      }
     }
     if (netBalancedata == null || netBalancedata.isEmpty ) {
+      try{
       var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/allbalance/get/$id");
       var results3 = await db.insertNetBalanceData(response3);
-      // var response2 = await api.getApi("https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/balance/get/");
+      // var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/balance/get/");
       //
       // var results2 = await db.insertNetBalanceData(response2);   //return True or False
       //return True or False
       if ( results3) {
         if (kDebugMode) {
-          print(" Net Balance Data inserted successfully.");
+          print(" Net Balance Data inserted successfully 1st.");
         }
       } else {
         if (kDebugMode) {
           print("Error inserting data.");
         }
       }
+    }catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        var response = await api.getApi(
+            "https://apex.oracle.com/pls/apex/metaxpertss/allbalance/get/$id");
+
+        var results2 = await db.insertNetBalanceData(
+            response); //return True or False
+        if (results2) {
+          if (kDebugMode) {
+            print(
+                "RecoveryFormGetData Data inserted successfully using second API.");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data with both APIs.");
+          }
+        }
+      }
+
     }
     if (recoveryFormGetData == null || recoveryFormGetData.isEmpty) {
       try {
@@ -154,24 +197,25 @@ class newDatabaseOutputs {
           throw Exception('Insertion failed with first API');
         }
       } catch (e) {
-        // if (kDebugMode) {
-        //   print("Error with first API. Trying second API.");
-        // }
-        // var response = await api.getApi(
-        //     "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/recovery/get/");
-        //
-        // var results2 = await db.insertRecoveryFormGetData(
-        //     response); //return True or False
-        // if (results2) {
-        //   if (kDebugMode) {
-        //     print(
-        //         "RecoveryFormGetData Data inserted successfully using second API.");
-        //   }
-        // } else {
-        //   if (kDebugMode) {
-        //     print("Error inserting data with both APIs.");
-        //   }
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        var response = await api.getApi(
+            "https://apex.oracle.com/pls/apex/metaxpertss/recovery1/get/$id");
+
+        var results2 = await db.insertRecoveryFormGetData(
+            response); //return True or False
+        if (results2) {
+          if (kDebugMode) {
+            print(
+                "RecoveryFormGetData Data inserted successfully using second API.");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data with both APIs.");
+          }
       }
+    }
     }
     // function for the product category
     if (pCdata == null || pCdata.isEmpty) {
@@ -192,7 +236,7 @@ class newDatabaseOutputs {
         //   print("Error with first API. Trying second API.");
         // }
         var response2 = await api.getApi(
-            "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/brand/get/");
+            "https://apex.oracle.com/pls/apex/metaxpertss/brand/get/");
 
         var results2 = await db.insertProductCategoryData(
             response2); //return True or False
@@ -234,7 +278,7 @@ class newDatabaseOutputs {
         //   print("Error with first API. Trying second API.");
         // }
         var response = await api.getApi(
-            "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/city/get/");
+            "https://apex.oracle.com/pls/apex/metaxpertss/city/get/");
         var results = await db.insertPakCitiesData(response); //return True or False
         if (results) {
           if (kDebugMode) {
@@ -268,7 +312,18 @@ class newDatabaseOutputs {
         }
       } catch (e) {
         if (kDebugMode) {
-          print("Error with API.");
+          print("Error with 1st API.");
+        }
+        var response1 = await api.getApi(
+            "https://apex.oracle.com/pls/apex/metaxpertss/detailsget/get/$id");
+        var results1 = await db.insertOrderDetailsData(
+            response1); //return True or False
+        if (results1) {
+          if (kDebugMode) {
+            print("OrderDetails Data inserted successfully 2nd.");
+          }
+        } else {
+          throw Exception('Insertion failed');
         }
       }
     }
@@ -291,8 +346,16 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error with API.");
         }
+        var response1 = await api.getApi(
+            "https://apex.oracle.com/pls/apex/metaxpertss/masterget1/get/$id");
+        var results1 = await db.insertOrderMasterData(
+            response1); //return True or False
+        if (results1) {
+          if (kDebugMode) {
+            print("OrderMaster Data inserted successfully using Second API.");
+          }
       }
-    }
+    }}
 
 
 // function for the products data table
@@ -314,7 +377,7 @@ class newDatabaseOutputs {
         //   print("Error with first API. Trying second API.");
         // }
         var response2 = await api.getApi(
-            "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/product/get/");
+            "https://apex.oracle.com/pls/apex/metaxpertss/product/get/");
         var results2 = await db.insertProductsData(
             response2); //return True or False
         if (results2) {
@@ -355,7 +418,7 @@ class newDatabaseOutputs {
         //   print("Error with first API. Trying second API.");
         // }
         var response = await api.getApi(
-            "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/owner/get/");
+            "https://apex.oracle.com/pls/apex/metaxpertss/shopp/get/");
         var results = await db.insertownerData(response); //return True or False
         if (results) {
           if (kDebugMode) {
@@ -394,7 +457,7 @@ class newDatabaseOutputs {
           print("Error with first API. Trying second API.");
         }
         var response = await api.getApi(
-            "https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/statusget/get/");
+            "https://apex.oracle.com/pls/apex/metaxpertss/statusget1/get/$id");
         var results = await db.insertOrderBookingStatusData1(
             response); //return True or False
         if (results) {
@@ -427,6 +490,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        RF = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/recoverytime/get/$id/$formattedDateTime");
       }
       if (RF != null && RF.isNotEmpty) {
         bool result = await db.updateRecoveryFormGetData(RF);
@@ -488,6 +553,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        ProductCat = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/brands/get/$formattedDateTime");
       }
       if (ProductCat != null && ProductCat.isNotEmpty) {
         bool result = await db.updateProductCategoryData(ProductCat);
@@ -548,6 +615,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        details = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/detailsgettime/get/$id/$formattedDateTime");
       }
       if (details != null && details.isNotEmpty) {
         bool result = await db.updateOrderDetailsDataTable(details);
@@ -608,8 +677,10 @@ class newDatabaseOutputs {
             "http://103.149.32.30:8080/ords/metaxperts/mastergettime/get/$id/$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
-          print("Error fetching data from API: $e");
+          print("Error fetching data from  1st API: $e");
         }
+        master = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/mastergettime/get/$id/$formattedDateTime");
       }
       if (master != null && master.isNotEmpty) {
         bool result = await db.updateOrderMasterDataTable(master);
@@ -674,6 +745,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        balance = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/totalbalance/get/$shopname/$id");
       }
       if (balance != null && balance.isNotEmpty) {
         bool result = await db.updateBalanceData(balance);
@@ -735,6 +808,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        productsdata = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/products/get/$formattedDateTime");
       }
       if (productsdata != null && productsdata.isNotEmpty) {
         bool result = await db.updateProductsDataTable(productsdata);
@@ -795,6 +870,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        ownerdata = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/shop1/get/$formattedDateTime");
       }
       if (ownerdata != null && ownerdata.isNotEmpty) {
         bool result = await db.updateownerDataTable(ownerdata);
@@ -839,6 +916,68 @@ class newDatabaseOutputs {
       }
     }
   }
+  // functions for the Cities data table
+  Future<void> updateCitiesData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? formattedDateTime = prefs.getString('lastInitializationDateTime');
+    // String? id = prefs.getString('userId');
+    if (formattedDateTime != null) {
+      final db = DBHelper();
+      final api = ApiServices();
+      List<dynamic>? citydata;
+      try {
+        citydata = await api.getupdateData(
+            "http://103.149.32.30:8080/ords/metaxperts/cities/get/$formattedDateTime");
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching data from API: $e");
+        }
+        citydata = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/cities/get/$formattedDateTime");
+      }
+      if (citydata != null && citydata.isNotEmpty) {
+        bool result = await db.updateCitiesDataTable(citydata);
+        if (result) {
+          if (kDebugMode) {
+            print("Data Updated Successfully for Cities table");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error updating Cities table");
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print("No data found for update in Cities table");
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print('No formatted date and time found in SharedPreferences');
+      }
+    }showCityData();
+  }
+  Future<void> showCityData() async {
+    if (kDebugMode) {
+      print("************Tables SHOWING**************");
+    }
+    if (kDebugMode) {
+      print("************Cites data Table**************");
+    }
+    final db = DBHelper();
+    try {
+      var data = await db.getPakCitiesDB();
+      int totalCount = data?.length ?? 0;
+
+      if (kDebugMode) {
+        print("TOTAL number of Cities data in the table is $totalCount");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching Cities data: ${e.toString()}");
+      }
+    }
+  }
 
   // Future<void> showOwnerData() async {
   //   if (kDebugMode) {
@@ -877,6 +1016,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        orderBookingStatusData = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/statusgettime/get/$id/$formattedDateTime");
       }
       if (orderBookingStatusData != null && orderBookingStatusData.isNotEmpty) {
         for (var newData in orderBookingStatusData) {
@@ -938,6 +1079,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        login = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/logindata/get/$formattedDateTime");
       }
       if (login != null && login.isNotEmpty) {
         bool result = await db.updateloginTable(login);
@@ -998,6 +1141,8 @@ class newDatabaseOutputs {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
         }
+        accounts = await api.getupdateData(
+            "https://apex.oracle.com/pls/apex/metaxpertss/accounttime/get/$id/$formattedDateTime");
       }
       if (accounts != null && accounts.isNotEmpty) {
         bool result = await db.updateAccountsData(accounts);
@@ -1062,8 +1207,8 @@ class newDatabaseOutputs {
     await updateOrderBookingStatusData();
     await updateRecoveryFormGetData();
     await updateAccountsData();
-    await updateloginData();
-   // await updateCitiesData();
+    // await updateloginData();
+    await updateCitiesData();
     await updateBalanceData();
   }
 

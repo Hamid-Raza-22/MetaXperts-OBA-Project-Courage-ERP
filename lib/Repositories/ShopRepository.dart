@@ -94,7 +94,7 @@ class ShopRepository {
           https://apex.oracle.com/pls/apex/metaa/addshop/post/
           http://103.149.32.30:8080/ords/metaxperts/addshop/post/
           var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshops/post/', imageBytes,);
-          var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/addshop/post/', imageBytes,);
+          var result = await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/addshops/post/', imageBytes,);
           if (result == true && result1 == true) {
             await dbClient.rawQuery('DELETE FROM shop WHERE id = ${i['id']}');
             if (kDebugMode) {

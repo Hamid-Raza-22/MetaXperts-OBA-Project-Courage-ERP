@@ -93,7 +93,7 @@ class ShopVisitRepository {
             print("Making API request for shop visit ID: ${v.id}");
           }
           var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes,);
-          var result = await api.masterPostWithImage(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/report/post/', imageBytes,);
+          var result = await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/report/post/', imageBytes,);
           if (result == true && result1 == true) {
             await db.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
             if (kDebugMode) {

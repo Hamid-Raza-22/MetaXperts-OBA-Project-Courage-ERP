@@ -51,7 +51,7 @@ class OrderDetailsRepository {
             userId: i['userId'].toString(),
           );
           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
-          var result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/orderdetail/post/');
+          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/orderdetail/post/');
           if(result == true&& result1 == true){
             await db.rawQuery("UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
           }

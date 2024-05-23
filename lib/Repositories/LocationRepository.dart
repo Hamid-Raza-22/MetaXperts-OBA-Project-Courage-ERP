@@ -76,7 +76,7 @@ class LocationRepository {
             print("Making API request for shop visit ID: ${v.id}");
           }
           var result1 = await api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes,);
-          var result = await api.masterPostWithGPX(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/location/post/', gpxBytes,);
+          var result = await api.masterPostWithGPX(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/location/post/', gpxBytes,);
           if (result == true && result1 == true) {
             await db.rawUpdate("UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
             if (kDebugMode) {

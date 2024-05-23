@@ -41,7 +41,7 @@ class ReturnFormDetailsRepository {
             bookerId: i['bookerId'].toString(),
           );
           final result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post');
-          final result = await api.masterPost(v.toMap(), 'https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/returnformdetail/post');
+          final result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnformdetail/post');
           if(result == true && result1 == true){
             db.rawQuery('DELETE FROM return_form_details WHERE id = ${i['id']}');
           }

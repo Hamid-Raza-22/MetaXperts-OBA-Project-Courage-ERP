@@ -109,7 +109,7 @@ class _ShopPageState extends State<ShopPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation != 'ASM'&& userDesignation != 'SPO' ) {
+    if (userDesignation != 'ASM'&& userDesignation != 'SPO' && userDesignation != 'SOS' ) {
     //  await fetchShopNames();
       setState(() {
         cityController.text = userCitys;

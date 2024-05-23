@@ -861,6 +861,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                   ),
                                 );
                               } else {
+                                // SharedPreferences prefs = await SharedPreferences.getInstance();
+                                // await prefs.remove('balance');
                                 newDatabaseOutputs outputs = newDatabaseOutputs();
                                 await outputs.updateOrderBookingStatusData();
                                await  outputs.updateAccountsData();

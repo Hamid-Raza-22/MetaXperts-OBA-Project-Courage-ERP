@@ -13,13 +13,15 @@ import 'package:http/http.dart' as http;
 
 class ApiServices extends BaseApiServices {
 
-  final tokenEndpoint = Uri.parse('https://g77e7c85ff59092-db17lrv.adb.ap-singapore-1.oraclecloudapps.com/ords/metaxperts/oauth/token');
+  final tokenEndpoint = Uri.parse('https://apex.oracle.com/pls/apex/metaxpertss/oauth/token');
   final tokenEndpoint1 = Uri.parse('http://103.149.32.30:8080/ords/metaxperts/oauth/token');
 
 // Your provided client ID and secret
-  final identifier = 'LdvnAhHGx6Li4XXJTfIW0w..';
+  //final identifier = 'LdvnAhHGx6Li4XXJTfIW0w..';
+  final identifier = 'iYIaWkj4Wej-S99Xh0BnHA..';
   final identifier1 = '6v6MJiirvoS1pRo1wMyhdg..';
-  final secret = 'IMjAqywrUane3NA_qGVTWQ..';
+ // final secret = 'IMjAqywrUane3NA_qGVTWQ..';
+  final secret = 'alAsfNM32-qjACLHQ_KwVA..';
   final secret1 = 'TlPiTfNr0vSKLBJ7hwRGCA..';
 
 // This is a URL on your application's server. The authorization server will redirect the resource owner here after they authorize.
@@ -53,9 +55,7 @@ class ApiServices extends BaseApiServices {
       final response = await client.post(Uri.parse(url), body: data,).timeout(const Duration(seconds: 10));
       responseJson = returnResponse(response);
     } catch (e) {
-      if (kDebugMode) {
-        print("Error with first API. Trying second API.");
-      }
+
       final client1 = await getClient(tokenEndpoint1, identifier1, secret1);
       final response1 = await client1.post(Uri.parse(url), body: data,).timeout(const Duration(seconds: 10));
       responseJson1 = returnResponse(response1);
@@ -78,9 +78,9 @@ Future<dynamic> getApi(dynamic url) async {
     responseJson = jsonDecode(response.body);
     responseJson = responseJson['items'];
   } catch (e) {
-    if (kDebugMode) {
-      print("Error with first API. Trying second API.");
-    }
+    // if (kDebugMode) {
+    //   print("Error with first API. Trying second API.");
+    // }
 
     try {
       // If the first API fails, try fetching data from the second API
@@ -175,7 +175,7 @@ Future<dynamic> getApi(dynamic url) async {
         return responseJson ;
 
       default :
-        throw FetchDataException('Error accoured while communicating with server ${response.statusCode}') ;
+        throw FetchDataException('Error accorded while communicating with server ${response.statusCode}') ;
     }
   }
 
