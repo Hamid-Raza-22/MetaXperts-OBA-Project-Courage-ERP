@@ -11,7 +11,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/async.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show userCitys, userId;
+import 'package:order_booking_shop/API/Globals.dart' show userCitys, userDesignation, userId;
 import 'package:order_booking_shop/View_Models/ShopViewModel.dart' show ShopViewModel;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
 import 'package:path_provider/path_provider.dart';
@@ -98,9 +98,8 @@ class _ShopPageState extends State<ShopPage> {
   File? _imageFile;
   final ImagePicker _imagePicker = ImagePicker();
   get shopData => null;
-  List<String> validCities = ["Gujranwala"];
-
   List<String> citiesDropdownItems = [];
+
   DBHelper dbHelper = DBHelper();
 
   List<Map<String, dynamic>> shopOwners = [];
@@ -109,17 +108,26 @@ class _ShopPageState extends State<ShopPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation != 'ASM'&& userDesignation != 'SPO' && userDesignation != 'SOS' ) {
-    //  await fetchShopNames();
+    if (userDesignation != 'ASM' && userDesignation != 'SPO' && userDesignation != 'SOS' ) {
+      //  await fetchShopNames();
       setState(() {
         cityController.text = userCitys;
-      //  distributorNameController.text = 'M.A Traders Sialkot';
+        //  distributorNameController.text = 'M.A Traders Sialkot';
+        cityController.selection = TextSelection.collapsed(offset: cityController.text.length);
       });
 
     } else {
       await fetchCitiesNames();
       //await fetchShopNames1();
     }
+  }
+
+  Future<void> fetchCitiesNames() async {
+    List<dynamic> bussinessName = await dbHelper.getCitiesNames();
+    setState(() {
+      // Explicitly cast each element to String
+      citiesDropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
+    });
   }
 
   // Future<void> fetchShopNames() async {
@@ -138,14 +146,6 @@ class _ShopPageState extends State<ShopPage> {
   //     dropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
   //   });
   // }
-  Future<void> fetchCitiesNames() async {
-    List<dynamic> bussinessName = await dbHelper.getCitiesNames();
-    setState(() {
-      // Explicitly cast each element to String
-      citiesDropdownItems = bussinessName.map((dynamic item) => item.toString()).toSet().toList();
-    });
-  }
-
   Future<void> saveImage()  async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -194,8 +194,6 @@ class _ShopPageState extends State<ShopPage> {
         if (kDebugMode) {
           print('Latitude: $globalLatitude, Longitude: $globalLongitude');
         }
-
-
 
         //print('Address is: $address1');
       } catch (e) {
@@ -257,6 +255,9 @@ class _ShopPageState extends State<ShopPage> {
                                 ),
                                 TextFormField(
                                   controller: shopNameController,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.deny(RegExp(r'[/\\]')), // Filter out the '/' and '\' characters
+                                  ],
                                   decoration: InputDecoration(
                                     contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15), // Adjust the padding as needed
                                     labelText: 'Enter Shop Name',
@@ -269,7 +270,6 @@ class _ShopPageState extends State<ShopPage> {
                               ],
                             ),
                             const SizedBox(height: 10),
-
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -277,12 +277,25 @@ class _ShopPageState extends State<ShopPage> {
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     'City',
-                                    style:
-                                    TextStyle(fontSize: 18, color: Colors.black,  fontWeight: FontWeight.bold,),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                                TypeAheadFormField(
-                                  // enabled: userId == 'B0001' || userId == 'B0006' || userId == 'B0004',
+                                if (userDesignation != 'ASM' && userDesignation != 'SPO'  && userDesignation != 'SOS') TextFormField(
+                                  controller: cityController,
+                                  readOnly: true,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                                    labelText: 'Enter City',
+                                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(5.0),
+                                    ),
+                                  ),
+                                ) else TypeAheadFormField(
                                   textFieldConfiguration: TextFieldConfiguration(
                                     controller: cityController,
                                     decoration: InputDecoration(
@@ -292,7 +305,8 @@ class _ShopPageState extends State<ShopPage> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(5.0),
                                       ),
-                                    ),),
+                                    ),
+                                  ),
                                   suggestionsCallback: (pattern) {
                                     return citiesDropdownItems.where((city) => city.toLowerCase().contains(pattern.toLowerCase())).toList();
                                   },
@@ -302,13 +316,11 @@ class _ShopPageState extends State<ShopPage> {
                                     );
                                   },
                                   onSuggestionSelected: (suggestion) {
-                                    // Validate that the selected city is from the list
                                     if (citiesDropdownItems.contains(suggestion)) {
                                       setState(() {
                                         cityController.text = suggestion;
                                       });
                                     } else {
-                                      // Handle validation, for example, show an error message
                                       showDialog(
                                         context: context,
                                         builder: (context) {
@@ -329,11 +341,9 @@ class _ShopPageState extends State<ShopPage> {
                                     }
                                   },
                                 ),
-
                               ],
                             ),
                             const SizedBox(height: 10),
-
                             // Text Field 2 - Shop Address
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,9 +606,12 @@ class _ShopPageState extends State<ShopPage> {
                                 child: ElevatedButton(
                                   onPressed: () async {
                                     // Validate the selected city
-                                    String selectedCity = cityController.text;
+                                    String selectedCity = cityController.text.trim();
+                                    if (kDebugMode) {
+                                      print('Selected City: $selectedCity');
+                                    }
+                                    if (selectedCity.isNotEmpty && citiesDropdownItems.contains(selectedCity)) {
 
-                                    if (validCities.contains(selectedCity)) {
                                       // City is valid, proceed with the rest of the code
 
                                       // Continue with the rest of the validation and data saving logic
@@ -683,7 +696,7 @@ class _ShopPageState extends State<ShopPage> {
                                           fontSize: 16.0,
                                         );
                                       }
-                                   } else {
+                                    } else {
                                       // Show toast message for invalid city
                                       Fluttertoast.showToast(
                                         msg: 'Please select a valid city.',
@@ -695,7 +708,7 @@ class _ShopPageState extends State<ShopPage> {
                                         fontSize: 16.0,
                                       );
                                     }
-                                   },
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: Colors.white, backgroundColor: Colors.green,
                                     shape: RoundedRectangleBorder(
@@ -722,6 +735,6 @@ class _ShopPageState extends State<ShopPage> {
             ),
           ),
         )
-        );
+    );
     }
 }

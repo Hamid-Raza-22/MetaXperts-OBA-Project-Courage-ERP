@@ -10,11 +10,9 @@ import 'package:nanoid/nanoid.dart' show customAlphabet;
 import 'package:order_booking_shop/API/Globals.dart' show currentPostId, isClockedIn, locationbool, secondsPassed, timer, userCitys, userDesignation, userId, userNames;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../API/DatabaseOutputs.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../View_Models/LocationViewModel.dart';
 import '../View_Models/OrderViewModels/OrderDetailsViewModel.dart';
 import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
@@ -520,8 +518,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                 newDatabaseOutputs outputs = newDatabaseOutputs();
                                 // Run both functions in parallel
                                 showLoadingIndicator(context);
-                               await backgroundTask();
+
                                 await Future.wait([
+                                backgroundTask(),
                           //        Future.delayed(Duration(seconds: 10)),
                                   //outputs.checkFirstRun(),
                                   outputs.refreshData(),
@@ -1105,25 +1104,96 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     }
   }
 
+  // Future<void> synchronizeData() async {
+  //   if (kDebugMode) {
+  //     print('Synchronizing data in the background.');
+  //   }
+  //
+  //   await attendanceViewModel.postAttendance();
+  //   await attendanceViewModel.postAttendanceOut();
+  //   await locationViewModel.postLocation();
+  //   await shopViewModel.postShop();
+  //   await shopisitViewModel.postShopVisit();
+  //   await stockcheckitemsViewModel.postStockCheckItems();
+  //   await ordermasterViewModel.postOrderMaster();
+  //   await orderdetailsViewModel.postOrderDetails();
+  //   await returnformViewModel.postReturnForm();
+  //   await returnformdetailsViewModel.postReturnFormDetails();
+  //   await recoveryformViewModel.postRecoveryForm();
+  //
+  // }
+
   Future<void> synchronizeData() async {
     if (kDebugMode) {
       print('Synchronizing data in the background.');
     }
+    await postAttendanceTable();
+    await postAttendanceOutTable();
+    await postLocationData();
+    await postShopTable();
+    await postShopVisitData();
+    await postStockCheckItems();
+    await postMasterTable();
+    await postOrderDetails();
+    await postReturnFormTable();
+    await postReturnFormDetails();
+    await postRecoveryFormTable();
 
-    await attendanceViewModel.postAttendance();
-    await attendanceViewModel.postAttendanceOut();
+  }
+  Future<void> postLocationData() async {
     await locationViewModel.postLocation();
-    await shopViewModel.postShop();
+  }
+  Future<void> postShopVisitData() async {
     await shopisitViewModel.postShopVisit();
+  }
+
+  Future<void> postStockCheckItems() async {
     await stockcheckitemsViewModel.postStockCheckItems();
-    await ordermasterViewModel.postOrderMaster();
-    await orderdetailsViewModel.postOrderDetails();
-    await returnformViewModel.postReturnForm();
-    await returnformdetailsViewModel.postReturnFormDetails();
-    await recoveryformViewModel.postRecoveryForm();
+  }
+
+  Future<void> postAttendanceOutTable() async {
+    await attendanceViewModel.postAttendanceOut();
+  }
+
+  Future<void> postAttendanceTable() async {
+    await attendanceViewModel.postAttendance();
 
   }
 
+  Future<void> postMasterTable() async {
+    await ordermasterViewModel.postOrderMaster();
+
+  }
+
+  Future<void> postOrderDetails() async {
+    await orderdetailsViewModel.postOrderDetails();
+
+  }
+
+  Future<void> postShopTable() async {
+    await shopViewModel.postShop();
+  }
+
+  Future<void> postReturnFormTable() async {
+    if (kDebugMode) {
+      print('Attempting to post Return data');
+    }
+    await returnformViewModel.postReturnForm();
+
+    if (kDebugMode) {
+      print('Return data posted successfully');
+    }
+  }
+
+  Future<void> postReturnFormDetails() async {
+    DBHelper dbHelper = DBHelper();
+    await returnformdetailsViewModel.postReturnFormDetails();
+  }
+
+  Future<void> postRecoveryFormTable() async {
+    await recoveryformViewModel.postRecoveryForm();
+
+  }
   _requestPermission() async {
     var status = await Permission.location.request();
     if (status.isGranted) {

@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:intl/intl.dart';
+import 'package:order_booking_shop/main.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 import '../Databases/DBHelper.dart';
 import 'ApiServices.dart' show ApiServices;
-
 class newDatabaseOutputs {
+
   Future<void> checkFirstRun() async {
     SharedPreferences SP = await SharedPreferences.getInstance();
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -33,56 +34,6 @@ class newDatabaseOutputs {
       formattedDateTime = DateFormat('dd-MMM-yyyy-HH:mm:ss').format(now);
       await prefs.setString('lastInitializationDateTime', formattedDateTime);
       // print(formattedDateTime);
-    }
-  }
-
-  Future<void> initializeLoginData() async {
-    final api = ApiServices();
-    final db = DBHelper();
-    var logindata = await db.getAllLogins();
-
-
-    if (logindata == null || logindata.isEmpty) {
-      bool inserted = false;
-
-      try {
-        var response = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/login/get/");
-        inserted = await db.insertLogin(response); // returns True or False
-
-        if (inserted == true) {
-          if (kDebugMode) {
-            print("Login Data inserted successfully using first API.");
-          }
-        } else {
-          throw Exception("Error inserting data using first API.");
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
-
-        try {
-          var response = await api.getApi(
-              "https://apex.oracle.com/pls/apex/metaxpertss/login/get/");
-          inserted = await db.insertLogin(response); // returns True or False
-
-          if (inserted) {
-            if (kDebugMode) {
-              print("Login Data inserted successfully using second API.");
-            }
-          } else {
-            if (kDebugMode) {
-              print("Error inserting data using second API.");
-            }
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print(
-                "Error with second API as well. Unable to fetch or insert login data.");
-          }
-        }
-      }
     }
   }
 
@@ -474,6 +425,55 @@ class newDatabaseOutputs {
     }
   }
 
+  Future<void> initializeLoginData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    var logindata = await db.getAllLogins();
+
+
+    if (logindata == null || logindata.isEmpty) {
+      bool inserted = false;
+
+      try {
+        var response = await api.getApi(
+            "http://103.149.32.30:8080/ords/metaxperts/login/get/");
+        inserted = await db.insertLogin(response); // returns True or False
+
+        if (inserted == true) {
+          if (kDebugMode) {
+            print("Login Data inserted successfully using first API.");
+          }
+        } else {
+          throw Exception("Error inserting data using first API.");
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+
+        try {
+          var response = await api.getApi(
+              "https://apex.oracle.com/pls/apex/metaxpertss/login/get/");
+          inserted = await db.insertLogin(response); // returns True or False
+
+          if (inserted) {
+            if (kDebugMode) {
+              print("Login Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print(
+                "Error with second API as well. Unable to fetch or insert login data.");
+          }
+        }
+      }
+    }
+  }
   // function for the update recovery from the data table
   Future<void> updateRecoveryFormGetData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -1199,6 +1199,7 @@ class newDatabaseOutputs {
   }
 
   Future<void> refreshData() async{
+    await backgroundTask();
     await updateOwnerData();
     await updateOrderMasterData();
     await updateOrderDetailsData();

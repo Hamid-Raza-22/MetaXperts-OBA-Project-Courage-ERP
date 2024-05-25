@@ -1,4 +1,4 @@
-package com.aafdev.my_loc
+package com.aafdev1.my_loc
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -237,9 +237,11 @@ class ShopVisitState extends State<ShopVisit> {
     String? userDesignation = prefs.getString('userDesignation');
 
     if (userDesignation == 'ASM' && userDesignation == 'SPO' && userDesignation == 'SOS') {
-      await fetchShopNames1();
-    } else {
       await fetchShopNames();
+
+    } else {
+      await fetchShopNamesAll();
+
     }
   }
 
@@ -255,7 +257,7 @@ class ShopVisitState extends State<ShopVisit> {
   }
 
 
-  Future<void> fetchShopNames1() async {
+  Future<void> fetchShopNamesAll() async {
 
     List<dynamic> shopNames = await dbHelper.getShopNames();
     shopOwners = (await dbHelper.getOwnersDB())!;
@@ -1067,6 +1069,7 @@ class ShopVisitState extends State<ShopVisit> {
                               //  'rowDataDetails': rowDataDetails,
 
                             };
+
 
                             Navigator.push(
                               context,

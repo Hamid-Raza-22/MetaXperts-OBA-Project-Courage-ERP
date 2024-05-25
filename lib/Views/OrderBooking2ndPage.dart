@@ -232,8 +232,8 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                                 });
 
 
-                                 ordermasterViewModel.postOrderMaster();
-                                orderdetailsViewModel.postOrderDetails();
+                                  await ordermasterViewModel.postOrderMaster();
+                                await  orderdetailsViewModel.postOrderDetails();
                               },
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white,
