@@ -243,8 +243,8 @@ class OrderBookingStatusState extends State<OrderBookingStatus> {
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {
-                                Get.to(const HomePage());
-                              //  Navigator.of(context).pop();
+                                // Get.to(const HomePage());
+                                Navigator.of(context).pop();
                               },
                               child: const Text('Close'),
                             ),

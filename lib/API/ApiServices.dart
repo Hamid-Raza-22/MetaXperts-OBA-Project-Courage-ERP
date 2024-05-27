@@ -142,9 +142,7 @@ Future<dynamic> getApi(dynamic url) async {
     } catch (e) {
       try {
         final client1 = await getClient(tokenEndpoint1, identifier1, secret1);
-        if (kDebugMode) {
-          print("Error with first API. Trying second API.");
-        }
+
         final response1 = await client1.post(Uri.parse(url), body: data,).timeout(const Duration(seconds: 10));
 
         if (response1.statusCode == 200) {
@@ -223,9 +221,7 @@ Future<dynamic> getApi(dynamic url) async {
         throw Exception('Post failed with first API');
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("Error with first API. Trying second API.");
-      }
+
 
       // Get the OAuth2 client
       final client1 = await getClient(tokenEndpoint1, identifier1, secret1);
@@ -318,9 +314,7 @@ Future<dynamic> getApi(dynamic url) async {
         throw Exception('Post failed with first API');
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("Error with first API. Trying second API.");
-      }
+
 
       // Get the OAuth2 client
       final client1 = await getClient(tokenEndpoint1, identifier1, secret1);

@@ -1,6 +1,6 @@
 import 'dart:convert' show base64Decode;
 import 'package:flutter/foundation.dart' show Key, Uint8List, kDebugMode;
-import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, Form, FormState, GestureDetector, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, imageCache;
+import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, FocusScope, Form, FormState, GestureDetector, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, imageCache;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -99,6 +99,7 @@ class ShopVisitState extends State<ShopVisit> {
   String? selectedShopAddress = '';
   String? selectedOwnerContact= '';
   String selectedShopOrderNo = '';
+  String? selectedShopCity='';
   List<Map<String, dynamic>> shopOwners = [];
   final Products productsController = Get.put(Products());
   DBHelper dbHelper = DBHelper();
@@ -451,6 +452,9 @@ class ShopVisitState extends State<ShopVisit> {
         ShopAddressController.text = selectedShopAddress ?? 'Not Address';
         String base64Image = owner['images'];
        await _shopImageController.loadImageFile(base64Image);
+       if (kDebugMode) {
+         print("selectedShopCity:$selectedShopCity");
+       }
 
        await _onProductChange();
         buildShopImageStack();
@@ -477,6 +481,7 @@ class ShopVisitState extends State<ShopVisit> {
       BookerNameController.text= userNames;
 
       return ProviderScope(
+
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Shop Visit'),
@@ -552,38 +557,7 @@ class ShopVisitState extends State<ShopVisit> {
                             for (int i = 0; i < productsController.rows.length; i++) {
                               removeSavedValues(i);
                             }
-                            // for (var owner in shopOwners) {
-                            //   if (owner['shop_name'] == selectedItem) {
-                            //
-                            //
-                            //     selectedShopOwner = owner['owner_name'];
-                            //     selectedOwnerContact = owner['phone_no'];
-                            //     selectedShopCity= owner['city'];
-                            //     selectedShopAddress= owner['shop_address'];
-                            //     ShopAddressController.text = selectedShopAddress ?? 'Not Address';
-                            //     String base64Image = owner['images'];
-                            //     await  _shopImageController.loadImageFile(base64Image);
-                            //
-                            //     buildShopImageStack();
-                            //
-                            //
-                            //
-                            //     // Uint8List bytesImage = base64Decode(base64Image);
-                            //     //
-                            //     // // Get the temporary directory to save the file
-                            //     // final tempDir = await getTemporaryDirectory();
-                            //     // final file = await File('${tempDir.path}/image.jpg').writeAsBytes(bytesImage);
-                            //     // // Delete all files in the temporary directory
-                            //     // // await tempDir.delete(recursive: true);
-                            //     //
-                            //     // setState(() {
-                            //     //   _shopimageFile.value = file;
-                            //     // });
-                            //     // if (kDebugMode) {
-                            //     //   print('Shop Image File: $_shopimageFile');
-                            //     // }
-                            //   }
-                            // }
+
 
                           }
                         },
@@ -795,12 +769,14 @@ class ShopVisitState extends State<ShopVisit> {
                     ),
 
                     const SizedBox(height: 20),
+
                     Column(
                       children: [
                         buildRow('1-Performed Store Walkthrough', checkboxValue1, (bool? value) {
                           if (value != null) {
                             setState(() {
                               checkboxValue1 = value;
+                              FocusScope.of(context).unfocus();
                               // checkbox= checkboxValue1;
                             });
                           }
@@ -809,6 +785,7 @@ class ShopVisitState extends State<ShopVisit> {
                           if (value != null) {
                             setState(() {
                               checkboxValue2 = value;
+                              FocusScope.of(context).unfocus();
                               // checkbox2= checkboxValue2;
                             });
                           }
@@ -817,6 +794,7 @@ class ShopVisitState extends State<ShopVisit> {
                           if (value != null) {
                             setState(() {
                               checkboxValue3 = value;
+                              FocusScope.of(context).unfocus();
                               //    checkbox3= checkboxValue3;
                             });
                           }
@@ -825,6 +803,7 @@ class ShopVisitState extends State<ShopVisit> {
                           if (value != null) {
                             setState(() {
                               checkboxValue4 = value;
+                              FocusScope.of(context).unfocus();
                               // checkbox4= checkboxValue4;
                             });
                           }
@@ -1003,6 +982,7 @@ class ShopVisitState extends State<ShopVisit> {
                               userId: userId,
                               bookerName: BookerNameController.text,
                               brand:_brandDropDownController.text,
+                              city:selectedShopCity,
                               date:_getFormattedDate(),
                               walkthrough: checkboxValue1,
                               planogram: checkboxValue2,
@@ -1174,6 +1154,7 @@ class ShopVisitState extends State<ShopVisit> {
                               userId: userId,
                               bookerName: BookerNameController.text,
                               brand: _brandDropDownController.text,
+                              city:selectedShopCity,
                               date: _getFormattedDate(),
                               walkthrough: checkboxValue1,
                               planogram: checkboxValue2,
@@ -1348,12 +1329,21 @@ class Products extends GetxController {
 
     for (var product in products) {
       var controller = TextEditingController(text: '0'); // Set default value here
-      FocusNode focusNode = FocusNode();
       controllers.add(controller);
 
+      FocusNode focusNode = FocusNode();
+
+      // Listener for focus changes
       focusNode.addListener(() {
         if (!focusNode.hasFocus && controller.text.isEmpty) {
-          controller.text = '0';
+          controller.text = '0'; // Restore '0' when losing focus and text is empty
+        }
+      });
+
+      // Adding a text listener to handle clear on focus
+      controller.addListener(() {
+        if (focusNode.hasFocus && controller.text == '0') {
+          controller.clear();
         }
       });
 
@@ -1361,13 +1351,22 @@ class Products extends GetxController {
         DataCell(Text(product.product_name ?? '')),
         DataCell(TextField(
           controller: controller,
-          focusNode: focusNode, // Assign the FocusNode
+          focusNode: focusNode,
           keyboardType: TextInputType.number,
           onTap: () {
-            controller.clear(); // Clear the text when the TextField is focused
+            if (controller.text == '0') {
+              controller.clear();
+            }
           },
-        ))
+          onChanged: (value) {
+            // Yaha par 0 ki value ko remove karenge agar kuch type ho
+            if (value == '0') {
+              controller.clear();
+            }
+          },
+        )),
       ]));
+
     }
   }
 }

@@ -610,7 +610,12 @@ class _ShopPageState extends State<ShopPage> {
                                     if (kDebugMode) {
                                       print('Selected City: $selectedCity');
                                     }
-                                    if (selectedCity.isNotEmpty && citiesDropdownItems.contains(selectedCity)) {
+                                    bool isCityValid = true;
+                                    if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
+                                      isCityValid = selectedCity.isNotEmpty && citiesDropdownItems.contains(selectedCity);
+                                    }
+
+                                    if (isCityValid) {
 
                                       // City is valid, proceed with the rest of the code
 

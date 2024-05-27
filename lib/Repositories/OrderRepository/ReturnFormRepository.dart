@@ -27,6 +27,7 @@ class ReturnFormRepository{
     try {
       final products = await db!.rawQuery('select * from returnForm');
       if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+        await db.transaction((txn) async {
 
         for (var i in products) {
           if (kDebugMode) {
@@ -48,10 +49,10 @@ class ReturnFormRepository{
           bool result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnform/post/',);
 
           if (result == true && result1 == true) {
-            db.rawQuery("DELETE FROM returnForm WHERE returnId = '${i['returnId']}'");
+            txn.rawQuery("DELETE FROM returnForm WHERE returnId = '${i['returnId']}'");
 
           }
-        }
+        }});
       }} catch (e) {
       if (kDebugMode) {
         print("ErrorRRRRRRRRR: $e");

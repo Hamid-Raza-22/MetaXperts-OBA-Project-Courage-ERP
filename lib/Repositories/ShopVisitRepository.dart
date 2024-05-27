@@ -15,7 +15,7 @@ class ShopVisitRepository {
 
   Future<List<ShopVisitModel>> getShopVisit() async {
     var dbClient = await dbHelpershopvisit.db;
-    List<Map> maps = await dbClient!.query('shopVisit', columns: ['id','date', 'shopName','userId' , 'bookerName' , 'brand' ,'walkthrough', 'planogram' , 'signage', 'productReviewed','feedback','longitude','latitude','address', 'body']);
+    List<Map> maps = await dbClient!.query('shopVisit', columns: ['id','date', 'shopName','userId', 'city' , 'bookerName' , 'brand' ,'walkthrough', 'planogram' , 'signage', 'productReviewed','feedback','longitude','latitude','address', 'body']);
     List<ShopVisitModel> shopvisit = [];
 
     for (int i = 0; i < maps.length; i++) {
@@ -40,7 +40,9 @@ class ShopVisitRepository {
       ''');
       await db.rawQuery('VACUUM');
       if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-        for (Map<dynamic, dynamic> i in products) {
+        await db.transaction((txn) async {
+
+          for (Map<dynamic, dynamic> i in products) {
           if (kDebugMode) {
             print("FIRST $i");
           }
@@ -52,6 +54,7 @@ class ShopVisitRepository {
             shopName: i['shopName'].toString(),
             bookerName: i['bookerName'].toString(),
             brand: i['brand'].toString(),
+            city: i['city'].toString(),
             walkthrough: i['walkthrough'].toString(),
             planogram: i['planogram'].toString(),
             signage: i['signage'].toString(),
@@ -95,7 +98,7 @@ class ShopVisitRepository {
           var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes,);
           var result = await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/report/post/', imageBytes,);
           if (result == true && result1 == true) {
-            await db.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
+            await txn.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
             if (kDebugMode) {
               print("Successfully posted data for shop visit ID: ${v.id}");
             }
@@ -106,8 +109,7 @@ class ShopVisitRepository {
             }
           }
         }
-
-      }
+      });}
     } catch (e) {
       if (kDebugMode) {
         print("Error processing shop visit data: $e");

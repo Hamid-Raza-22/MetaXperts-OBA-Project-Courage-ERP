@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
 import 'package:order_booking_shop/API/Globals.dart' show currentPostId, isClockedIn, locationbool, secondsPassed, timer, userCitys, userDesignation, userId, userNames;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Tracker/trac.dart';
@@ -22,13 +23,14 @@ import '../View_Models/RecoveryFormViewModel.dart';
 import '../View_Models/ShopViewModel.dart';
 import '../View_Models/ShopVisitViewModel.dart';
 import '../View_Models/StockCheckItems.dart';
+import '../location00.dart';
 import 'OrderBookingStatus.dart';
 import 'RecoveryFormPage.dart';
 import 'ReturnFormPage.dart';
 import 'ShopPage.dart';
 import 'ShopVisit.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
-import 'dart:io' show InternetAddress, SocketException;
+import 'dart:io' show File, InternetAddress, SocketException;
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, User;
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
@@ -238,7 +240,10 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         // Generate a unique ID for the current post
         service.invoke("stopService");
 
-
+        final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+        final downloadDirectory = await getDownloadsDirectory();
+        double totalDistance = await calculateTotalDistance(
+            "${downloadDirectory?.path}/track$date.gpx");
         await Future.delayed(const Duration(seconds: 4));
       await  attendanceViewModel.addAttendanceOut(AttendanceOutModel(
           id: prefs.getString('clockInId'),
@@ -248,7 +253,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           userId: userId.toString(),
           latOut: globalLatitude1,
           lngOut: globalLongitude1,
-          totalDistance: prefs.getDouble("TotalDistance").toString()
+          totalDistance: totalDistance,
           // posted: postedController
         ));
 

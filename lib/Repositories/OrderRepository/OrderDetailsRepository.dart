@@ -35,27 +35,34 @@ class OrderDetailsRepository {
       }
       // Select only the records that have not been posted yet
       final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
-      if (products.isNotEmpty) {  // Check if the table is not empty
-        for (var i in products) {
-          if (kDebugMode) {
-            print("FIRST ${i.toString()}");
-          }
+      if (products.isNotEmpty) {
+        // Check if the table is not empty
+        await db.transaction((txn) async {
+          for (var i in products) {
+            if (kDebugMode) {
+              print("FIRST ${i.toString()}");
+            }
 
-          OrderDetailsModel v = OrderDetailsModel(
-            id: i['id'].toString(),
-            orderMasterId: i['order_master_id'].toString(),
-            productName: i['productName'].toString(),
-            price: i['price'].toString(),
-            quantity: i['quantity'].toString(),
-            amount: i['amount'].toString(),
-            userId: i['userId'].toString(),
-          );
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
-          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/orderdetail/post/');
-          if(result == true&& result1 == true){
-            await db.rawQuery("UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
+            OrderDetailsModel v = OrderDetailsModel(
+              id: i['id'].toString(),
+              orderMasterId: i['order_master_id'].toString(),
+              productName: i['productName'].toString(),
+              price: i['price'].toString(),
+              quantity: i['quantity'].toString(),
+              amount: i['amount'].toString(),
+              userId: i['userId'].toString(),
+            );
+            var result1 = await api.masterPost(v.toMap(),
+                'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
+            var result = await api.masterPost(v.toMap(),
+                'https://apex.oracle.com/pls/apex/metaxpertss/orderdetail/post/');
+            if (result == true && result1 == true) {
+              await txn.rawQuery(
+                  "UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
+            }
           }
-        }}
+        });
+      }
 
     } catch (e) {
       if (kDebugMode) {

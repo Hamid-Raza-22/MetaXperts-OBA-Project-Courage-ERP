@@ -841,18 +841,19 @@ class newDatabaseOutputs {
       print("************Product table**************");
     }
     final db = DBHelper();
+    try {
     var data = await db.getAllProductsData();
-    int co = 0;
-    for (var i in data!) {
-      co++;
-      if (kDebugMode) {
-        print("$co | ${i.toString()} \n");
-      }
-    }
+    int totalCount = data?.length ?? 0;
+
     if (kDebugMode) {
-      print("TOTAL of no of product in table is $co");
+      print("TOTAL number of Products data in the table is $totalCount");
     }
+  } catch (e) {
+  if (kDebugMode) {
+  print("Error fetching Products data: ${e.toString()}");
   }
+  }
+}
 
   // functions for the owner data table
   Future<void> updateOwnerData() async {
@@ -1199,7 +1200,7 @@ class newDatabaseOutputs {
   }
 
   Future<void> refreshData() async{
-    await backgroundTask();
+
     await updateOwnerData();
     await updateOrderMasterData();
     await updateOrderDetailsData();

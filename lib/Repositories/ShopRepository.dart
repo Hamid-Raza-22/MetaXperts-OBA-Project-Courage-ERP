@@ -40,7 +40,9 @@ class ShopRepository {
       }
       // Select only the records that have not been posted yet
       final products = await dbClient.rawQuery('SELECT * FROM shop WHERE posted = 0');
-      if (products.isNotEmpty) {  // Check if the table is not empty
+      if (products.isNotEmpty) {
+        await dbClient.transaction((txn) async {
+// Check if the table is not empty
         for (var i in products) {
           if (kDebugMode) {
             print("FIRST ${i.toString()}");
@@ -96,7 +98,7 @@ class ShopRepository {
           var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshops/post/', imageBytes,);
           var result = await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/addshops/post/', imageBytes,);
           if (result == true && result1 == true) {
-            await dbClient.rawQuery('DELETE FROM shop WHERE id = ${i['id']}');
+            await txn.rawQuery('DELETE FROM shop WHERE id = ${i['id']}');
             if (kDebugMode) {
               print("Successfully posted data for shop visit ID: ${v.id}");
             }
@@ -108,7 +110,7 @@ class ShopRepository {
           }
         }
 
-      }
+      });}
     } catch (e) {
       if (kDebugMode) {
         print("Error processing shop visit data: $e");

@@ -38,7 +38,9 @@ class OrderMasterRepository{
       // Select only the records that have not been posted yet
       final products = await db.rawQuery('SELECT * FROM orderMaster WHERE posted = 0');
       if (products.isNotEmpty) {  // Check if the table is not empty
-        for (var i in products) {
+        await db.transaction((txn) async {
+
+          for (var i in products) {
           if (kDebugMode) {
             print("FIRST ${i.toString()}");
           }
@@ -64,11 +66,12 @@ class OrderMasterRepository{
           var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/',);
 
           if (result == true && result1 == true) {
-            await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
+            await txn.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
 
           }
-        }
-      } }catch (e) {
+        }});
+      }
+      }catch (e) {
       if (kDebugMode) {
         print("ErrorRRRRRRRRR: $e");
       }

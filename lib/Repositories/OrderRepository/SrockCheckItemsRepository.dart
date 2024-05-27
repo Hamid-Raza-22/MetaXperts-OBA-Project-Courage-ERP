@@ -27,6 +27,7 @@ class StockCheckItemsRepository {
       final products = await db!.rawQuery('select * from Stock_Check_Items');
       var count = 0;
       if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
+        await db.transaction((txn) async {
 
         for(var i in products){
           if (kDebugMode) {
@@ -42,9 +43,9 @@ class StockCheckItemsRepository {
           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/');
           var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/shopvisit/post/');
           if(result == true && result1 == true){
-            db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
+            txn.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
           }
-        }
+        }});
       } }catch (e) {
       if (kDebugMode) {
         print("ErrorRRRRRRRRR: $e");

@@ -29,10 +29,10 @@ class LoginFormState extends State<LoginForm> {
   @override
   void initState() {
     super.initState();
-    // showDialog(
-    //               context: context,
-    //               builder: (context) => const PolicyDialog(),
-    //             );
+    showDialog(
+                  context: context,
+                  builder: (context) => const PolicyDialog(),
+                );
     // _requestPermission();
 
     // DatabaseOutputs outputs = DatabaseOutputs();

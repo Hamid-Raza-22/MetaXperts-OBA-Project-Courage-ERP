@@ -62,8 +62,3 @@ class AttendanceViewModel extends GetxController{
   }
 }
 
-
-
-
-
-

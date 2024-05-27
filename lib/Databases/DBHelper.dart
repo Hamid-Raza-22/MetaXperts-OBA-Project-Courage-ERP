@@ -57,7 +57,7 @@ _onCreate(Database db, int version) async {
     await db.execute("CREATE TABLE recoveryForm (recoveryId TEXT, date TEXT, shopName TEXT, cashRecovery REAL, netBalance REAL, userId TEXT ,bookerName TEXT,city TEXT, brand TEXT)");
     await db.execute("CREATE TABLE returnForm (returnId INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, shopName TEXT, returnAmount INTEGER, bookerId TEXT, bookerName TEXT, city TEXT, brand TEXT)");
     await db.execute("CREATE TABLE return_form_details(id INTEGER PRIMARY KEY AUTOINCREMENT,returnFormId TEXT,productName TEXT,quantity TEXT,reason TEXT,bookerId TEXT,FOREIGN KEY (returnFormId) REFERENCES returnForm(returnId))");
-    await db.execute("CREATE TABLE shopVisit (id TEXT PRIMARY KEY,date TEXT,shopName TEXT,userId TEXT,bookerName TEXT,brand TEXT,walkthrough TEXT,planogram TEXT,signage TEXT,productReviewed TEXT,feedback TEXT,latitude TEXT,longitude TEXT,address TEXT,body BLOB)");
+    await db.execute("CREATE TABLE shopVisit (id TEXT PRIMARY KEY,date TEXT,shopName TEXT,userId TEXT,city TEXT,bookerName TEXT,brand TEXT,walkthrough TEXT,planogram TEXT,signage TEXT,productReviewed TEXT,feedback TEXT,latitude TEXT,longitude TEXT,address TEXT,body BLOB)");
     await db.execute("CREATE TABLE Stock_Check_Items(id INTEGER PRIMARY KEY AUTOINCREMENT,shopvisitId TEXT,itemDesc TEXT,qty TEXT,FOREIGN KEY (shopvisitId) REFERENCES shopVisit(id))");
     await db.execute("CREATE TABLE location(id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, fileName TEXT,userId TEXT,totalDistance TEXT,userName TEXT, posted INTEGER DEFAULT 0,body BLOB)");
 }

@@ -27,7 +27,7 @@ class LocationService {
   late final Directory? downloadDirectory;
   late double totalDistance;
   late Position? lastTrackPoint;
-  String gpxString="";
+  String gpxString = "";
 
   LocationService() {
     totalDistance = 0.0;
@@ -47,71 +47,77 @@ class LocationService {
   );
 
   Future<void> listenLocation() async {
-    positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) async {
-      if (kDebugMode) {
-        print("W100 Repeat");
-      }
+    positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position position) async {
+          if (kDebugMode) {
+            print("W100 Repeat");
+          }
 
-      longi = position.longitude.toString();
-      lat = position.latitude.toString();
-      final trackPoint = Wpt(
-        lat: position.latitude,
-        lon: position.longitude,
-        time: DateTime.now(),
-      );
+          longi = position.longitude.toString();
+          lat = position.latitude.toString();
+          final trackPoint = Wpt(
+            lat: position.latitude,
+            lon: position.longitude,
+            time: DateTime.now(),
+          );
 
-      segment.trkpts.add(trackPoint);
+          segment.trkpts.add(trackPoint);
 
-      if (isFirstRun) {
-        track.trksegs.add(segment);
-        gpx.trks.add(track);
-        isFirstRun = false;
-      }
+          if (isFirstRun) {
+            track.trksegs.add(segment);
+            gpx.trks.add(track);
+            isFirstRun = false;
+          }
 
-      if (lastTrackPoint != null) {
-        totalDistance += calculateDistance(
-          lastTrackPoint!.latitude,
-          lastTrackPoint!.longitude,
-          position.latitude,
-          position.longitude,
-        );
-      }
+          if (lastTrackPoint != null) {
+            totalDistance += calculateDistance(
+              lastTrackPoint!.latitude,
+              lastTrackPoint!.longitude,
+              position.latitude,
+              position.longitude,
+            );
+          }
 
-      lastTrackPoint = Position(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        accuracy: 0,
-        altitude: 0,
-        altitudeAccuracy: 0,
-        heading: 0,
-        headingAccuracy: 0,
-        speed: 0,
-        speedAccuracy: 0,
-        timestamp: DateTime.now(),
-      );
-      gpxString = GpxWriter().asString(gpx, pretty: true);
-      if (kDebugMode) {
-        print("W100 $gpxString");
-      }
-      file.writeAsStringSync(gpxString);
+          lastTrackPoint = Position(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            accuracy: 0,
+            altitude: 0,
+            altitudeAccuracy: 0,
+            heading: 0,
+            headingAccuracy: 0,
+            speed: 0,
+            speedAccuracy: 0,
+            timestamp: DateTime.now(),
+          );
+          gpxString = GpxWriter().asString(gpx, pretty: true);
+          if (kDebugMode) {
+            print("W100 $gpxString");
+          }
+          file.writeAsStringSync(gpxString);
 
-      isConnected = await isInternetConnected();
-      if (isConnected) {
-        await FirebaseFirestore.instance.collection('location').doc(userIdForLocation.toString()).set({
-          'latitude': position.latitude,
-          'longitude': position.longitude,
-          'name': userIdForLocation.toString(),
-          'city': userCityForLocatiion.toString(),
-          'designation': userDesignationForLocation.toString(),
-          'isActive': true
-        }, SetOptions(merge: true));
-      }
-    });
+          isConnected = await isInternetConnected();
+          if (isConnected) {
+            await FirebaseFirestore.instance
+                .collection('location')
+                .doc(userIdForLocation.toString())
+                .set({
+              'latitude': position.latitude,
+              'longitude': position.longitude,
+              'name': userIdForLocation.toString(),
+              'city': userCityForLocatiion.toString(),
+              'designation': userDesignationForLocation.toString(),
+              'isActive': true
+            }, SetOptions(merge: true));
+          }
+        });
 
     SharedPreferences pref = await SharedPreferences.getInstance();
     userIdForLocation = pref.getString("userNames") ?? "USER";
     userCityForLocatiion = pref.getString("userCitys") ?? "CITY";
-    userDesignationForLocation = pref.getString("userDesignation") ?? "DESIGNATION";
+    userDesignationForLocation =
+        pref.getString("userDesignation") ?? "DESIGNATION";
     try {
       gpx = Gpx();
       track = Trk();
@@ -149,11 +155,14 @@ class LocationService {
   Future<void> init() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     userIdForLocation = pref.getString("userNames") ?? "USER";
-    userCityForLocatiion=pref.getString("userCitys") ?? "CITY";
-    userDesignationForLocation=pref.getString("userDesignation") ?? "DESIGNATION";
+    userCityForLocatiion = pref.getString("userCitys") ?? "CITY";
+    userDesignationForLocation =
+        pref.getString("userDesignation") ?? "DESIGNATION";
   }
+
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    double distanceInMeters = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
+    double distanceInMeters =
+    Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
     return (distanceInMeters / 1000); // Multiply the result by 2
   }
 
@@ -184,6 +193,7 @@ class LocationService {
       }
     }
   }
+
   Future<void> stopListening() async {
     try {
       //WakelockPlus.disable();
@@ -197,6 +207,47 @@ class LocationService {
     }
   }
 }
+
+Future<double> calculateTotalDistance(String filePath) async {
+  File file = File(filePath);
+  if (!file.existsSync()) {
+    return 0;
+  }
+
+  // Read GPX content from file
+  String gpxContent = await file.readAsString();
+
+  // Parse GPX content
+  Gpx gpx = GpxReader().fromString(gpxContent);
+
+  // Calculate total distance
+  double totalDistance = 0;
+
+  // Iterate through each track segment
+  for (var track in gpx.trks) {
+    for (var segment in track.trksegs) {
+      for (int i = 0; i < segment.trkpts.length - 1; i++) {
+        double distance = calculateDistance(
+          segment.trkpts[i].lat!.toDouble(),
+          segment.trkpts[i].lon!.toDouble(),
+          segment.trkpts[i + 1].lat!.toDouble(),
+          segment.trkpts[i + 1].lon!.toDouble(),
+        );
+        totalDistance += distance;
+      }
+    }
+  }
+  if (kDebugMode) {
+    print("CUT: $totalDistance");
+  }
+  return totalDistance;
+}
+
+double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  double distanceInMeters = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
+  return (distanceInMeters / 1000); // Multiply the result by 2
+}
+
 Future<bool> isInternetConnected() async {
   bool isConnected = await InternetConnectionChecker().hasConnection;
   if (kDebugMode) {
