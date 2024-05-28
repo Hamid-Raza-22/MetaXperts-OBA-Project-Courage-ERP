@@ -132,11 +132,6 @@ class AttendanceRepository {
           if (kDebugMode) {
             print("FIRST ${i.toString()}");
           }
-          final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-          final downloadDirectory = await getDownloadsDirectory();
-
-          double totalDistance = await calculateTotalDistance(
-              "${downloadDirectory?.path}/track$date.gpx");
 
           AttendanceOutModel v = AttendanceOutModel(
               id: i['id'].toString(),
@@ -146,7 +141,7 @@ class AttendanceRepository {
               totalTime: i['totalTime'].toString(),
               latOut: i['latOut'].toString(),
               lngOut: i['lngOut'].toString(),
-              totalDistance: totalDistance.toString(),
+              totalDistance:i['totalDistance'].toString()
           );
            var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
         //  var result1 = await api.masterPost(v.toMap(), 'https://webhook.site/3f874f5d-2d23-493b-a3a0-855f77ded7fb');

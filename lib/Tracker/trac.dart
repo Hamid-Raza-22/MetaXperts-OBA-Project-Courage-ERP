@@ -10,6 +10,7 @@ import '../API/Globals.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/LocationModel.dart';
 import '../View_Models/LocationViewModel.dart';
+import '../location00.dart';
 
 
 final locationViewModel = Get.put(LocationViewModel());
@@ -48,17 +49,20 @@ void startTimerFromSavedTime() {
 
 
 Future<void> postFile() async {
-  SharedPreferences pref = await SharedPreferences.getInstance();
-  double totalDistance = pref.getDouble("TotalDistance") ?? 0.0;
-  pref.setDouble("TotalDistance", totalDistance);
-  if (kDebugMode) {
-    print('Distance:$totalDistance');
-  }
+  // SharedPreferences pref = await SharedPreferences.getInstance();
+  // double totalDistance = pref.getDouble("TotalDistance") ?? 0.0;
+  // pref.setDouble("TotalDistance", totalDistance);
+  // if (kDebugMode) {
+  //   print('Distance:$totalDistance');
+  // }
+
   final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
   final downloadDirectory = await getDownloadsDirectory();
   final gpxFilePath = '${downloadDirectory!.path}/track$date.gpx';
   final maingpxFile = File(gpxFilePath);
 
+  double totalDistance = await calculateTotalDistance(
+      "${downloadDirectory?.path}/track$date.gpx");
   if (!maingpxFile.existsSync()) {
     if (kDebugMode) {
       print('GPX file does not exist');
@@ -69,13 +73,15 @@ Future<void> postFile() async {
   // Read the GPX file
   List<int> gpxBytesList = await maingpxFile.readAsBytes();
   Uint8List gpxBytes = Uint8List.fromList(gpxBytesList);
+
+
   var id = customAlphabet('1234567890', 10);
 
   locationViewModel.addLocation(LocationModel(
     id: int.parse(id),
     userId: userId,
     userName: userNames,
-    totalDistance: pref.getDouble("TotalDistance").toString(),
+    totalDistance:totalDistance.toString(),
     fileName: "${_getFormattedDate1()}.gpx",
     date: _getFormattedDate1(),
     body: gpxBytes,

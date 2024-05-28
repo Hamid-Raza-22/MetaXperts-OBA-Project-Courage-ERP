@@ -41,8 +41,7 @@ class LocationRepository {
     final downloadDirectory = await getDownloadsDirectory();
     final filePath = File('${downloadDirectory?.path}/track$date.gpx');
 
-    double totalDistance = await calculateTotalDistance(
-        "${downloadDirectory?.path}/track$date.gpx");
+
 
     try {
       final products = await db!.rawQuery('SELECT * FROM location WHERE posted = 0');
@@ -62,7 +61,7 @@ class LocationRepository {
               userId: i['userId'].toString(),
               userName: i['userName'].toString(),
               fileName: i['fileName'].toString(),
-              totalDistance: totalDistance,
+              totalDistance: i['totalDistance'].toString(),
               body: i['body'] != null && i['body'].toString().isNotEmpty
                   ? Uint8List.fromList(base64Decode(i['body'].toString()))
                   : Uint8List(0),

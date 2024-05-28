@@ -207,11 +207,10 @@ class LocationService {
     }
   }
 }
-
 Future<double> calculateTotalDistance(String filePath) async {
   File file = File(filePath);
   if (!file.existsSync()) {
-    return 0;
+    return 0.0;
   }
 
   // Read GPX content from file
@@ -221,7 +220,7 @@ Future<double> calculateTotalDistance(String filePath) async {
   Gpx gpx = GpxReader().fromString(gpxContent);
 
   // Calculate total distance
-  double totalDistance = 0;
+  double totalDistance = 0.0;
 
   // Iterate through each track segment
   for (var track in gpx.trks) {
@@ -237,12 +236,14 @@ Future<double> calculateTotalDistance(String filePath) async {
       }
     }
   }
+
   if (kDebugMode) {
     print("CUT: $totalDistance");
   }
-  return totalDistance;
-}
 
+  // Ensure totalDistance is not null
+  return totalDistance ?? 0.0;
+}
 double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
   double distanceInMeters = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
   return (distanceInMeters / 1000); // Multiply the result by 2

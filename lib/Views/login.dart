@@ -29,14 +29,33 @@ class LoginFormState extends State<LoginForm> {
   @override
   void initState() {
     super.initState();
-    showDialog(
-                  context: context,
-                  builder: (context) => const PolicyDialog(),
-                );
+    // _showPolicyDialog();
+    // showDialog(
+    //               context: context,
+    //               builder: (context) => const PolicyDialog(),
+    //             );
     // _requestPermission();
 
     // DatabaseOutputs outputs = DatabaseOutputs();
     // outputs.initializeData();
+  }
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    //_showPolicyDialog();
+  }
+  Future<void> _showPolicyDialog() async {
+    bool? agreed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const PolicyDialog(),
+    );
+
+    if (agreed == null || !agreed) {
+      // User did not agree, close the app or keep showing the dialog
+      _showPolicyDialog(); // Show the dialog again until the user agrees
+    }
   }
   final dblogin = DBHelper();
   Future<void> _handleLogin() async {
