@@ -187,4 +187,5 @@ class ShopVisitRepository {
       return await dbClient!.delete('shopVisit',
           where: 'id=?', whereArgs: [id]);
     }
+
   }

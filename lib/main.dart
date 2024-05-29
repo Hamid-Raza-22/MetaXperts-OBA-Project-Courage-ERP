@@ -39,6 +39,7 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
    Upgrader;
+
   // // AndroidAlarmManager.initialize();
   //
   // Initialize the FlutterBackground plugin
@@ -50,7 +51,7 @@ Future<void> main() async {
  outputs.initializeLoginData();
 
   // Request notification permissions
-  await _requestPermissions();
+  // await _requestPermissions();
 
   await initializeServiceLocation();
 

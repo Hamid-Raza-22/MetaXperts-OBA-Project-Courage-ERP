@@ -1,6 +1,7 @@
 import 'dart:async' show Future, Timer;
 import 'package:flutter/material.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
+import 'package:order_booking_shop/Views/PolicyDBox.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'login.dart';
@@ -33,7 +34,8 @@ class _SplashScreenState extends State<SplashScreen> {
         // Redirect to the login page if the user is not logged in
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => const LoginForm(),
+            // builder: (context) => const LoginForm(),
+            builder: (context) => const PolicyDialog(),
             // settings: RouteSettings(arguments: dataToPass)
           ),
         );

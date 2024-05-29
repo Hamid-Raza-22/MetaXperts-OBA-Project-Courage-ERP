@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'login.dart';
 
 class PolicyDialog extends StatefulWidget {
   const PolicyDialog({Key? key}) : super(key: key);
@@ -61,16 +65,47 @@ class _PolicyDialogState extends State<PolicyDialog> {
       ),
       actions: [
         TextButton(
+          onPressed: () {
+            // Handle "Deny" button press
+            SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+          },
+          child: const Text("Deny"),
+        ),
+        TextButton(
           onPressed: _isChecked
               ? () {
+            _requestPermissions();
+
             // Handle "Agree" button press
             Navigator.pop(context, true); // Close the dialog and return true
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const LoginForm(),
+
+                // settings: RouteSettings(arguments: dataToPass)
+              ),
+            );
           }
               : null, // Disable the button if checkbox is not checked
           child: const Text("Agree"),
         ),
       ],
     );
+  }
+
+  Future<void> _requestPermissions() async {
+    // Request notification permission
+    if (await Permission.notification.request().isDenied) {
+      // Notification permission not granted
+      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+      return;
+    }
+
+    // Request location permission
+    if (await Permission.location.request().isDenied) {
+      // Location permission not granted
+      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+    }
   }
 }
 
@@ -95,8 +130,8 @@ class MyApp extends StatelessWidget {
                 builder: (context) => const PolicyDialog(),
               ).then((agreed) {
                 if (agreed ?? false) {
-                  // Request location permission here
-                  // Implement your location permission request logic
+                  // Handle the case when user agrees to the policies
+                  // You can request permissions or proceed with the app logic
                 }
               });
             },

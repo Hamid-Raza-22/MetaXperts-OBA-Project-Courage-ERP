@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart' show Align, Alignment, AlwaysStoppedAnimation, AnimatedContainer, Border, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, Center, CircularProgressIndicator, Color, Colors, Column, Container, EdgeInsets, ElevatedButton, FloatingLabelBehavior, FontWeight, Form, FormState, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, LinearProgressIndicator, MainAxisAlignment, MaterialPageRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, SingleChildScrollView, SizedBox, Stack, State, StatefulWidget, Text, TextEditingController, TextFormField, TextStyle, Widget, showDialog;
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 import '../API/Globals.dart' show userId, userNames;
 import '../API/newDatabaseOutPuts.dart';
@@ -39,24 +41,37 @@ class LoginFormState extends State<LoginForm> {
     // DatabaseOutputs outputs = DatabaseOutputs();
     // outputs.initializeData();
   }
+  Future<void> _requestPermissions() async {
+    // Request notification permission
+    if (await Permission.notification.request().isDenied) {
+      // Notification permission not granted
+      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+      return;
+    }
 
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    //_showPolicyDialog();
-  }
-  Future<void> _showPolicyDialog() async {
-    bool? agreed = await showDialog<bool>(
-      context: context,
-      builder: (context) => const PolicyDialog(),
-    );
-
-    if (agreed == null || !agreed) {
-      // User did not agree, close the app or keep showing the dialog
-      _showPolicyDialog(); // Show the dialog again until the user agrees
+    // Request location permission
+    if (await Permission.location.request().isDenied) {
+      // Location permission not granted
+      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
     }
   }
+  //
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   //_showPolicyDialog();
+  // }
+  // Future<void> _showPolicyDialog() async {
+  //   bool? agreed = await showDialog<bool>(
+  //     context: context,
+  //     builder: (context) => const PolicyDialog(),
+  //   );
+  //
+  //   if (agreed == null || !agreed) {
+  //     // User did not agree, close the app or keep showing the dialog
+  //     _showPolicyDialog(); // Show the dialog again until the user agrees
+  //   }
+  // }
   final dblogin = DBHelper();
   Future<void> _handleLogin() async {
     // Check if both ID and password fields are not empty
