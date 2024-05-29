@@ -39,6 +39,7 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
    Upgrader;
+   //iqra
 // hamid
   // // AndroidAlarmManager.initialize();
   //
