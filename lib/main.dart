@@ -39,7 +39,7 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
    Upgrader;
-
+// hamid
   // // AndroidAlarmManager.initialize();
   //
   // Initialize the FlutterBackground plugin
