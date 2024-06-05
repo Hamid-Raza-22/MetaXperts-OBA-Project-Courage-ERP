@@ -10,6 +10,7 @@ class OrderDetailsRepository {
 
   DBHelper dbHelperOrderDetails = DBHelper();
 
+
   Future<List<OrderDetailsModel>> getOrderDetails() async {
     var dbClient = await dbHelperOrderDetails.db;
     List<Map> maps = await dbClient!.query('order_details', columns: ['id','order_master_id', 'productName', 'quantity', 'price', 'amount','userId','posted']);
@@ -20,11 +21,11 @@ class OrderDetailsRepository {
     }
     return orderdetails;
   }
-  Future<void> postOrderDetails() async {
+  Future<bool> postOrderDetails() async {
     var db = await dbHelper.db;
     final ApiServices api = ApiServices();
-    try {
 
+    try {
       final List<Map<String, dynamic>> records = await db!.query('order_details');
 
       // Print each record
@@ -33,44 +34,69 @@ class OrderDetailsRepository {
           print(record.toString());
         }
       }
+
       // Select only the records that have not been posted yet
       final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
-      if (products.isNotEmpty) {
-        // Check if the table is not empty
-        await db.transaction((txn) async {
-          for (var i in products) {
-            if (kDebugMode) {
-              print("FIRST ${i.toString()}");
-            }
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        List<int> successfullyPostedIds = [];
 
-            OrderDetailsModel v = OrderDetailsModel(
-              id: i['id'].toString(),
-              orderMasterId: i['order_master_id'].toString(),
-              productName: i['productName'].toString(),
-              price: i['price'].toString(),
-              quantity: i['quantity'].toString(),
-              amount: i['amount'].toString(),
-              userId: i['userId'].toString(),
-            );
-            var result1 = await api.masterPost(v.toMap(),
-                'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
-            var result = await api.masterPost(v.toMap(),
-                'https://apex.oracle.com/pls/apex/metaxpertss/orderdetail/post/');
-            if (result == true && result1 == true) {
-              await txn.rawQuery(
-                  "UPDATE order_details SET posted = 1 WHERE id = '${i['id']}'");
+        for (var i in products) {
+          if (kDebugMode) {
+            print("Posting order details for ${i['id']}");
+          }
+
+          OrderDetailsModel v = OrderDetailsModel(
+            id: i['id'].toString(),
+            orderMasterId: i['order_master_id'].toString(),
+            productName: i['productName'].toString(),
+            price: i['price'].toString(),
+            quantity: i['quantity'].toString(),
+            amount: i['amount'].toString(),
+            userId: i['userId'].toString(),
+          );
+
+          try {
+            bool results = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
+
+            if (results == true) {
+              if (kDebugMode) {
+                print('Successfully posted order details for ID: ${i['id']}');
+              }
+              successfullyPostedIds.add(i['id'] as int);
+            } else {
+              if (kDebugMode) {
+                print('Failed to post order details for ID: ${i['id']}');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error posting order details for ID: ${i['id']} - $e");
             }
           }
-        });
-      }
+        }
 
+        if (successfullyPostedIds.isNotEmpty) {
+          // Batch update
+          String ids = successfullyPostedIds.join(',');
+          await db.rawUpdate(
+              'UPDATE order_details SET posted = 1 WHERE id IN ($ids)'
+          );
+        }
+        return true; // Return true if there were records to post
+      } else {
+        return false; // Return false if there were no records to post
+      }
     } catch (e) {
       if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        print("Error processing order details data: $e");
       }
-      return;
+      return false; // Return false if there was an error
     }
   }
+   // Return true if posting is successful
+
+
+
   Future<int> add(OrderDetailsModel orderdetailsModel) async {
     var dbClient = await dbHelperOrderDetails.db;
     return await dbClient!.insert('order_details', orderdetailsModel.toMap());

@@ -1,6 +1,7 @@
 import 'dart:async' show Future, Timer;
 import 'dart:io' show InternetAddress, Platform, SocketException;
 import 'dart:ui' show DartPluginRegistrant;
+import 'package:connectivity/connectivity.dart';
 import 'package:device_info_plus/device_info_plus.dart' show DeviceInfoPlugin;
 import 'package:firebase_core/firebase_core.dart' show Firebase;
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -9,7 +10,7 @@ import 'package:flutter/services.dart' show SystemChannels;
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' show AndroidConfiguration, FlutterBackgroundService, IosConfiguration, ServiceInstance;
 import 'package:flutter_background_service_android/flutter_background_service_android.dart' show AndroidServiceInstance;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails, Priority;
 import 'package:get/get.dart';
 import 'package:order_booking_shop/Tracker/trac.dart' show startTimer;
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
@@ -38,8 +39,8 @@ import '../View_Models/ShopViewModel.dart';
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
-   Upgrader;
-   //iqra
+  Upgrader;
+  //iqra
 // hamid
   // // AndroidAlarmManager.initialize();
   //
@@ -49,7 +50,7 @@ Future<void> main() async {
   // // Enable background execution
   // await FlutterBackground.enableBackgroundExecution();
   newDatabaseOutputs outputs = newDatabaseOutputs();
- outputs.initializeLoginData();
+  outputs.initializeLoginData();
 
   // Request notification permissions
   // await _requestPermissions();
@@ -60,7 +61,10 @@ Future<void> main() async {
   await Firebase.initializeApp();
 
   // await BackgroundLocator.initialize();
-
+  // Initialize the notification plugin
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+  const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   runApp(
@@ -70,6 +74,8 @@ Future<void> main() async {
     ),
   );
 }
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
 final attendanceViewModel = Get.put(AttendanceViewModel());
 final shopisitViewModel = Get.put(ShopVisitViewModel());
 final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
@@ -100,10 +106,32 @@ void callbackDispatcher(){
     if (kDebugMode) {
       print("WorkManager MMM ");
     }
+    showNotification(inputData!['timer']);
     return Future.value(true);
   });
 }
+void showNotification(String timer) async {
+  const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    'your_channel_id', // id
+    'your_channel_name', // name
+    channelDescription: 'your_channel_description', // description
+    importance: Importance.max,
+    priority: Priority.high,
+    ongoing: true, // Makes the notification ongoing
+  );
+  const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+  await flutterLocalNotificationsPlugin.show(
+    0,
+    'Timer Running',
+    'Your timer is still running: $timer',
+    platformChannelSpecifics,
+    payload: 'item x',
+  );
+}
 
+void cancelNotification() async {
+  await flutterLocalNotificationsPlugin.cancel(0);
+}
 Future<void> initializeServiceLocation() async {
   final service = FlutterBackgroundService();
 
@@ -146,6 +174,17 @@ Future<void> initializeServiceLocation() async {
       onForeground: onStart,
     ),
   );
+  monitorInternetConnection(); // Add this line to monitor connectivity changes
+
+}
+
+
+void monitorInternetConnection() {
+  Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+    if (result == ConnectivityResult.mobile || result == ConnectivityResult.wifi) {
+      backgroundTask();
+    }
+  });
 }
 
 // Future<void> initializeServiceBackGroundData() async {
@@ -229,6 +268,7 @@ void onStart(ServiceInstance service) async {
     //stopListeningLocation();
     FlutterLocalNotificationsPlugin().cancelAll();
   });
+  monitorInternetConnection(); // Add this line to monitor connectivity changes
 
   Timer.periodic(const Duration(minutes: 10), (timer) async {
     if (service is AndroidServiceInstance) {
@@ -357,7 +397,7 @@ backgroundTask() async {
 
   try {
     bool isConnected = await isInternetAvailable();
-    DatabaseOutputs outputs = DatabaseOutputs();
+
     if (isConnected) {
       if (kDebugMode) {
         print('Internet connection is available. Initiating background data synchronization.');
@@ -365,9 +405,9 @@ backgroundTask() async {
       await synchronizeData();
       // await outputs.initializeDatalogin();
 
-  if (kDebugMode) {
-    print('Background data synchronization completed.');
-  }
+      if (kDebugMode) {
+        print('Background data synchronization completed.');
+      }
     } else {
       if (kDebugMode) {
         print('No internet connection available. Skipping background data synchronization.');

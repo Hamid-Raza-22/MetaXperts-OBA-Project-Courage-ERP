@@ -177,7 +177,6 @@ Future<dynamic> getApi(dynamic url) async {
     }
   }
 
-
   Future<bool> masterPostWithImage(Map<dynamic, dynamic> data, dynamic url, Uint8List? body) async {
     if (kDebugMode) {
       print(url);

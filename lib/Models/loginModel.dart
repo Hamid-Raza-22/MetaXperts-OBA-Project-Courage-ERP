@@ -4,11 +4,14 @@ class Users{
   String? user_name;
   String? city;
 
+
+
   Users({
     this.user_id,
     this.password,
     this.user_name,
-    this.city
+    this.city,
+
   });
   factory
   Users.fromMap(Map<dynamic,dynamic>json){
@@ -16,7 +19,8 @@ class Users{
         user_id: json['user_id'],
         password: json['password'],
         user_name: json['user_name'],
-        city: json['city']
+        city: json['city'],
+
     );
   }
   Map<String,dynamic>toMap(){
@@ -24,7 +28,8 @@ class Users{
       'user_id':user_id,
       'userPassword':password,
       'user_name':user_name,
-      'city': city
+      'city': city,
+
     };
   }
 }

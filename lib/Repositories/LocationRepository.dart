@@ -32,7 +32,6 @@ class LocationRepository {
     }
     return location;
   }
-
   Future<void> postlocationdata() async {
     var db = await dbHelper.db;
     final ApiServices api = ApiServices();
@@ -41,15 +40,13 @@ class LocationRepository {
     final downloadDirectory = await getDownloadsDirectory();
     final filePath = File('${downloadDirectory?.path}/track$date.gpx');
 
-
-
     try {
-      final products = await db!.rawQuery('SELECT * FROM location WHERE posted = 0');
+      final products = await db!.rawQuery('SELECT * FROM location');
       await db.rawQuery('VACUUM');
 
       if (products.isNotEmpty) {
         // Check if the table is not empty
-        await db.transaction((txn) async {
+        // await db.transaction((txn) async {
           for (Map<dynamic, dynamic> i in products) {
             if (kDebugMode) {
               print("FIRST $i");
@@ -77,24 +74,32 @@ class LocationRepository {
               // File exists, proceed with reading the file
               List<int> imageBytesList = await filePath.readAsBytes();
               gpxBytes = Uint8List.fromList(imageBytesList);
+              if (gpxBytes.isEmpty) {
+                if (kDebugMode) {
+                  print("File is empty at the specified path: ${filePath.path}");
+                }
+              }
             } else {
               if (kDebugMode) {
                 print("File does not exist at the specified path: ${filePath.path}");
               }
-              continue; // Skip to the next iteration if the file doesn't exist
+              // Use an empty Uint8List if the file does not exist
+              gpxBytes = Uint8List(0);
             }
 
             // Print information before making the API request
             if (kDebugMode) {
               print("Making API request for shop visit ID: ${v.id}");
             }
+            try {
+              final results = await Future.wait([
 
-            var result1 = await api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes);
-            var result = await api.masterPostWithGPX(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/location/post/', gpxBytes);
-
-            if (result == true && result1 == true) {
-              await txn.rawUpdate(
-                  "UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
+                  api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes),
+                  // api.masterPostWithGPX(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/location/post/', gpxBytes)
+             ]);
+            if (results[0] ==true) {
+              await db.rawDelete(
+                  "DELETE FROM location WHERE id = '${i['id']}'");
               if (kDebugMode) {
                 print("Successfully posted data for shop visit ID: ${v.id}");
               }
@@ -103,15 +108,99 @@ class LocationRepository {
                 print("Failed to post data for shop visit ID: ${v.id}");
               }
             }
-          }
-        });
+
+          }catch (e) {
+              if (kDebugMode) {
+               print("Error posting order details for ID: ${i['id']} - $e");
+              }
+       }
+        // });
       }
-    } catch (e) {
+    }} catch (e) {
       if (kDebugMode) {
         print("Error processing shop visit data: $e");
-      }
+    }
     }
   }
+  // Future<void> postlocationdata() async {
+  //   var db = await dbHelper.db;
+  //   final ApiServices api = ApiServices();
+  //
+  //   final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  //   final downloadDirectory = await getDownloadsDirectory();
+  //   final filePath = File('${downloadDirectory?.path}/track$date.gpx');
+  //
+  //
+  //
+  //   try {
+  //     final products = await db!.rawQuery('SELECT * FROM location WHERE posted = 0');
+  //     await db.rawQuery('VACUUM');
+  //
+  //     if (products.isNotEmpty) {
+  //       // Check if the table is not empty
+  //       await db.transaction((txn) async {
+  //         for (Map<dynamic, dynamic> i in products) {
+  //           if (kDebugMode) {
+  //             print("FIRST $i");
+  //           }
+  //
+  //           LocationModel v = LocationModel(
+  //             id: i['id'].toString(),
+  //             date: i['date'].toString(),
+  //             userId: i['userId'].toString(),
+  //             userName: i['userName'].toString(),
+  //             fileName: i['fileName'].toString(),
+  //               totalDistance:i['totalDistance']?.toString()??'0.0',
+  //             body: i['body'] != null && i['body'].toString().isNotEmpty
+  //                 ? Uint8List.fromList(base64Decode(i['body'].toString()))
+  //                 : Uint8List(0),
+  //           );
+  //
+  //           // Print image path before trying to create the file
+  //           if (kDebugMode) {
+  //             print("Image Path from Database: ${i['body']}");
+  //           }
+  //
+  //           Uint8List gpxBytes;
+  //           if (filePath.existsSync()) {
+  //             // File exists, proceed with reading the file
+  //             List<int> imageBytesList = await filePath.readAsBytes();
+  //             gpxBytes = Uint8List.fromList(imageBytesList);
+  //           } else {
+  //             if (kDebugMode) {
+  //               print("File does not exist at the specified path: ${filePath.path}");
+  //             }
+  //             continue; // Skip to the next iteration if the file doesn't exist
+  //           }
+  //
+  //           // Print information before making the API request
+  //           if (kDebugMode) {
+  //             print("Making API request for shop visit ID: ${v.id}");
+  //           }
+  //
+  //           var result1 = await api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes);
+  //           var result = await api.masterPostWithGPX(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/location/post/', gpxBytes);
+  //
+  //           if (result == true && result1 == true) {
+  //             await txn.rawUpdate(
+  //                 "UPDATE location SET posted = 1 WHERE id = ?", [i['id']]);
+  //             if (kDebugMode) {
+  //               print("Successfully posted data for shop visit ID: ${v.id}");
+  //             }
+  //           } else {
+  //             if (kDebugMode) {
+  //               print("Failed to post data for shop visit ID: ${v.id}");
+  //             }
+  //           }
+  //         }
+  //       });
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error processing shop visit data: $e");
+  //     }
+  //   }
+  // }
 
 
   Future<int> add(LocationModel locationModel) async {

@@ -20,39 +20,54 @@ class ReturnFormDetailsRepository {
     return returnformdetails;
   }
   Future<void> postReturnFormDetails() async {
-    var db= await dbHelperReturnFormDetails.db;
+    var db = await dbHelperReturnFormDetails.db;
     final ApiServices api = ApiServices();
-    try {
-      final products = await db!.rawQuery('select * from return_form_details');
-      var count = 0;
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-        await db.transaction((txn) async {
 
-        for(var i in products){
+    try {
+      final products = await db!.rawQuery('SELECT * FROM return_form_details');
+
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (var i in products) {
           if (kDebugMode) {
-            print(i.toString());
+            print("Posting return form details for ${i['id']}");
           }
-          count++;
+
           ReturnFormDetailsModel v = ReturnFormDetailsModel(
-            id: "${i['id']}".toString(),
+            id: i['id'].toString(),
             returnformId: i['returnFormId'].toString(),
             productName: i['productName'].toString(),
             reason: i['reason'].toString(),
             quantity: i['quantity'].toString(),
             bookerId: i['bookerId'].toString(),
           );
-          final result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post');
-          final result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnformdetail/post');
-          if(result == true && result1 == true){
-            txn.rawQuery('DELETE FROM return_form_details WHERE id = ${i['id']}');
+
+          try {
+            final results = await Future.wait([
+              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post'),
+             // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnformdetail/post'),
+            ]);
+
+            if (results[0] == true) {
+              if (kDebugMode) {
+                print('Successfully posted return form details for ID: ${i['id']}');
+              }
+              await db.rawDelete('DELETE FROM return_form_details WHERE id = ?', [i['id']]);
+            } else {
+              if (kDebugMode) {
+                print('Failed to post return form details for ID: ${i['id']}');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error posting return form details for ID: ${i['id']} - $e");
+            }
           }
-        }});
+        }
       }
-      } catch (e) {
+    } catch (e) {
       if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        print("Error processing return form details data: $e");
       }
-      return;
     }
   }
   Future<int> add(ReturnFormDetailsModel returnformdetailsModel) async {

@@ -251,12 +251,11 @@ class FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
     final shopName = shopData['shopName'];
     final ownerName = shopData['ownerName']??'No Name';
-    final selectedBrandName = shopData['selectedBrandName'];
     final ownerContact = shopData['ownerContact']?? 'No Contact';
 
     _ShopNameController.text = shopName!;
     _ownerNameController.text = ownerName!;
-    _brandNameController.text = selectedBrandName;
+    _brandNameController.text = userBrand;
     _phoneNoController.text = ownerContact!;
 
     return PopScope(

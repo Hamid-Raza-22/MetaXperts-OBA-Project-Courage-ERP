@@ -77,7 +77,8 @@ class ShopVisitModel {
     'planogram': planogram,
     'signage': signage,
     'productReviewed': productReviewed,
-    'body':  body != null ? base64Encode(body!) : null, 'feedback': feedback,
+    'body':  body != null ? base64Encode(body!) : null,
+      'feedback': feedback,
       'latitude':latitude,
       'longitude': longitude,
       'address': address

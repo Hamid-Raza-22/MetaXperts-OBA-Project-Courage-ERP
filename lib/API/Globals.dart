@@ -4,11 +4,13 @@ import 'package:order_booking_shop/Databases/DBHelper.dart';
 
 DBHelper dbHelper = DBHelper();
 String currentPostId= "";
+
 String pending ="PENDING";
 String SellectedproductName= "";
 double? globalnetBalance;
 String selectedShopCity= '';
 String userDesignation = "";
+String userBrand = "";
 int? highestSerial;
 int? RecoveryhighestSerial;
 String userNames = "";

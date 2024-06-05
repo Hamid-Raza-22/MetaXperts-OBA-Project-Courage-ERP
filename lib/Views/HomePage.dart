@@ -7,10 +7,11 @@ import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastG
 import 'package:get/get.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show currentPostId, isClockedIn, locationbool, secondsPassed, timer, userCitys, userDesignation, userId, userNames;
+import 'package:order_booking_shop/API/Globals.dart' show currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNames;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
@@ -19,6 +20,7 @@ import '../View_Models/OrderViewModels/OrderDetailsViewModel.dart';
 import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
 import '../View_Models/OrderViewModels/ReturnFormDetailsViewModel.dart';
 import '../View_Models/OrderViewModels/ReturnFormViewModel.dart';
+import '../View_Models/OwnerViewModel.dart';
 import '../View_Models/RecoveryFormViewModel.dart';
 import '../View_Models/ShopViewModel.dart';
 import '../View_Models/ShopVisitViewModel.dart';
@@ -79,6 +81,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
+  final  ownerViewModel = Get.put(OwnerViewModel());
   final attendanceViewModel = Get.put(AttendanceViewModel());
   final shopisitViewModel = Get.put(ShopVisitViewModel());
   final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
@@ -152,6 +155,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       userNames = prefs.getString('userNames') ?? '';
       userCitys = prefs.getString('userCitys') ?? '';
       userDesignation = prefs.getString('userDesignation') ?? '';
+      userBrand = prefs.getString('userBrand') ?? '';
     });
   }
   Future<void> _toggleClockInOut() async {
@@ -244,6 +248,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         final downloadDirectory = await getDownloadsDirectory();
         double totalDistance = await calculateTotalDistance(
             "${downloadDirectory?.path}/track$date.gpx");
+        // If totalDistance is null, set it to 0
+        totalDistance ??= 0;
         await Future.delayed(const Duration(seconds: 4));
       await  attendanceViewModel.addAttendanceOut(AttendanceOutModel(
           id: prefs.getString('clockInId'),
@@ -272,6 +278,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           //await saveGPXFile();
           await prefs.remove('clockInId');
         });
+       await location.enableBackgroundMode(enable: false);
        await location.enableBackgroundMode(enable: false);
       }
     });
@@ -324,6 +331,11 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    Workmanager().registerPeriodicTask(
+      "1",
+      "simplePeriodicTask",
+      frequency: const Duration(minutes: 15),
+    );
 
     // backgroundTask();
     WidgetsBinding.instance.addObserver(this);
@@ -464,6 +476,71 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       selectedShop2 = newShop;
     });
   }
+  bool _isButtonDisabled = false;
+
+  void _handleRefresh() async {
+    setState(() {
+      _isButtonDisabled = true;
+    });
+
+    // Check if data is being posted to the server
+    bool isPostingData = await isDataBeingPosted();
+    if (isPostingData) {
+      Fluttertoast.showToast(
+        msg: "Data is being posted, please wait.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      setState(() {
+        _isButtonDisabled = false;
+      });
+      return;
+    }
+
+    // Check internet connection before refresh
+    showLoadingIndicator(context);
+    bool isConnected = await isInternetAvailable();
+    Navigator.of(context, rootNavigator: true).pop();
+
+    if (isConnected) {
+      // Internet connection is available
+      newDatabaseOutputs outputs = newDatabaseOutputs();
+      // Run both functions in parallel
+      showLoadingIndicator(context);
+
+      await Future.wait([
+        backgroundTask(),
+        outputs.refreshData(),
+      ]);
+
+      // After the tasks are complete, hide the loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+    } else {
+      // No internet connection
+      Fluttertoast.showToast(
+        msg: "No internet connection.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+
+    setState(() {
+      _isButtonDisabled = false;
+    });
+  }
+
+// Mock function to check if data is being posted to the server
+  Future<bool> isDataBeingPosted() async {
+    // Replace this with your actual implementation
+    // Example: check a flag or a condition to determine if data is being posted
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -512,39 +589,40 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           child: IconButton(
                             icon: const Icon(Icons.refresh),
                             color: Colors.white,iconSize: 20,
-                            onPressed: () async {
-                              // Check internet connection before refresh
-                              showLoadingIndicator(context);
-                              bool isConnected = await isInternetAvailable();
-                              Navigator.of(context, rootNavigator: true).pop();
-
-                              if (isConnected) {
-                                // Internet connection is available
-                                newDatabaseOutputs outputs = newDatabaseOutputs();
-                                // Run both functions in parallel
-                                showLoadingIndicator(context);
-
-                                await Future.wait([
-                                backgroundTask(),
-                          //        Future.delayed(Duration(seconds: 10)),
-                                  //outputs.checkFirstRun(),
-                                  outputs.refreshData(),
-                                 // outputs.initializeDatalogin()
-                                ]);
-                                // After 10 seconds, hide the loading indicator and perform the refresh logic
-                                Navigator.of(context, rootNavigator: true).pop();
-                              } else {
-                                // No internet connection
-                                Fluttertoast.showToast(
-                                  msg: "No internet connection.",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  backgroundColor: Colors.red,
-                                  textColor: Colors.white,
-                                  fontSize: 16.0,
-                                );
-                              }
-                            },
+                             onPressed: _isButtonDisabled ? null : _handleRefresh,
+                            //   () async {
+                          //     // Check internet connection before refresh
+                          //     showLoadingIndicator(context);
+                          //     bool isConnected = await isInternetAvailable();
+                          //     Navigator.of(context, rootNavigator: true).pop();
+                          //
+                          //     if (isConnected) {
+                          //       // Internet connection is available
+                          //       newDatabaseOutputs outputs = newDatabaseOutputs();
+                          //       // Run both functions in parallel
+                          //       showLoadingIndicator(context);
+                          //
+                          //       await Future.wait([
+                          //       backgroundTask(),
+                          // //        Future.delayed(Duration(seconds: 10)),
+                          //         //outputs.checkFirstRun(),
+                          //         outputs.refreshData(),
+                          //        // outputs.initializeDatalogin()
+                          //       ]);
+                          //       // After 10 seconds, hide the loading indicator and perform the refresh logic
+                          //       Navigator.of(context, rootNavigator: true).pop();
+                          //     } else {
+                          //       // No internet connection
+                          //       Fluttertoast.showToast(
+                          //         msg: "No internet connection.",
+                          //         toastLength: Toast.LENGTH_SHORT,
+                          //         gravity: ToastGravity.BOTTOM,
+                          //         backgroundColor: Colors.red,
+                          //         textColor: Colors.white,
+                          //         fontSize: 16.0,
+                          //       );
+                          //     }
+                          //   },
                           ),
                         ),
                       )
@@ -1058,19 +1136,21 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
 
 
-
   void showLoadingIndicator(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const AlertDialog(
-          content: Row(
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 20),
-              Text("Please Wait..."),
-            ],
+        return WillPopScope(
+          onWillPop: () async => false, // Prevent back button press
+          child: const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Please Wait..."),
+              ],
+            ),
           ),
         );
       },

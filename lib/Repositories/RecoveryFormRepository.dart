@@ -25,10 +25,9 @@ class RecoveryFormRepository{
     final ApiServices api = ApiServices();
 
     try {
-      final products = await db!.rawQuery('select * from recoveryForm');
-      if (products.isNotEmpty || products != null)  { // Check if the table is not empty
-        await db.transaction((txn) async {
+      final products = await db!.rawQuery('SELECT * FROM recoveryForm');
 
+      if (products.isNotEmpty) {  // Check if the table is not empty
         for (var i in products) {
           if (kDebugMode) {
             print("FIRST ${i.toString()}");
@@ -46,20 +45,33 @@ class RecoveryFormRepository{
             brand: i['brand'].toString(),
           );
 
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/recoveryform/post/',);
-          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/recoveryform/post/',);
+          try {
+            final results = await Future.wait([
+              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/recoveryform/post/'),
+           //   api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/recoveryform/post/'),
+            ]);
 
-          if (result == true&& result1 == true){
-            txn.rawQuery(
-                "DELETE FROM recoveryForm WHERE recoveryId = '${i['recoveryId']}'");
+            if (results[0] == true) {
+              await db.rawQuery('DELETE FROM recoveryForm WHERE recoveryId = ?', [i['recoveryId']]);
+              if (kDebugMode) {
+                print("Successfully posted and deleted data for recovery form ID: ${i['recoveryId']}");
+              }
+            } else {
+              if (kDebugMode) {
+                print("Failed to post data for recovery form ID: ${i['recoveryId']}");
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error making API requests for recovery form ID: ${i['recoveryId']} - $e");
+            }
           }
         }
-      });}
-    }catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
       }
-      return;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error processing recovery form data: $e");
+      }
     }
   }
   //

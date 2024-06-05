@@ -32,9 +32,9 @@ class DBHelper {
 _onCreate(Database db, int version) async {
 
   //   initialize with ser id and also update the data properly according to the requirments
-  await db.execute("CREATE TABLE login(user_id TEXT , password TEXT ,user_name TEXT, city TEXT, designation TEXT,images BLOB)");
+  await db.execute("CREATE TABLE login(user_id TEXT , password TEXT ,user_name TEXT, city TEXT, designation TEXT,brand TEXT,images BLOB)");
   await db.execute("CREATE TABLE orderBookingStatusData(order_no TEXT PRIMARY KEY, status TEXT, order_date TEXT, shop_name TEXT, amount TEXT, user_id TEXT, city TEXT,brand TEXT)");
-  await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT, shop_address TEXT,created_date TEXT, user_id TEXT, images BLOB)");
+  await db.execute("CREATE TABLE ownerData(id NUMBER,shop_name TEXT, owner_name TEXT, phone_no TEXT, city TEXT, shop_address TEXT, created_date TEXT, user_id TEXT, images BLOB)");
   await db.execute("CREATE TABLE products(id NUMBER PRIMARY KEY, product_code TEXT, product_name TEXT, uom TEXT ,price TEXT, brand TEXT, quantity TEXT)");
   await db.execute("CREATE TABLE orderMasterData(order_no TEXT, shop_name TEXT, user_id TEXT)");
   await db.execute("CREATE TABLE orderDetailsData(id INTEGER, order_no TEXT, product_name TEXT, quantity_booked INTEGER, user_id TEXT, price INTEGER)");
@@ -1954,6 +1954,23 @@ _onCreate(Database db, int version) async {
     } catch (e) {
       if (kDebugMode) {
         print("Error fetching user designation: $e");
+      }
+      return null;
+    }
+  }
+  Future<String?> getUserBrand(String userId) async {
+    final Database db = await initDatabase();
+    try {
+      var results = await db.rawQuery("select brand from login where user_id = '$userId'");
+      if (results.isNotEmpty) {
+        // Explicitly cast to String
+        return results.first['brand'] as String?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching user brand: $e");
       }
       return null;
     }

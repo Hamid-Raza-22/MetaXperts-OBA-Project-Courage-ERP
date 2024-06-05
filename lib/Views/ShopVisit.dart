@@ -24,6 +24,7 @@ import '../Databases/DBHelper.dart';
 import '../Models/ShopVisitModels.dart';
 import '../Models/StockCheckItems.dart';
 import '../View_Models/OrderViewModels/ProductsViewModel.dart';
+import '../View_Models/OwnerViewModel.dart';
 import '../View_Models/ShopVisitViewModel.dart';
 import 'FinalOrderBookingPage.dart';
 
@@ -84,13 +85,16 @@ class ShopVisitState extends State<ShopVisit> {
   TextEditingController ShopNameController = TextEditingController();
   final TextEditingController _brandDropDownController = TextEditingController();
   TextEditingController BookerNameController = TextEditingController();
+  TextEditingController BrandNameController = TextEditingController();
   TextEditingController ShopAddressController = TextEditingController();
+  final  ownerViewModel = Get.put(OwnerViewModel());
+
 
   final ShopImageController _shopImageController = Get.put(ShopImageController());
   final Rx<File?> shopimageFile = Rx<File?>(null); // Use Rx to manage File state
   final TextEditingController _searchController = TextEditingController();
   List<DataRow> filteredRows = [];
-  final shopisitViewModel = Get.put(ShopVisitViewModel());
+
   final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
 
   int? shopVisitId;
@@ -99,7 +103,7 @@ class ShopVisitState extends State<ShopVisit> {
   String? selectedShopAddress = '';
   String? selectedOwnerContact= '';
   String selectedShopOrderNo = '';
-  String? selectedShopCity='';
+
   List<Map<String, dynamic>> shopOwners = [];
   final Products productsController = Get.put(Products());
   DBHelper dbHelper = DBHelper();
@@ -171,21 +175,23 @@ class ShopVisitState extends State<ShopVisit> {
   void initState() {
 
     super.initState();
+    _checkUserIdAndFetchShopNames();
     data();
     // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
   shopNameNotifier = ValueNotifier<String>(selectedItem);
+  productsController.rows;
 
 
     //selectedDropdownValue = dropdownItems[0]; // Default value
     _fetchBrandItemsFromDatabase();
     //fetchShopData();
-    fetchShopNames();
+
     onCreatee();
     _loadCounter();
     //  _saveCounter();
     fetchProductsNamesByBrand();
     saveCurrentLocation();
-    _checkUserIdAndFetchShopNames();
+
     shopNameNotifier.addListener(() {
       updateShopImage();
       if (kDebugMode) {
@@ -239,33 +245,34 @@ class ShopVisitState extends State<ShopVisit> {
 
     if (userDesignation == 'ASM' && userDesignation == 'SPO' && userDesignation == 'SOS') {
       await fetchShopNames();
+    //  shopOwners = (await dbHelper.getOwnersDB())!;
+
 
     } else {
       await fetchShopNamesAll();
+      // shopOwners = (await dbHelper.getOwnersDB())!;
 
     }
   }
 
   Future<void> fetchShopNames() async {
 
-    List<dynamic> shopNames = await dbHelper.getShopNamesForCity();
-    shopOwners = (await dbHelper.getOwnersDB())!;
+    ownerViewModel.fetchShopNamesbycities();
+   shopOwners = (await dbHelper.getOwnersDB())!;
     setState(() {
       // Explicitly cast each element to String
-
-      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
+      dropdownItems = ownerViewModel.shopNamesbycites.map((dynamic item) => item.toString()).toSet().toList();
     });
   }
 
 
   Future<void> fetchShopNamesAll() async {
 
-    List<dynamic> shopNames = await dbHelper.getShopNames();
+    ownerViewModel.fetchShopNames();
     shopOwners = (await dbHelper.getOwnersDB())!;
     setState(() {
       // Explicitly cast each element to String
-
-      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
+      dropdownItems = ownerViewModel.shopNames.map((dynamic item) => item.toString()).toSet().toList();
     });
   }
 
@@ -456,6 +463,7 @@ class ShopVisitState extends State<ShopVisit> {
          print("selectedShopCity:$selectedShopCity");
        }
 
+
        await _onProductChange();
         buildShopImageStack();
 
@@ -470,6 +478,7 @@ class ShopVisitState extends State<ShopVisit> {
     _shopImageController.clearShopImageFile();
     ShopNameController.dispose(); // Clear the text in the shop name field
 
+
     _shopNameFocusNode.dispose(); // Dispose the FocusNode
     super.dispose();
   }
@@ -479,6 +488,7 @@ class ShopVisitState extends State<ShopVisit> {
 
       ShopNameController.text= selectedItem;
       BookerNameController.text= userNames;
+      BrandNameController.text= userBrand;
 
       return ProviderScope(
 
@@ -517,7 +527,9 @@ class ShopVisitState extends State<ShopVisit> {
                   },
                   child: SizedBox(
                       height: 30,
-                      child: TypeAheadField<String>(
+
+
+                      child:TypeAheadField<String>(
                         textFieldConfiguration: TextFieldConfiguration(
 
                           focusNode: _shopNameFocusNode, // Assign the focus node here
@@ -547,7 +559,7 @@ class ShopVisitState extends State<ShopVisit> {
                             setState(() {
                               imageCache.clear();
                               selectedItem = suggestion;
-                             // shopName = selectedItem;
+                              // shopName = selectedItem;
                               shopNameNotifier.value = selectedItem; // Update the shop name
                             });
                             updateShopImage();
@@ -562,7 +574,8 @@ class ShopVisitState extends State<ShopVisit> {
                           }
                         },
                       ),
-                    ),),
+
+                  ),),
                     const SizedBox(height: 10.0),
                     const Align(
                       alignment: Alignment.centerLeft,
@@ -627,6 +640,69 @@ class ShopVisitState extends State<ShopVisit> {
                     ),
 
                     const SizedBox(height: 10),
+                    // const Align(
+                    //   alignment: Alignment.centerLeft,
+                    //   child: Text(
+                    //     'Brand',
+                    //     style: TextStyle(fontSize: 16, color: Colors.black),
+                    //   ),
+                    // ),
+                    // Row(
+                    //   children: [
+                    //     Expanded(
+                    //       child: SizedBox(
+                    //         height: 30,
+                    //         child: TypeAheadFormField<String>(
+                    //           textFieldConfiguration: TextFieldConfiguration(
+                    //             decoration: InputDecoration(
+                    //               contentPadding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+                    //               enabled: false, // Set enabled to false to make it read-only
+                    //               border: OutlineInputBorder(
+                    //                 borderRadius: BorderRadius.circular(5.0),
+                    //               ),
+                    //             ),
+                    //             controller: _brandDropDownController,
+                    //           ),
+                    //           suggestionsCallback: (pattern) {
+                    //             return brandDropdownItems
+                    //                 .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
+                    //                 .toList();
+                    //           },
+                    //           itemBuilder: (context, itemData) {
+                    //             return ListTile(
+                    //               title: Text(itemData),
+                    //             );
+                    //           },
+                    //           onSuggestionSelected: (itemData) async {
+                    //             // Validate that the selected item is from the list
+                    //             if (brandDropdownItems.contains(itemData)) {
+                    //               setState(() {
+                    //                 _brandDropDownController.text = itemData;
+                    //                 globalselectedbrand = itemData;
+                    //               });
+                    //               // Call the callback to pass the selected brand to FinalOrderBookingPage
+                    //               // widget.onBrandItemsSelected(itemData);
+                    //               // if (kDebugMode) {
+                    //               //   print('Selected Brand: $itemData');
+                    //               //   print(globalselectedbrand);
+                    //               // }
+                    //
+                    //               productsController.fetchProducts();
+                    //               for (int i = 0; i < productsController.rows.length; i++) {
+                    //                 removeSavedValues(i);
+                    //               }
+                    //               productsController.controllers.clear();
+                    //             }
+                    //           },
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                    //
+                    //
+                    //
+                    //
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -634,62 +710,25 @@ class ShopVisitState extends State<ShopVisit> {
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 30,
-                            child: TypeAheadFormField<String>(
-                              textFieldConfiguration: TextFieldConfiguration(
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                                  enabled: false, // Set enabled to false to make it read-only
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(5.0),
-                                  ),
-                                ),
-                                controller: _brandDropDownController,
-                              ),
-                              suggestionsCallback: (pattern) {
-                                return brandDropdownItems
-                                    .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
-                                    .toList();
-                              },
-                              itemBuilder: (context, itemData) {
-                                return ListTile(
-                                  title: Text(itemData),
-                                );
-                              },
-                              onSuggestionSelected: (itemData) async {
-                                // Validate that the selected item is from the list
-                                if (brandDropdownItems.contains(itemData)) {
-                                  setState(() {
-                                    _brandDropDownController.text = itemData;
-                                    globalselectedbrand = itemData;
-                                  });
-                                  // Call the callback to pass the selected brand to FinalOrderBookingPage
-                                  // widget.onBrandItemsSelected(itemData);
-                                  // if (kDebugMode) {
-                                  //   print('Selected Brand: $itemData');
-                                  //   print(globalselectedbrand);
-                                  // }
+                    SizedBox(
+                      height: 30,
+                      child: TextFormField(enabled: true, readOnly: true,
+                        controller: BrandNameController,
 
-                                  productsController.fetchProducts();
-                                  for (int i = 0; i < productsController.rows.length; i++) {
-                                    removeSavedValues(i);
-                                  }
-                                  productsController.controllers.clear();
-                                }
-                              },
-                            ),
+                        decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
                           ),
                         ),
-                      ],
+
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-
-
-
-                    const SizedBox(height: 20),
                     const Align(
                       alignment: Alignment.center,
                       child: Text(
@@ -777,7 +816,7 @@ class ShopVisitState extends State<ShopVisit> {
                             setState(() {
                               checkboxValue1 = value;
                               FocusScope.of(context).unfocus();
-                              // checkbox= checkboxValue1;
+                              //checkbox= checkboxValue1;
                             });
                           }
                         }),
@@ -906,23 +945,23 @@ class ShopVisitState extends State<ShopVisit> {
                               isButtonPressed = true;
                             });
 
-                            List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
-                            String selectedBrand = _brandDropDownController.text.trim();
-
-                            if (!allowedBrands.contains(selectedBrand)) {
-                              Fluttertoast.showToast(
-                                msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                              );
-
-                              setState(() {
-                                isButtonPressed = false;
-                              });
-                              return;
-                            }
+                            // List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
+                            // String selectedBrand = _brandDropDownController.text.trim();
+                            //
+                            // if (!allowedBrands.contains(selectedBrand)) {
+                            //   Fluttertoast.showToast(
+                            //     msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
+                            //     toastLength: Toast.LENGTH_SHORT,
+                            //     gravity: ToastGravity.BOTTOM,
+                            //     backgroundColor: Colors.red,
+                            //     textColor: Colors.white,
+                            //   );
+                            //
+                            //   setState(() {
+                            //     isButtonPressed = false;
+                            //   });
+                            //   return;
+                            // }
                             if (!checkboxValue1 ||
                                 !checkboxValue2 ||
                                 !checkboxValue3 ||
@@ -949,9 +988,7 @@ class ShopVisitState extends State<ShopVisit> {
                             }
 
                             if (_imageFile == null ||
-                                ShopNameController.text.isEmpty ||
-                                BookerNameController.text.isEmpty ||
-                                _brandDropDownController.text.isEmpty) {
+                                ShopNameController.text.isEmpty) {
                               Fluttertoast.showToast(
                                 msg: 'Please fulfill all requirements before proceeding.',
                                 toastLength: Toast.LENGTH_SHORT,
@@ -976,12 +1013,13 @@ class ShopVisitState extends State<ShopVisit> {
                             }
 
 
+
                             shopVisitViewModel.addShopVisit(ShopVisitModel(
                               id: int.parse(id),
                               shopName: ShopNameController.text,
                               userId: userId,
                               bookerName: BookerNameController.text,
-                              brand:_brandDropDownController.text,
+                              brand:BrandNameController.text,
                               city:selectedShopCity,
                               date:_getFormattedDate(),
                               feedback: feedbackController,
@@ -1036,7 +1074,7 @@ class ShopVisitState extends State<ShopVisit> {
                               await stockcheckitemsViewModel.addStockCheckItems(stockCheckItems);
                             }
 
-                            await shopisitViewModel.postShopVisit();
+                            await shopVisitViewModel.postShopVisit();
                             await stockcheckitemsViewModel.postStockCheckItems();
 
 
@@ -1044,7 +1082,7 @@ class ShopVisitState extends State<ShopVisit> {
                             Map<String, dynamic> dataToPass = {
                               'shopName': ShopNameController.text,
                               'ownerName': selectedShopOwner.toString(),
-                              'selectedBrandName': _brandDropDownController.text,
+
                               'userName': BookerNameController.text,
                               'ownerContact': selectedOwnerContact.toString()??'No Contact',
                               //  'rowDataDetails': rowDataDetails,
@@ -1109,28 +1147,26 @@ class ShopVisitState extends State<ShopVisit> {
                               });
                               return;
                             }
-                            List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
-                            String selectedBrand = _brandDropDownController.text.trim();
-
-                            if (!allowedBrands.contains(selectedBrand)) {
-                              Fluttertoast.showToast(
-                                msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                              );
-
-                              setState(() {
-                                isButtonPressed = false;
-                              });
-                              return;
-                            }
+                            // List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
+                            // String selectedBrand = _brandDropDownController.text.trim();
+                            //
+                            // if (!allowedBrands.contains(selectedBrand)) {
+                            //   Fluttertoast.showToast(
+                            //     msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
+                            //     toastLength: Toast.LENGTH_SHORT,
+                            //     gravity: ToastGravity.BOTTOM,
+                            //     backgroundColor: Colors.red,
+                            //     textColor: Colors.white,
+                            //   );
+                            //
+                            //   setState(() {
+                            //     isButtonPressed = false;
+                            //   });
+                            //   return;
+                            // }
 
                             if (_imageFile == null ||
-                                ShopNameController.text.isEmpty ||
-                                BookerNameController.text.isEmpty ||
-                                _brandDropDownController.text.isEmpty) {
+                                ShopNameController.text.isEmpty ) {
                               Fluttertoast.showToast(
                                 msg: 'Please fulfill all requirements before proceeding.',
                                 toastLength: Toast.LENGTH_SHORT,
@@ -1154,7 +1190,7 @@ class ShopVisitState extends State<ShopVisit> {
                               shopName: ShopNameController.text,
                               userId: userId,
                               bookerName: BookerNameController.text,
-                              brand: _brandDropDownController.text,
+                              brand: BrandNameController.text,
                               city:selectedShopCity,
                               date: _getFormattedDate(),
                               feedback: feedbackController,
@@ -1169,7 +1205,7 @@ class ShopVisitState extends State<ShopVisit> {
                             ));
 
                             String visitId =
-                            await shopisitViewModel.fetchLastShopVisitId();
+                            await shopVisitViewModel.fetchLastShopVisitId();
                             shopVisitId = int.parse(visitId);
 
                             List<StockCheckItemsModel> stockCheckItemsList = [];
@@ -1202,16 +1238,14 @@ class ShopVisitState extends State<ShopVisit> {
                             }
 
 
-                            await shopisitViewModel.postShopVisit();
+                            await shopVisitViewModel.postShopVisit();
                             await stockcheckitemsViewModel.postStockCheckItems();
 
 
 
 
                             // Additional validation that everything must be filled
-                            if (ShopNameController.text.isNotEmpty &&
-                                BookerNameController.text.isNotEmpty &&
-                                _brandDropDownController.text.isNotEmpty) {
+                            if (ShopNameController.text.isNotEmpty ) {
                               Navigator.pop(context);
                               // Stop the timer on the home page
                               const HomePage();
@@ -1322,7 +1356,7 @@ class Products extends GetxController {
   List<TextEditingController> controllers = [];
 
   Future<void> fetchProducts() async {
-    await productsViewModel.fetchProductsByBrand(globalselectedbrand);
+    await productsViewModel.fetchProductsByBrand(userBrand);
     var products = productsViewModel.allProducts;
 
     // Clear existing rows and controllers before adding new ones

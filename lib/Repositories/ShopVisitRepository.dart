@@ -25,24 +25,22 @@ class ShopVisitRepository {
   }
   Future<void> postShopVisitData() async {
     var db = await dbHelpershopvisit.db;
-
     final ApiServices api = ApiServices();
 
-
-
     try {
-      final products = await db!.rawQuery('''SELECT *, 
+      final products = await db!.rawQuery('''
+      SELECT *, 
       CASE WHEN walkthrough = 1 THEN 'True' ELSE 'False' END AS walkthrough,
       CASE WHEN planogram = 1 THEN 'True' ELSE 'False' END AS planogram,
       CASE WHEN signage = 1 THEN 'True' ELSE 'False' END AS signage,
       CASE WHEN productReviewed = 1 THEN 'True' ELSE 'False' END AS productReviewed
       FROM shopVisit
-      ''');
-      await db.rawQuery('VACUUM');
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-        await db.transaction((txn) async {
+    ''');
 
-          for (Map<dynamic, dynamic> i in products) {
+      await db.rawQuery('VACUUM');
+
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (Map<dynamic, dynamic> i in products) {
           if (kDebugMode) {
             print("FIRST $i");
           }
@@ -66,7 +64,6 @@ class ShopVisitRepository {
             body: i['body'] != null && i['body'].toString().isNotEmpty
                 ? Uint8List.fromList(base64Decode(i['body'].toString()))
                 : Uint8List(0),
-
           );
 
           // Print image path before trying to create the file
@@ -91,32 +88,42 @@ class ShopVisitRepository {
             }
             continue; // Skip to the next iteration if the file doesn't exist
           }
+
           // Print information before making the API request
           if (kDebugMode) {
             print("Making API request for shop visit ID: ${v.id}");
           }
-          var result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes,);
-          var result = await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/report/post/', imageBytes,);
-          if (result == true && result1 == true) {
-            await txn.rawQuery('DELETE FROM shopVisit WHERE id = ${i['id']}');
-            if (kDebugMode) {
-              print("Successfully posted data for shop visit ID: ${v.id}");
+
+          try {
+            final results = await Future.wait([
+              api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes),
+             // api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/report/post/', imageBytes),
+            ]);
+
+            if (results[0] == true) {
+              await db.rawDelete( "DELETE FROM shopVisit WHERE id = '${i['id']}'");
+              if (kDebugMode) {
+                print("Successfully posted data for shop visit ID: ${v.id}");
+              }
+            } else {
+              if (kDebugMode) {
+                print("Failed to post data for shop visit ID: ${v.id}");
+              }
             }
-          }
-          else {
+          } catch (e) {
             if (kDebugMode) {
-              print("Failed to post data for shop visit ID: ${v.id}");
+              print("Error making API requests for shop visit ID: ${v.id} - $e");
             }
           }
         }
-      });}
+      }
     } catch (e) {
       if (kDebugMode) {
         print("Error processing shop visit data: $e");
       }
-      return;
     }
   }
+
   Future<String> getLastid() async {
     var dbClient = await dbHelpershopvisit.db;
     List<Map> maps = await dbClient!.query(
@@ -139,42 +146,7 @@ class ShopVisitRepository {
       return await dbClient!.insert('shopVisit', shopvisitModel.toMap());
     }
 
-  // Future<void> addShopVisit(ShopVisitModel shopVisit) async {
-  //   final db = await dbHelpershopvisit.db;
-  //   try {
-  //     // Convert image file to bytes
-  //     List<int> imageBytesList = await getImageBytesFromPath(shopVisit.body);
-  //     Uint8List imagePathBytes = Uint8List.fromList(imageBytesList);
-  //
-  //     await db?.insert(
-  //       'shopVisit',
-  //       {
-  //         'id': shopVisit.id,
-  //         'date': shopVisit.date,
-  //         'shopName': shopVisit.shopName,
-  //         'bookerName': shopVisit.bookerName,
-  //         'brand': shopVisit.brand,
-  //         'walkthrough': shopVisit.walkthrough,
-  //         'planogram': shopVisit.planogram,
-  //         'signage': shopVisit.signage,
-  //         'productReviewed': shopVisit.productReviewed,
-  //         'body': imagePathBytes, // Store image data in the 'body' column as BLOB
-  //         'feedback': shopVisit.feedback,
-  //       },
-  //       conflictAlgorithm: ConflictAlgorithm.replace,
-  //     );
-  //   } catch (e) {
-  //     print('Error adding shop visit: $e');
-  //   }
-  // }
 
-  // Future<List<int>> getImageBytesFromPath(String? imagePath) async {
-  //   if (imagePath != null && imagePath.isNotEmpty) {
-  //     io.File imageFile = io.File(imagePath);
-  //     return await imageFile.readAsBytes();
-  //   }
-  //   return [];
-  // }
 
     Future<int> update(ShopVisitModel shopvisitModel) async {
       var dbClient = await dbHelpershopvisit.db;

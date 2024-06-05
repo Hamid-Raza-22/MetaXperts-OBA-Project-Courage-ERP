@@ -25,16 +25,14 @@ class ReturnFormRepository{
     final ApiServices api = ApiServices();
 
     try {
-      final products = await db!.rawQuery('select * from returnForm');
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-        await db.transaction((txn) async {
-
+      final products = await db!.rawQuery('SELECT * FROM returnForm');
+      if (products.isNotEmpty) {
         for (var i in products) {
           if (kDebugMode) {
-            print("FIRST ${i.toString()}");
+            print("Posting return form for ${i['returnId']}");
           }
 
-          ReturnFormModel v =  ReturnFormModel(
+          ReturnFormModel v = ReturnFormModel(
             returnId: i['returnId'].toString(),
             shopName: i['shopName'].toString(),
             date: i['date'].toString(),
@@ -45,19 +43,33 @@ class ReturnFormRepository{
             brand: i['brand'].toString(),
           );
 
-          bool result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnform/post/',);
-          bool result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnform/post/',);
+          try {
+            final results = await Future.wait([
+              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnform/post/'),
+             // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnform/post/'),
+            ]);
 
-          if (result == true && result1 == true) {
-            txn.rawQuery("DELETE FROM returnForm WHERE returnId = '${i['returnId']}'");
-
+            if (results[0] == true) {
+              if (kDebugMode) {
+                print('Successfully posted return form for ID: ${i['returnId']}');
+              }
+              await db.rawDelete("DELETE FROM returnForm WHERE returnId = ?", [i['returnId']]);
+            } else {
+              if (kDebugMode) {
+                print('Failed to post return form for ID: ${i['returnId']}');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error posting return form for ID: ${i['returnId']} - $e");
+            }
           }
-        }});
-      }} catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        }
       }
-      return;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error processing return form data: $e");
+      }
     }
   }
 

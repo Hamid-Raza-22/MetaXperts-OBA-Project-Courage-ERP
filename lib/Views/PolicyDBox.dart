@@ -74,22 +74,33 @@ class _PolicyDialogState extends State<PolicyDialog> {
         TextButton(
           onPressed: _isChecked
               ? () {
-            _requestPermissions();
-
-            // Handle "Agree" button press
-            Navigator.pop(context, true); // Close the dialog and return true
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const LoginForm(),
-
-                // settings: RouteSettings(arguments: dataToPass)
-              ),
-            );
+            _showProminentDisclosure();
           }
               : null, // Disable the button if checkbox is not checked
           child: const Text("Agree"),
         ),
       ],
+    );
+  }
+
+  void _showProminentDisclosure() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Background Location Access"),
+        content: const Text(
+          "This app collects location data to enable tracking and share your location to server even when the app is closed or not in use. This is necessary to provide you with real-time updates and notifications.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _requestPermissions();
+            },
+            child: const Text("Continue"),
+          ),
+        ],
+      ),
     );
   }
 
@@ -105,6 +116,19 @@ class _PolicyDialogState extends State<PolicyDialog> {
     if (await Permission.location.request().isDenied) {
       // Location permission not granted
       SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+    } else if (await Permission.location.request().isGranted) {
+      // Check and request background location permission if necessary
+      if (await Permission.locationAlways.request().isDenied) {
+        // Background location permission not granted
+        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+      } else {
+        // Navigate to the login page if all permissions are granted
+        Navigator.of(context).push(
+            MaterialPageRoute(
+            builder: (context) => const LoginForm()
+            )
+        );
+      }
     }
   }
 }

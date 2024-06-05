@@ -207,6 +207,43 @@ class LocationService {
     }
   }
 }
+// Future<double> calculateTotalDistance(String filePath) async {
+//   File file = File(filePath);
+//   if (!file.existsSync()) {
+//     return 0.0;
+//   }
+//
+//   // Read GPX content from file
+//   String gpxContent = await file.readAsString();
+//
+//   // Parse GPX content
+//   Gpx gpx = GpxReader().fromString(gpxContent);
+//
+//   // Calculate total distance
+//   double totalDistance = 0.0;
+//
+//   // Iterate through each track segment
+//   for (var track in gpx.trks) {
+//     for (var segment in track.trksegs) {
+//       for (int i = 0; i < segment.trkpts.length - 1; i++) {
+//         double distance = calculateDistance(
+//           segment.trkpts[i].lat!.toDouble(),
+//           segment.trkpts[i].lon!.toDouble(),
+//           segment.trkpts[i + 1].lat!.toDouble(),
+//           segment.trkpts[i + 1].lon!.toDouble(),
+//         );
+//         totalDistance += distance;
+//       }
+//     }
+//   }
+//
+//   if (kDebugMode) {
+//     print("CUT: $totalDistance");
+//   }
+//
+//   // Ensure totalDistance is not zero
+//   return totalDistance != 0.0 ? totalDistance : 0.0;
+// }
 Future<double> calculateTotalDistance(String filePath) async {
   File file = File(filePath);
   if (!file.existsSync()) {
@@ -215,22 +252,31 @@ Future<double> calculateTotalDistance(String filePath) async {
 
   // Read GPX content from file
   String gpxContent = await file.readAsString();
+  if (gpxContent.isEmpty) {
+    return 0.0;
+  }
 
   // Parse GPX content
-  Gpx gpx = GpxReader().fromString(gpxContent);
+  Gpx gpx;
+  try {
+    gpx = GpxReader().fromString(gpxContent);
+  } catch (e) {
+    if (kDebugMode) {
+      print("Error parsing GPX content: $e");
+    }
+    return 0.0;
+  }
 
   // Calculate total distance
   double totalDistance = 0.0;
-
-  // Iterate through each track segment
   for (var track in gpx.trks) {
     for (var segment in track.trksegs) {
       for (int i = 0; i < segment.trkpts.length - 1; i++) {
         double distance = calculateDistance(
-          segment.trkpts[i].lat!.toDouble(),
-          segment.trkpts[i].lon!.toDouble(),
-          segment.trkpts[i + 1].lat!.toDouble(),
-          segment.trkpts[i + 1].lon!.toDouble(),
+          segment.trkpts[i].lat?.toDouble() ?? 0.0,
+          segment.trkpts[i].lon?.toDouble() ?? 0.0,
+          segment.trkpts[i + 1].lat?.toDouble() ?? 0.0,
+          segment.trkpts[i + 1].lon?.toDouble() ?? 0.0,
         );
         totalDistance += distance;
       }
@@ -241,8 +287,7 @@ Future<double> calculateTotalDistance(String filePath) async {
     print("CUT: $totalDistance");
   }
 
-  // Ensure totalDistance is not null
-  return totalDistance ?? 0.0;
+  return totalDistance;
 }
 double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
   double distanceInMeters = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);

@@ -1,15 +1,11 @@
 
 
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-
 import '../API/ApiServices.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/AttendanceModel.dart';
-import '../location00.dart';
+
 
 class AttendanceRepository {
 
@@ -30,53 +26,53 @@ class AttendanceRepository {
     final ApiServices api = ApiServices();
 
     try {
-      final products = await db!.rawQuery('select * from attendance');
+      final products = await db!.rawQuery('SELECT * FROM attendance');
 
       if (products.isNotEmpty) {
-        await db.transaction((txn) async {
-          for (var i in products) {
-            if (kDebugMode) {
-              print("Posting attendance for ${i['id']}");
-            }
+        for (var i in products) {
+          if (kDebugMode) {
+            print("Posting attendance for ${i['id']}");
+          }
 
-            AttendanceModel v = AttendanceModel(
-              id: i['id'].toString(),
-              date: i['date'].toString(),
-              userId: i['userId'].toString(),
-              timeIn: i['timeIn'].toString(),
-              latIn: i['latIn'].toString(),
-              lngIn: i['lngIn'].toString(),
-              bookerName: i['bookerName'].toString(),
-              city: i['city'].toString(),
-              designation: i['designation'].toString(),
-            );
+          AttendanceModel v = AttendanceModel(
+            id: i['id'].toString(),
+            date: i['date'].toString(),
+            userId: i['userId'].toString(),
+            timeIn: i['timeIn'].toString(),
+            latIn: i['latIn'].toString(),
+            lngIn: i['lngIn'].toString(),
+            bookerName: i['bookerName'].toString(),
+            city: i['city'].toString(),
+            designation: i['designation'].toString(),
+          );
 
-            var result = await api.masterPost(
-              v.toMap(),
-              'http://103.149.32.30:8080/ords/metaxperts/attendance/post/',
+          try {
+            final results = await Future.wait([
+              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendance/post/'),
+             // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendance/post/'),
+            ]);
 
-            );
-
-            var result1 = await api.masterPost(
-              v.toMap(),
-              'https://apex.oracle.com/pls/apex/metaxpertss/attendance/post/',
-            );
-
-            if (result == true && result1 == true) {
+            if (results[0] == true) {
               if (kDebugMode) {
-                print('successfully post');
+                print('Successfully posted attendance for ID: ${i['id']}');
               }
-              await txn.rawDelete(
-                  "DELETE FROM attendance WHERE id = '${i['id']}'");
+              await db.rawDelete("DELETE FROM attendance WHERE id = ?", [i['id']]);
+            } else {
+              if (kDebugMode) {
+                print('Failed to post attendance for ID: ${i['id']}');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error posting attendance for ID: ${i['id']} - $e");
             }
           }
-        });
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        print("Error processing attendance data: $e");
       }
-      return;
     }
   }
   // Future<List<AttendanceModel>> getShopName() async {
@@ -127,7 +123,7 @@ class AttendanceRepository {
       final products = await db!.rawQuery('select * from attendanceOut');
 
       if (products.isNotEmpty || products != null) {  // Check if the table is not empty
-        await db.transaction((txn) async {
+        // await db.transaction((txn) async {
         for (var i in products) {
           if (kDebugMode) {
             print("FIRST ${i.toString()}");
@@ -141,20 +137,20 @@ class AttendanceRepository {
               totalTime: i['totalTime'].toString(),
               latOut: i['latOut'].toString(),
               lngOut: i['lngOut'].toString(),
-              totalDistance:i['totalDistance'].toString()
+              totalDistance:i['totalDistance']?.toString()??'0.0'
           );
            var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
         //  var result1 = await api.masterPost(v.toMap(), 'https://webhook.site/3f874f5d-2d23-493b-a3a0-855f77ded7fb');
-          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendanceout/post/',);
+         // var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendanceout/post/',);
 
-          if (result == true && result1 == true) {
+          if (result1 == true) {
             if (kDebugMode) {
               print('successfully post');
             }
-            await txn.rawDelete("DELETE FROM attendanceOut WHERE id = '${i['id']}'");
+            await db.rawDelete("DELETE FROM attendanceOut WHERE id = '${i['id']}'");
           }
         }
-      });
+      // });
       }
     } catch (e) {
       if (kDebugMode) {

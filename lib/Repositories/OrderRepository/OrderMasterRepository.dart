@@ -35,47 +35,57 @@ class OrderMasterRepository{
           print(record.toString());
         }
       }
+
       // Select only the records that have not been posted yet
       final products = await db.rawQuery('SELECT * FROM orderMaster WHERE posted = 0');
       if (products.isNotEmpty) {  // Check if the table is not empty
-        await db.transaction((txn) async {
-
-          for (var i in products) {
+        for (var i in products) {
           if (kDebugMode) {
-            print("FIRST ${i.toString()}");
+            print("Posting order master for ${i['orderId']}");
           }
 
           OrderMasterModel v = OrderMasterModel(
-              orderId: i['orderId'].toString(),
-              shopName: i['shopName'].toString(),
-              ownerName: i['ownerName'].toString(),
-              phoneNo: i['phoneNo'].toString(),
-              brand: i['brand'].toString(),
-              date: i['date'].toString(),
-              userId: i['userId'].toString(),
-              userName: i['userName'].toString(),
-              shopCity: i['shopCity'].toString(),
-              total: i['total'].toString(),
-              // subTotal: i['subTotal'].toString(),
-              // discount: i['discount'].toString(),
-              creditLimit: i['creditLimit'].toString(),
-              requiredDelivery: i['requiredDelivery'].toString()
+            orderId: i['orderId'].toString(),
+            shopName: i['shopName'].toString(),
+            ownerName: i['ownerName'].toString(),
+            phoneNo: i['phoneNo'].toString(),
+            brand: i['brand'].toString(),
+            date: i['date'].toString(),
+            userId: i['userId'].toString(),
+            userName: i['userName'].toString(),
+            shopCity: i['shopCity'].toString(),
+            total: i['total'].toString(),
+            creditLimit: i['creditLimit'].toString(),
+            requiredDelivery: i['requiredDelivery'].toString(),
           );
 
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/',);
-          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/',);
+          try {
+            final results = await Future.wait([
+              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/'),
+             // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/'),
+            ]);
 
-          if (result == true && result1 == true) {
-            await txn.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
-
+            if (results[0] == true ) {
+              if (kDebugMode) {
+                print('Successfully posted order master for ID: ${i['orderId']}');
+              }
+              await db.rawQuery("UPDATE orderMaster SET posted = 1 WHERE orderId = '${i['orderId']}'");
+            } else {
+              if (kDebugMode) {
+                print('Failed to post order master for ID: ${i['orderId']}');
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error posting order master for ID: ${i['orderId']} - $e");
+            }
           }
-        }});
+        }
       }
-      }catch (e) {
+    } catch (e) {
       if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        print("Error processing order master data: $e");
       }
-      return;
     }
   }
   //

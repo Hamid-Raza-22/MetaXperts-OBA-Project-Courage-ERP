@@ -20,37 +20,52 @@ class StockCheckItemsRepository {
     return stockcheckitems;
   }
   Future<void> postStockCheckItems() async {
-    var db= await dbHelperStockCheckItems.db;
-
+    var db = await dbHelperStockCheckItems.db;
     final ApiServices api = ApiServices();
-    try {
-      final products = await db!.rawQuery('select * from Stock_Check_Items');
-      var count = 0;
-      if (products.isNotEmpty || products != null)  {  // Check if the table is not empty
-        await db.transaction((txn) async {
 
-        for(var i in products){
+    try {
+      final products = await db!.rawQuery('SELECT * FROM Stock_Check_Items');
+
+      if (products.isNotEmpty) {  // Check if the table is not empty
+        for (var i in products) {
           if (kDebugMode) {
             print(i.toString());
           }
-          count++;
-          StockCheckItemsModel v =StockCheckItemsModel(
+
+          StockCheckItemsModel v = StockCheckItemsModel(
             id: "${i['id']}${i['shopvisitId']}".toString(),
             shopvisitId: i['shopvisitId'].toString(),
             itemDesc: i['itemDesc'].toString(),
             qty: i['qty'].toString(),
           );
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/');
-          var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/shopvisit/post/');
-          if(result == true && result1 == true){
-            txn.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ${i['id']}');
+
+          try {
+            final results = await Future.wait([
+              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/'),
+            //  api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/shopvisit/post/'),
+            ]);
+
+            if (results[0] == true) {
+              await db.rawQuery('DELETE FROM Stock_Check_Items WHERE id = ?', [i['id']]);
+              if (kDebugMode) {
+                print("Successfully posted and deleted data for stock check item ID: ${i['id']}");
+              }
+            } else {
+              if (kDebugMode) {
+                print("Failed to post data for stock check item ID: ${i['id']}");
+              }
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print("Error making API requests for stock check item ID: ${i['id']} - $e");
+            }
           }
-        }});
-      } }catch (e) {
-      if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        }
       }
-      return;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error processing stock check items data: $e");
+      }
     }
   }
 
