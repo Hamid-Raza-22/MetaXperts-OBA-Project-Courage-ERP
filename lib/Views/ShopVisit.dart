@@ -137,7 +137,10 @@ class ShopVisitState extends State<ShopVisit> {
   bool checkboxValue2 = false;
   bool checkboxValue3 = false;
   bool checkboxValue4 = false;
-  String feedbackController = '';
+ // String feedbackController = '';
+  final TextEditingController feedbackController = TextEditingController();
+  final FocusNode feedbackFocusNode = FocusNode();
+  bool isButtonPressed3 = false;
   dynamic latitude = '';
   dynamic longitude ='';
   bool isButtonPressed = false;
@@ -481,6 +484,8 @@ class ShopVisitState extends State<ShopVisit> {
 
 
     _shopNameFocusNode.dispose(); // Dispose the FocusNode
+    feedbackController.dispose();
+    feedbackFocusNode.dispose();
     super.dispose();
   }
   @override
@@ -914,24 +919,34 @@ class ShopVisitState extends State<ShopVisit> {
                         const SizedBox(height: 20),
                         const Text('Feedback/ Special Note'),
                         const SizedBox(height: 20.0),
-                        // Feedback or Note Box
+                         // Feedback or Note Box
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(10.0),
-
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: TextField(
-                            decoration: const InputDecoration(
+                            controller: feedbackController,
+                            focusNode: feedbackFocusNode,
+                            decoration: InputDecoration(
                               hintText: 'Feedback or Note',
                               border: InputBorder.none,
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[200]!),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                             maxLines: 3,
                             onChanged: (text) {
                               setState(() {
-                                feedbackController = text;
+                                // Just updating the state when text changes
                               });
                             },
                           ),
@@ -1023,7 +1038,7 @@ class ShopVisitState extends State<ShopVisit> {
                               brand:BrandNameController.text,
                               city:selectedShopCity,
                               date:_getFormattedDate(),
-                              feedback: feedbackController,
+                              feedback: feedbackController.text,
                               walkthrough: checkboxValue1,
                               planogram: checkboxValue2,
                               signage: checkboxValue3,
@@ -1125,8 +1140,23 @@ class ShopVisitState extends State<ShopVisit> {
                               ? null
                               : () async {
                             setState(() {
-                             // isButtonPressed2 = true;
+                              isButtonPressed2 = true;
                             });
+
+                            if (feedbackController.text.isEmpty) {
+                              Fluttertoast.showToast(
+                                msg: 'Please provide feedback before proceeding.',
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                              );
+                              setState(() {
+                                isButtonPressed2 = false;
+                              });
+                              feedbackFocusNode.requestFocus();
+                              return;
+                            }
 
                             if (!checkboxValue1 ||
                                 !checkboxValue2 ||
@@ -1153,8 +1183,7 @@ class ShopVisitState extends State<ShopVisit> {
                               return;
                             }
 
-                            if (_imageFile == null ||
-                                ShopNameController.text.isEmpty ) {
+                            if (_imageFile == null || ShopNameController.text.isEmpty) {
                               Fluttertoast.showToast(
                                 msg: 'Please fulfill all requirements before proceeding.',
                                 toastLength: Toast.LENGTH_SHORT,
@@ -1179,9 +1208,9 @@ class ShopVisitState extends State<ShopVisit> {
                               userId: userId,
                               bookerName: BookerNameController.text,
                               brand: BrandNameController.text,
-                              city:selectedShopCity,
+                              city: selectedShopCity,
                               date: _getFormattedDate(),
-                              feedback: feedbackController,
+                              feedback: feedbackController.text,
                               walkthrough: checkboxValue1,
                               planogram: checkboxValue2,
                               signage: checkboxValue3,
@@ -1192,8 +1221,7 @@ class ShopVisitState extends State<ShopVisit> {
                               longitude: longitude,
                             ));
 
-                            String visitId =
-                            await shopVisitViewModel.fetchLastShopVisitId();
+                            String visitId = await shopVisitViewModel.fetchLastShopVisitId();
                             shopVisitId = int.parse(visitId);
 
                             List<StockCheckItemsModel> stockCheckItemsList = [];
@@ -1230,25 +1258,19 @@ class ShopVisitState extends State<ShopVisit> {
                               await stockcheckitemsViewModel.addStockCheckItems(stockCheckItems);
                             }
 
-
                             bool isConnected = await isInternetAvailable();
 
-                            if (isConnected== true) {
-                            await shopVisitViewModel.postShopVisit();
-                            await stockcheckitemsViewModel.postStockCheckItems();
+                            if (isConnected == true) {
+                              await shopVisitViewModel.postShopVisit();
+                              await stockcheckitemsViewModel.postStockCheckItems();
                             }
 
-
-
-
-
                             // Additional validation that everything must be filled
-                            if (ShopNameController.text.isNotEmpty ) {
+                            if (ShopNameController.text.isNotEmpty) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const HomePage(),
-
                                 ),
                               );
                             } else {

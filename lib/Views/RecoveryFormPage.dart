@@ -395,9 +395,16 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                   borderRadius: BorderRadius.circular(5.0),
                                 ),
                               ),
-                              onTap: () {
+                              onTap: () async {
+                                SharedPreferences prefs = await SharedPreferences.getInstance();
+                                await prefs.remove('balance');
+                                if (kDebugMode) {
+                                  print ("Removed Balance");
+                                }
+
                                 // Clear the current balance controller when the field is tapped
                                 _currentBalanceController.clear();
+
                               },
                             ),
                             suggestionsCallback: (pattern) {

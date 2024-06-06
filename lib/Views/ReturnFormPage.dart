@@ -366,12 +366,14 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                     color: Colors.white10,
                   ),
                   child: TypeAheadField<String>(
+
                     suggestionsCallback: (pattern) async {
                       return dropdownItems
                           .where((option) =>
                           option.toLowerCase().contains(pattern.toLowerCase()))
                           .toList();
                     },
+
                     itemBuilder: (context, suggestion) {
                       return ListTile(
                         title: Text(
@@ -383,6 +385,7 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         ),
                       );
                     },
+
                     onSuggestionSelected: (suggestion) async {
                       setState(() {
                         _selectedShopController.text = suggestion;
@@ -427,6 +430,13 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
                         contentPadding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 3.0), // Adjust vertical padding
                       ),
                       style: const TextStyle(fontSize: 15),
+                      onTap: () async {
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        await prefs.remove('balance');
+                        if (kDebugMode) {
+                          print ("Removed Balance");
+                        }
+                      },
                     ),
                   ),
                 ),

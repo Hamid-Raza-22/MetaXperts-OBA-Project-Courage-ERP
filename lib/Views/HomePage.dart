@@ -153,16 +153,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
 
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Prevent users from dismissing the dialog
-      builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-
     bool isLocationEnabled = await _isLocationEnabled();
 
     if (!isLocationEnabled) {
@@ -178,113 +168,108 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       return completer.future;
     }
 
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent users from dismissing the dialog
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing the dialog
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
+
     bool isLocationPermissionGranted = await _checkLocationPermission();
     if (!isLocationPermissionGranted) {
       await _requestLocationPermission();
+      Navigator.pop(context); // Close the loading indicator dialog if permission is not granted
       completer.complete();
       return completer.future;
     }
-    SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     await _getCurrentLocation();
 
-    setState(() async {
-      isClockedIn = !isClockedIn;
+    bool newIsClockedIn = !isClockedIn;
 
-      if (isClockedIn) {
-        await location.enableBackgroundMode(enable: true);
-       await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
-        locationbool = true;
-        service.startService();
+    if (newIsClockedIn) {
+      await location.enableBackgroundMode(enable: true);
+      await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+      locationbool = true;
+      service.startService();
 
-        var id = customAlphabet('1234567890', 10);
-        await prefs.setString('clockInId', id);
-        _saveCurrentTime();
-        _saveClockStatus(true);
-        //_getLocation();
-        //getLocation();
-        _clockRefresh();
-        isClockedIn = true;
-        await Future.delayed(const Duration(seconds: 5));
-         await attendanceViewModel.addAttendance(AttendanceModel(
-            id: prefs.getString('clockInId'),
-            timeIn: _getFormattedtime(),
-            date: _getFormattedDate(),
-            userId: userId.toString(),
-            latIn: globalLatitude1,
-            lngIn: globalLongitude1,
-            bookerName: userNames,
-           city: userCitys,
-           designation: userDesignation
-        ));
-        bool isConnected = await isInternetAvailable();
+      var id = customAlphabet('1234567890', 10);
+      await prefs.setString('clockInId', id);
+      _saveCurrentTime();
+      _saveClockStatus(true);
+      _clockRefresh();
+      await Future.delayed(const Duration(seconds: 5));
+      await attendanceViewModel.addAttendance(AttendanceModel(
+        id: prefs.getString('clockInId'),
+        timeIn: _getFormattedtime(),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latIn: globalLatitude1,
+        lngIn: globalLongitude1,
+        bookerName: userNames,
+        city: userCitys,
+        designation: userDesignation,
+      ));
+      bool isConnected = await isInternetAvailable();
 
-        if (isConnected== true) {
-         await attendanceViewModel.postAttendance();
-        }
-        //startTimer();
-        // _saveCurrentTime();
-        // _saveClockStatus(true);
-        // //_getLocation();
-        // //getLocation();
-        // _clockRefresh();
-        // isClockedIn = true;
-
-
-        if (kDebugMode) {
-          print('HomePage:$currentPostId');
-        }
-
-      } else {
-        // Generate a unique ID for the current post
-        service.invoke("stopService");
-
-        final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
-        final downloadDirectory = await getDownloadsDirectory();
-        double totalDistance = await calculateTotalDistance(
-            "${downloadDirectory?.path}/track$date.gpx");
-        // If totalDistance is null, set it to 0
-        totalDistance ??= 0;
-        await Future.delayed(const Duration(seconds: 4));
-      await  attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-          id: prefs.getString('clockInId'),
-          timeOut: _getFormattedtime(),
-          totalTime: _formatDuration(newsecondpassed.toString()),
-          date: _getFormattedDate(),
-          userId: userId.toString(),
-          latOut: globalLatitude1,
-          lngOut: globalLongitude1,
-          totalDistance: totalDistance,
-          // posted: postedController
-        ));
-
-        isClockedIn = false;
-        _saveClockStatus(false);
-        await Future.delayed(const Duration(seconds: 10));
-       await postFile();
-        bool isConnected = await isInternetAvailable();
-
-        if (isConnected== true) {
-       await attendanceViewModel.postAttendanceOut();
-        }
-
-        _stopTimer();
-        setState(() async {
-          _clockRefresh();
-          //_stopListening();
-          //stopListeningnew();
-          //await saveGPXFile();
-          await prefs.remove('clockInId');
-        });
-       await location.enableBackgroundMode(enable: false);
-       await location.enableBackgroundMode(enable: false);
+      if (isConnected) {
+        await attendanceViewModel.postAttendance();
       }
+
+      if (kDebugMode) {
+        print('HomePage:$currentPostId');
+      }
+    } else {
+      service.invoke("stopService");
+
+      final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+      final downloadDirectory = await getDownloadsDirectory();
+      double totalDistance = await calculateTotalDistance(
+          "${downloadDirectory?.path}/track$date.gpx");
+      totalDistance ??= 0;
+      await Future.delayed(const Duration(seconds: 4));
+      await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
+        id: prefs.getString('clockInId'),
+        timeOut: _getFormattedtime(),
+        totalTime: _formatDuration(newsecondpassed.toString()),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latOut: globalLatitude1,
+        lngOut: globalLongitude1,
+        totalDistance: totalDistance,
+      ));
+
+      await postFile();
+      bool isConnected = await isInternetAvailable();
+
+      if (isConnected) {
+        await attendanceViewModel.postAttendanceOut();
+      }
+
+      _stopTimer();
+      await prefs.remove('clockInId');
+      await location.enableBackgroundMode(enable: false);
+    }
+
+    setState(() {
+      isClockedIn = newIsClockedIn;
     });
+
     await Future.delayed(const Duration(seconds: 10));
     Navigator.pop(context); // Close the loading indicator dialog
     completer.complete();
     return completer.future;
   }
+
+
+
 
   Future<bool> _isLocationEnabled() async {
     // Add your logic to check if location services are enabled
