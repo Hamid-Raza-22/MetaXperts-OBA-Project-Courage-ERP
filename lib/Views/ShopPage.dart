@@ -440,11 +440,9 @@ class _ShopPageState extends State<ShopPage> {
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return 'Please enter shop name';
-                                    } else if (!RegExp(r'^[a-zA-Z]+$')
-                                        .hasMatch(value)) {
-                                      return 'Please enter alphabets only';
+                                    } else {
+                                      return null;
                                     }
-                                    return null;
                                   },
                                 ),
                               ],
@@ -566,11 +564,9 @@ class _ShopPageState extends State<ShopPage> {
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return 'Please enter shop address';
-                                    } else if (!RegExp(r'^[a-zA-Z]+$')
-                                        .hasMatch(value)) {
-                                      return 'Please enter alphabets only';
+                                    } else {
+                                      return null;
                                     }
-                                    return null;
                                   },
                                 ),
                               ],
@@ -608,11 +604,9 @@ class _ShopPageState extends State<ShopPage> {
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return 'Please enter owner name';
-                                    } else if (!RegExp(r'^[a-zA-Z]+$')
-                                        .hasMatch(value)) {
-                                      return 'Please enter alphabets only';
+                                    } else {
+                                      return null;
                                     }
-                                    return null;
                                   },
                                 ),
                               ],
@@ -666,7 +660,7 @@ class _ShopPageState extends State<ShopPage> {
 
                             const SizedBox(height: 10),
 
-// Text Field 5 - Phone Number
+                            // Text Field 5 - Phone Number
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
