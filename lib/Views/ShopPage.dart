@@ -19,6 +19,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/ShopModel.dart';
+import '../main.dart';
 
 
 
@@ -667,8 +668,10 @@ class _ShopPageState extends State<ShopPage> {
                                         ownerCNICController.text = "";
                                         phoneNoController.text = "";
                                         alternativePhoneNoController.text = "";
-
-                                        shopViewModel.postShop();
+                                        bool isConnected = await isInternetAvailable();
+                                        if (isConnected== true) {
+                                          shopViewModel.postShop();
+                                        }
 
                                         // DBHelper dbmaster = DBHelper();
                                         //

@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../API/ApiServices.dart';
+import '../API/Globals.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/RecoveryFormModel.dart';
 
@@ -25,6 +26,8 @@ class RecoveryFormRepository{
     final ApiServices api = ApiServices();
 
     try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
       final products = await db!.rawQuery('SELECT * FROM recoveryForm');
 
       if (products.isNotEmpty) {  // Check if the table is not empty
@@ -48,7 +51,7 @@ class RecoveryFormRepository{
           try {
             final results = await Future.wait([
               api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/recoveryform/post/'),
-           //   api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/recoveryform/post/'),
+              // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/recoveryform/post/'),
             ]);
 
             if (results[0] == true) {
@@ -72,6 +75,8 @@ class RecoveryFormRepository{
       if (kDebugMode) {
         print("Error processing recovery form data: $e");
       }
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
   //

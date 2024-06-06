@@ -26,6 +26,7 @@ import '../Models/StockCheckItems.dart';
 import '../View_Models/OrderViewModels/ProductsViewModel.dart';
 import '../View_Models/OwnerViewModel.dart';
 import '../View_Models/ShopVisitViewModel.dart';
+import '../main.dart';
 import 'FinalOrderBookingPage.dart';
 
 
@@ -1074,8 +1075,12 @@ class ShopVisitState extends State<ShopVisit> {
                               await stockcheckitemsViewModel.addStockCheckItems(stockCheckItems);
                             }
 
-                            await shopVisitViewModel.postShopVisit();
-                            await stockcheckitemsViewModel.postStockCheckItems();
+                            bool isConnected = await isInternetAvailable();
+
+                            if (isConnected== true) {
+                              await shopVisitViewModel.postShopVisit();
+                              await stockcheckitemsViewModel.postStockCheckItems();
+                            }
 
 
                             // Navigate to the FinalOrderBookingPage only if all validations pass
@@ -1147,23 +1152,6 @@ class ShopVisitState extends State<ShopVisit> {
                               });
                               return;
                             }
-                            // List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
-                            // String selectedBrand = _brandDropDownController.text.trim();
-                            //
-                            // if (!allowedBrands.contains(selectedBrand)) {
-                            //   Fluttertoast.showToast(
-                            //     msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
-                            //     toastLength: Toast.LENGTH_SHORT,
-                            //     gravity: ToastGravity.BOTTOM,
-                            //     backgroundColor: Colors.red,
-                            //     textColor: Colors.white,
-                            //   );
-                            //
-                            //   setState(() {
-                            //     isButtonPressed = false;
-                            //   });
-                            //   return;
-                            // }
 
                             if (_imageFile == null ||
                                 ShopNameController.text.isEmpty ) {
@@ -1237,18 +1225,32 @@ class ShopVisitState extends State<ShopVisit> {
                               }
                             }
 
+                            // Call the method to add stock check items to the database
+                            for (var stockCheckItems in stockCheckItemsList) {
+                              await stockcheckitemsViewModel.addStockCheckItems(stockCheckItems);
+                            }
 
+
+                            bool isConnected = await isInternetAvailable();
+
+                            if (isConnected== true) {
                             await shopVisitViewModel.postShopVisit();
                             await stockcheckitemsViewModel.postStockCheckItems();
+                            }
+
 
 
 
 
                             // Additional validation that everything must be filled
                             if (ShopNameController.text.isNotEmpty ) {
-                              Navigator.pop(context);
-                              // Stop the timer on the home page
-                              const HomePage();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomePage(),
+
+                                ),
+                              );
                             } else {
                               Fluttertoast.showToast(
                                 msg: 'Please fill all fields before proceeding.',

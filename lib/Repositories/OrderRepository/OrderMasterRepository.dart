@@ -22,23 +22,24 @@ class OrderMasterRepository{
 
     return ordermaster;
   }
+
   Future<void> postMasterTable() async {
     var db = await dbHelper.db;
     final ApiServices api = ApiServices();
 
     try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
       final List<Map<String, dynamic>> records = await db!.query('orderMaster');
 
-      // Print each record
       for (var record in records) {
         if (kDebugMode) {
           print(record.toString());
         }
       }
 
-      // Select only the records that have not been posted yet
       final products = await db.rawQuery('SELECT * FROM orderMaster WHERE posted = 0');
-      if (products.isNotEmpty) {  // Check if the table is not empty
+      if (products.isNotEmpty) {
         for (var i in products) {
           if (kDebugMode) {
             print("Posting order master for ${i['orderId']}");
@@ -62,10 +63,10 @@ class OrderMasterRepository{
           try {
             final results = await Future.wait([
               api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/'),
-             // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/'),
+              // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/'),
             ]);
 
-            if (results[0] == true ) {
+            if (results[0] == true) {
               if (kDebugMode) {
                 print('Successfully posted order master for ID: ${i['orderId']}');
               }
@@ -86,9 +87,10 @@ class OrderMasterRepository{
       if (kDebugMode) {
         print("Error processing order master data: $e");
       }
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
-  }
-  //
+  }  //
   // Future<String> getLastOrderId() async {
   //   var dbClient = await dbHelperOrderMaster.db;
   //   List<Map> maps = await dbClient.query(

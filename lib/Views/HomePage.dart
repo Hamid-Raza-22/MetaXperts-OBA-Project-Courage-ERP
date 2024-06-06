@@ -7,8 +7,9 @@ import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastG
 import 'package:get/get.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNames;
+import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNames;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
+import 'package:order_booking_shop/main.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
@@ -136,17 +137,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       );
     }
   }
-  Future<bool> isInternetAvailable() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-    } on SocketException catch (_) {
-      return false;
-    }
-    return false;
-  }
+
 
   _retrieveSavedValues() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -226,7 +217,11 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
            city: userCitys,
            designation: userDesignation
         ));
+        bool isConnected = await isInternetAvailable();
+
+        if (isConnected== true) {
          await attendanceViewModel.postAttendance();
+        }
         //startTimer();
         // _saveCurrentTime();
         // _saveClockStatus(true);
@@ -267,8 +262,11 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         _saveClockStatus(false);
         await Future.delayed(const Duration(seconds: 10));
        await postFile();
+        bool isConnected = await isInternetAvailable();
 
+        if (isConnected== true) {
        await attendanceViewModel.postAttendanceOut();
+        }
 
         _stopTimer();
         setState(() async {
@@ -331,11 +329,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    Workmanager().registerPeriodicTask(
-      "1",
-      "simplePeriodicTask",
-      frequency: const Duration(minutes: 15),
-    );
 
     // backgroundTask();
     WidgetsBinding.instance.addObserver(this);
@@ -478,12 +471,12 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
   bool _isButtonDisabled = false;
 
+
   void _handleRefresh() async {
     setState(() {
       _isButtonDisabled = true;
     });
 
-    // Check if data is being posted to the server
     bool isPostingData = await isDataBeingPosted();
     if (isPostingData) {
       Fluttertoast.showToast(
@@ -500,26 +493,42 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       return;
     }
 
-    // Check internet connection before refresh
     showLoadingIndicator(context);
+
     bool isConnected = await isInternetAvailable();
     Navigator.of(context, rootNavigator: true).pop();
 
     if (isConnected) {
-      // Internet connection is available
       newDatabaseOutputs outputs = newDatabaseOutputs();
-      // Run both functions in parallel
-      showLoadingIndicator(context);
+      bool tasksCompleted = false;
 
-      await Future.wait([
-        backgroundTask(),
-        outputs.refreshData(),
+      // Run both functions in parallel with a timeout
+      showLoadingIndicator(context);
+      await Future.any([
+        Future.wait([
+          backgroundTask(),
+          outputs.refreshData(),
+        ]).then((_) {
+          tasksCompleted = true;
+        }),
+        Future.delayed(const Duration(minutes: 1)),
       ]);
 
-      // After the tasks are complete, hide the loading indicator
+      // Hide the loading indicator
       Navigator.of(context, rootNavigator: true).pop();
+
+      if (!tasksCompleted) {
+        Fluttertoast.showToast(
+          msg: "Network Problem!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+
     } else {
-      // No internet connection
       Fluttertoast.showToast(
         msg: "No internet connection.",
         toastLength: Toast.LENGTH_SHORT,
@@ -535,11 +544,10 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     });
   }
 
-// Mock function to check if data is being posted to the server
+
+//Mock function to check if data is being posted to the server
   Future<bool> isDataBeingPosted() async {
-    // Replace this with your actual implementation
-    // Example: check a flag or a condition to determine if data is being posted
-    return false;
+    return PostingStatus.isPosting.value;
   }
 
   @override
@@ -1134,7 +1142,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
     return true;
   }
-
 
   void showLoadingIndicator(BuildContext context) {
     showDialog(

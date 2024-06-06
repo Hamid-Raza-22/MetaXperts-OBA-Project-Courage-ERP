@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
-
+class PostingStatus {
+  static final ValueNotifier<bool> isPosting = ValueNotifier<bool>(false);
+}
 DBHelper dbHelper = DBHelper();
 String currentPostId= "";
+bool _isPosting = false;
 
 String pending ="PENDING";
 String SellectedproductName= "";

@@ -17,6 +17,7 @@ import '../Databases/DBHelper.dart';
 import '../Models/ReturnFormModel.dart';
 import '../View_Models/OrderViewModels/ReturnFormDetailsViewModel.dart';
 import 'package:flutter/services.dart';
+import '../main.dart';
 import 'HomePage.dart';
 
 
@@ -214,17 +215,6 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
         priceControllers[index].text = price;
       });
     }
-  }
-  Future<bool> isInternetAvailable() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-    } on SocketException catch (_) {
-      return false;
-    }
-    return false;
   }
 
   void fetchProductDataForSelectedShop(String selectedShopName) async {
@@ -767,8 +757,13 @@ class _ReturnFormPageState extends State<ReturnFormPage> {
           setState(() {
             isButtonDisabled = true; // Mark the button as disabled after being pressed
           });
-           returnformViewModel.postReturnForm() ;
-           returnformdetailsViewModel.postReturnFormDetails();
+          bool isConnected1 = await isInternetAvailable();
+          if (isConnected1== true) {
+            returnformViewModel.postReturnForm();
+            returnformdetailsViewModel.postReturnFormDetails();
+          }
+
+
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => const HomePage(),

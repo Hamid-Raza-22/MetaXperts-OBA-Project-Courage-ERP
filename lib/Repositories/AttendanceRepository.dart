@@ -3,6 +3,7 @@
 
 import 'package:flutter/foundation.dart';
 import '../API/ApiServices.dart';
+import '../API/Globals.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/AttendanceModel.dart';
 
@@ -21,11 +22,14 @@ class AttendanceRepository {
     }
     return attendance;
   }
+
   Future<void> postAttendanceTable() async {
     var db = await dbHelper.db;
     final ApiServices api = ApiServices();
 
     try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
       final products = await db!.rawQuery('SELECT * FROM attendance');
 
       if (products.isNotEmpty) {
@@ -49,7 +53,7 @@ class AttendanceRepository {
           try {
             final results = await Future.wait([
               api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendance/post/'),
-             // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendance/post/'),
+              // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendance/post/'),
             ]);
 
             if (results[0] == true) {
@@ -73,9 +77,10 @@ class AttendanceRepository {
       if (kDebugMode) {
         print("Error processing attendance data: $e");
       }
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
-  }
-  // Future<List<AttendanceModel>> getShopName() async {
+  }  // Future<List<AttendanceModel>> getShopName() async {
   //   var dbClient = await dbHelper.db;
   //   List<Map> maps = await dbClient!.query('shop', columns: ['id', 'shopName']);
   //   List<AttendanceModel> shop = [];
@@ -115,15 +120,17 @@ class AttendanceRepository {
     }
     return attendanceout;
   }
+
   Future<void> postAttendanceOutTable() async {
     var db = await dbHelper.db;
-
     final ApiServices api = ApiServices();
-    try {
-      final products = await db!.rawQuery('select * from attendanceOut');
 
-      if (products.isNotEmpty || products != null) {  // Check if the table is not empty
-        // await db.transaction((txn) async {
+    try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
+      final products = await db!.rawQuery('SELECT * FROM attendanceOut');
+
+      if (products.isNotEmpty || products != null) {
         for (var i in products) {
           if (kDebugMode) {
             print("FIRST ${i.toString()}");
@@ -137,11 +144,11 @@ class AttendanceRepository {
               totalTime: i['totalTime'].toString(),
               latOut: i['latOut'].toString(),
               lngOut: i['lngOut'].toString(),
-              totalDistance:i['totalDistance']?.toString()??'0.0'
+              totalDistance: i['totalDistance']?.toString() ?? '0.0'
           );
-           var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
-        //  var result1 = await api.masterPost(v.toMap(), 'https://webhook.site/3f874f5d-2d23-493b-a3a0-855f77ded7fb');
-         // var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendanceout/post/',);
+          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
+          // var result1 = await api.masterPost(v.toMap(), 'https://webhook.site/3f874f5d-2d23-493b-a3a0-855f77ded7fb');
+          // var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendanceout/post/',);
 
           if (result1 == true) {
             if (kDebugMode) {
@@ -150,13 +157,13 @@ class AttendanceRepository {
             await db.rawDelete("DELETE FROM attendanceOut WHERE id = '${i['id']}'");
           }
         }
-      // });
       }
     } catch (e) {
       if (kDebugMode) {
-        print("ErrorRRRRRRRRR: $e");
+        print("Error: $e");
       }
-      return;
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
   Future<int> addOut(AttendanceOutModel attendanceoutModel) async{

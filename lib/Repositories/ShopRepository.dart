@@ -8,6 +8,7 @@ import 'package:order_booking_shop/Models/ShopModel.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../API/ApiServices.dart';
+import '../API/Globals.dart';
 
 
 class ShopRepository {
@@ -30,96 +31,92 @@ class ShopRepository {
     final ApiServices api = ApiServices();
 
     try {
-      // await dbClient!.query('Delete from shop');
+      PostingStatus.isPosting.value = true; // Set posting status to true
 
       final List<Map<String, dynamic>> records = await dbClient!.query('shop');
 
-      // Print each record
       for (var record in records) {
         if (kDebugMode) {
           print(record.toString());
         }
       }
 
-      // Select only the records that have not been posted yet
       final products = await dbClient.rawQuery('SELECT * FROM shop');
       if (products.isNotEmpty) {
-        // await dbClient.transaction((txn) async {
-          for (var i in products) {
+        for (var i in products) {
+          if (kDebugMode) {
+            print("FIRST ${i.toString()}");
+          }
+
+          ShopModel v = ShopModel(
+            id: "${i['id']}",
+            shopName: i['shopName'].toString(),
+            city: i['city'].toString(),
+            date: i['date'].toString(),
+            shopAddress: i['shopAddress'].toString(),
+            ownerName: i['ownerName'].toString(),
+            ownerCNIC: i['ownerCNIC'].toString(),
+            phoneNo: i['phoneNo'].toString(),
+            alternativePhoneNo: i['alternativePhoneNo'].toString(),
+            latitude: i['latitude'].toString(),
+            longitude: i['longitude'].toString(),
+            userId: i['userId'].toString(),
+            body: i['body'] != null && i['body'].toString().isNotEmpty
+                ? Uint8List.fromList(base64Decode(i['body'].toString()))
+                : Uint8List(0),
+          );
+
+          if (kDebugMode) {
+            print("Image Path from Database: ${i['body']}");
+          }
+          if (kDebugMode) {
+            print("lat:${i['latitude']}");
+          }
+
+          Uint8List imageBytes;
+          final directory = await getApplicationDocumentsDirectory();
+          final filePath = File('${directory.path}/captured_image.jpg');
+          if (filePath.existsSync()) {
+            List<int> imageBytesList = await filePath.readAsBytes();
+            imageBytes = Uint8List.fromList(imageBytesList);
+          } else {
             if (kDebugMode) {
-              print("FIRST ${i.toString()}");
+              print("File does not exist at the specified path: ${filePath.path}");
             }
+            continue; // Skip to the next iteration if the file doesn't exist
+          }
 
-            ShopModel v = ShopModel(
-              id: "${i['id']}",
-              shopName: i['shopName'].toString(),
-              city: i['city'].toString(),
-              date: i['date'].toString(),
-              shopAddress: i['shopAddress'].toString(),
-              ownerName: i['ownerName'].toString(),
-              ownerCNIC: i['ownerCNIC'].toString(),
-              phoneNo: i['phoneNo'].toString(),
-              alternativePhoneNo: i['alternativePhoneNo'].toString(),
-              latitude: i['latitude'].toString(),
-              longitude: i['longitude'].toString(),
-              userId: i['userId'].toString(),
-              body: i['body'] != null && i['body'].toString().isNotEmpty
-                  ? Uint8List.fromList(base64Decode(i['body'].toString()))
-                  : Uint8List(0),
-            );
+          if (kDebugMode) {
+            print("Making API request for shop ID: ${v.id}");
+          }
 
-            // Print image path before trying to create the file
+          bool result1 = await api.masterPostWithImage(
+            v.toMap(),
+            'http://103.149.32.30:8080/ords/metaxperts/addshops/post/',
+            imageBytes,
+          );
+          // await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/addshops/post/', imageBytes,);
+
+          if (result1 == true) {
+            await dbClient.rawDelete('DELETE FROM shop WHERE id = ?', [i['id']]);
             if (kDebugMode) {
-              print("Image Path from Database: ${i['body']}");
+              print("Successfully posted data for shop ID: ${v.id}");
             }
+          } else {
             if (kDebugMode) {
-              print("lat:${i['latitude']}");
-            }
-
-            // Declare imageBytes outside the if block
-            Uint8List imageBytes;
-            final directory = await getApplicationDocumentsDirectory();
-            final filePath = File('${directory.path}/captured_image.jpg');
-            if (filePath.existsSync()) {
-              // File exists, proceed with reading the file
-              List<int> imageBytesList = await filePath.readAsBytes();
-              imageBytes = Uint8List.fromList(imageBytesList);
-            } else {
-              if (kDebugMode) {
-                print("File does not exist at the specified path: ${filePath.path}");
-              }
-              continue; // Skip to the next iteration if the file doesn't exist
-            }
-
-            // Print information before making the API request
-            if (kDebugMode) {
-              print("Making API request for shop  ID: ${v.id}");
-            }
-
-            bool result1 = await api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/addshops/post/', imageBytes,);
-           // await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/addshops/post/', imageBytes,);
-
-            if (result1 == true) {
-              await dbClient.rawDelete('DELETE FROM shop WHERE id = ?', [i['id']]);
-              if (kDebugMode) {
-                print("Successfully posted data for shop ID: ${v.id}");
-              }
-            } else {
-              if (kDebugMode) {
-                print("Failed to post data for shop  ID: ${v.id}");
-              }
+              print("Failed to post data for shop ID: ${v.id}");
             }
           }
-        // });
+        }
       }
     } catch (e) {
       if (kDebugMode) {
         print("Error processing shop visit data: $e");
       }
-      return;
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
-
   Future<int> add(ShopModel shopModel) async{
     var dbClient = await dbHelper.db;
     return await dbClient!.insert('shop' , shopModel.toMap());

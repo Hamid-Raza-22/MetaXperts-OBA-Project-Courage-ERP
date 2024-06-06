@@ -44,7 +44,7 @@ class LocationViewModel extends GetxController{
     fetchAllLocation();
   }
   postLocation(){
-    locationRepository.postlocationdata();
+    locationRepository.postLocationData();
   }
 
 }

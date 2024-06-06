@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../API/ApiServices.dart';
+import '../../API/Globals.dart';
 import '../../Databases/DBHelper.dart';
 import '../../Models/ReturnFormDetails.dart';
 
@@ -24,6 +25,8 @@ class ReturnFormDetailsRepository {
     final ApiServices api = ApiServices();
 
     try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
       final products = await db!.rawQuery('SELECT * FROM return_form_details');
 
       if (products.isNotEmpty) {  // Check if the table is not empty
@@ -44,7 +47,7 @@ class ReturnFormDetailsRepository {
           try {
             final results = await Future.wait([
               api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnformdetail/post'),
-             // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnformdetail/post'),
+              // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnformdetail/post'),
             ]);
 
             if (results[0] == true) {
@@ -68,6 +71,8 @@ class ReturnFormDetailsRepository {
       if (kDebugMode) {
         print("Error processing return form details data: $e");
       }
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
   Future<int> add(ReturnFormDetailsModel returnformdetailsModel) async {

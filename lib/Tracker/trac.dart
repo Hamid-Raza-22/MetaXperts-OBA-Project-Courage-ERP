@@ -11,12 +11,14 @@ import '../Databases/DBHelper.dart';
 import '../Models/LocationModel.dart';
 import '../View_Models/LocationViewModel.dart';
 import '../location00.dart';
+import '../main.dart';
 
 
 final locationViewModel = Get.put(LocationViewModel());
 String gpxString="";
 
 Future<void> startTimer() async {
+
   startTimerFromSavedTime();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   Timer.periodic(const Duration(seconds: 1), (timer) async {
@@ -96,9 +98,12 @@ Future<void> postFile() async {
   if (kDebugMode) {
     print(userNames);
   }
+  bool isConnected = await isInternetAvailable();
+
+  if (isConnected== true) {
   await locationViewModel.postLocation();
 }
-
+}
 
 
 

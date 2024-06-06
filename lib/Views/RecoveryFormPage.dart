@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../API/DatabaseOutputs.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
+import '../main.dart';
 
 class RecoveryFromPage extends StatefulWidget {
   const RecoveryFromPage({super.key});
@@ -218,17 +219,7 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
   //   });
   // }
 
-  Future<bool> isInternetAvailable() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-    } on SocketException catch (_) {
-      return false;
-    }
-    return false;
-  }
+
   // void fetchShopData() async {
   //   List<String> shopNames = await dbHelper.getOrderMasterShopNames2();
   //   shopOwners = (await dbHelper.getOrderMasterDB())!;
@@ -661,8 +652,12 @@ class _RecoveryFromPageState extends State<RecoveryFromPage> {
                                             brand: selectedShopBrand
                                           ),
                                         );
+                                        bool isConnected = await isInternetAvailable();
+                                        if (isConnected== true) {
+                                          await recoveryformViewModel.postRecoveryForm();
+                                        }
 
-                                        await recoveryformViewModel.postRecoveryForm();
+
 
                                     Navigator.push(
                                       context,

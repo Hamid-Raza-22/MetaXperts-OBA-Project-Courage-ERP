@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
 
 import '../../API/ApiServices.dart';
+import '../../API/Globals.dart';
 import '../../Models/StockCheckItems.dart';
 
 class StockCheckItemsRepository {
@@ -24,9 +25,11 @@ class StockCheckItemsRepository {
     final ApiServices api = ApiServices();
 
     try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
       final products = await db!.rawQuery('SELECT * FROM Stock_Check_Items');
 
-      if (products.isNotEmpty) {  // Check if the table is not empty
+      if (products.isNotEmpty) {
         for (var i in products) {
           if (kDebugMode) {
             print(i.toString());
@@ -42,7 +45,7 @@ class StockCheckItemsRepository {
           try {
             final results = await Future.wait([
               api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/'),
-            //  api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/shopvisit/post/'),
+              // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/shopvisit/post/'),
             ]);
 
             if (results[0] == true) {
@@ -66,8 +69,11 @@ class StockCheckItemsRepository {
       if (kDebugMode) {
         print("Error processing stock check items data: $e");
       }
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
+
 
   // Future<void> addStockCheckItems(StockCheckItemsModel stockCheckItemsList) async {
   //   final db = await dbHelperStockCheckItems.db;

@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
+import 'package:order_booking_shop/main.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share/share.dart' show Share;
 import 'package:pdf/widgets.dart' as pw;
@@ -19,6 +20,7 @@ import '../Models/OrderModels/OrderDetailsModel.dart';
 import '../Models/OrderModels/OrderMasterModel.dart';
 import '../View_Models/OrderViewModels/OrderDetailsViewModel.dart';
 import '../View_Models/OrderViewModels/OrderMasterViewModel.dart';
+import '../location00.dart';
 import 'FinalOrderBookingPage.dart';
 
 
@@ -231,10 +233,12 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                                   isReConfirmButtonPressed = true; // Mark the button as pressed
                                 });
 
+                                bool isConnected = await isInternetAvailable();
 
+                                if (isConnected== true) {
                                   await ordermasterViewModel.postOrderMaster();
-                                await  orderdetailsViewModel.postOrderDetails();
-                              },
+                                  await orderdetailsViewModel.postOrderDetails();
+                                }},
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white,
                                 backgroundColor: Colors.green, // Set the color of the button
@@ -460,7 +464,7 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
     final image = pw.Image(pw.MemoryImage(Uint8List.fromList((await rootBundle.load('assets/images/p1.png')).buffer.asUint8List())));
     final totalQuantity = calculateTotalQuantity(quantities.cast<String>());
 
-    const itemsPerPage = 10; // Adjust this value based on your requirement
+    const itemsPerPage = 7; // Adjust this value based on your requirement
 
     // Add content to the PDF document
     for (var startIndex = 0; startIndex < selectedItems.length; startIndex += itemsPerPage) {

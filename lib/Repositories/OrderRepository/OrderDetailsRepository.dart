@@ -26,18 +26,18 @@ class OrderDetailsRepository {
     final ApiServices api = ApiServices();
 
     try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
       final List<Map<String, dynamic>> records = await db!.query('order_details');
 
-      // Print each record
       for (var record in records) {
         if (kDebugMode) {
           print(record.toString());
         }
       }
 
-      // Select only the records that have not been posted yet
       final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
-      if (products.isNotEmpty) {  // Check if the table is not empty
+      if (products.isNotEmpty) {
         List<int> successfullyPostedIds = [];
 
         for (var i in products) {
@@ -56,7 +56,10 @@ class OrderDetailsRepository {
           );
 
           try {
-            bool results = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/');
+            bool results = await api.masterPost(
+              v.toMap(),
+              'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/',
+            );
 
             if (results == true) {
               if (kDebugMode) {
@@ -76,21 +79,22 @@ class OrderDetailsRepository {
         }
 
         if (successfullyPostedIds.isNotEmpty) {
-          // Batch update
           String ids = successfullyPostedIds.join(',');
           await db.rawUpdate(
-              'UPDATE order_details SET posted = 1 WHERE id IN ($ids)'
+            'UPDATE order_details SET posted = 1 WHERE id IN ($ids)',
           );
         }
-        return true; // Return true if there were records to post
+        return true;
       } else {
-        return false; // Return false if there were no records to post
+        return false;
       }
     } catch (e) {
       if (kDebugMode) {
         print("Error processing order details data: $e");
       }
-      return false; // Return false if there was an error
+      return false;
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
    // Return true if posting is successful

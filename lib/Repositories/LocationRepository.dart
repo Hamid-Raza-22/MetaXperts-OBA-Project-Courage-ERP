@@ -7,6 +7,7 @@ import 'package:order_booking_shop/location00.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../API/ApiServices.dart';
+import '../API/Globals.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/LocationModel.dart';
 
@@ -32,7 +33,8 @@ class LocationRepository {
     }
     return location;
   }
-  Future<void> postlocationdata() async {
+
+  Future<void> postLocationData() async {
     var db = await dbHelper.db;
     final ApiServices api = ApiServices();
 
@@ -41,85 +43,86 @@ class LocationRepository {
     final filePath = File('${downloadDirectory?.path}/track$date.gpx');
 
     try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
       final products = await db!.rawQuery('SELECT * FROM location');
       await db.rawQuery('VACUUM');
 
       if (products.isNotEmpty) {
-        // Check if the table is not empty
-        // await db.transaction((txn) async {
-          for (Map<dynamic, dynamic> i in products) {
-            if (kDebugMode) {
-              print("FIRST $i");
+        for (Map<dynamic, dynamic> i in products) {
+          if (kDebugMode) {
+            print("FIRST $i");
+          }
+
+          LocationModel v = LocationModel(
+            id: i['id'].toString(),
+            date: i['date'].toString(),
+            userId: i['userId'].toString(),
+            userName: i['userName'].toString(),
+            fileName: i['fileName'].toString(),
+            totalDistance: i['totalDistance'].toString(),
+            body: i['body'] != null && i['body'].toString().isNotEmpty
+                ? Uint8List.fromList(base64Decode(i['body'].toString()))
+                : Uint8List(0),
+          );
+
+          if (kDebugMode) {
+            print("Image Path from Database: ${i['body']}");
+          }
+
+          Uint8List gpxBytes;
+          if (filePath.existsSync()) {
+            List<int> imageBytesList = await filePath.readAsBytes();
+            gpxBytes = Uint8List.fromList(imageBytesList);
+            if (gpxBytes.isEmpty) {
+              if (kDebugMode) {
+                print("File is empty at the specified path: ${filePath.path}");
+              }
             }
-
-            LocationModel v = LocationModel(
-              id: i['id'].toString(),
-              date: i['date'].toString(),
-              userId: i['userId'].toString(),
-              userName: i['userName'].toString(),
-              fileName: i['fileName'].toString(),
-              totalDistance: i['totalDistance'].toString(),
-              body: i['body'] != null && i['body'].toString().isNotEmpty
-                  ? Uint8List.fromList(base64Decode(i['body'].toString()))
-                  : Uint8List(0),
-            );
-
-            // Print image path before trying to create the file
+          } else {
             if (kDebugMode) {
-              print("Image Path from Database: ${i['body']}");
+              print("File does not exist at the specified path: ${filePath.path}");
             }
+            gpxBytes = Uint8List(0); // Use an empty Uint8List if the file does not exist
+          }
 
-            Uint8List gpxBytes;
-            if (filePath.existsSync()) {
-              // File exists, proceed with reading the file
-              List<int> imageBytesList = await filePath.readAsBytes();
-              gpxBytes = Uint8List.fromList(imageBytesList);
-              if (gpxBytes.isEmpty) {
-                if (kDebugMode) {
-                  print("File is empty at the specified path: ${filePath.path}");
-                }
+          if (kDebugMode) {
+            print("Making API request for location data ID: ${v.id}");
+          }
+
+          try {
+            final results = await Future.wait([
+              api.masterPostWithGPX(
+                v.toMap(),
+                'http://103.149.32.30:8080/ords/metaxperts/location/post/',
+                gpxBytes,
+              ),
+              // api.masterPostWithGPX(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/location/post/', gpxBytes)
+            ]);
+
+            if (results[0] == true) {
+              await db.rawDelete("DELETE FROM location WHERE id = '${i['id']}'");
+              if (kDebugMode) {
+                print("Successfully posted data for location ID: ${v.id}");
               }
             } else {
               if (kDebugMode) {
-                print("File does not exist at the specified path: ${filePath.path}");
+                print("Failed to post data for location ID: ${v.id}");
               }
-              // Use an empty Uint8List if the file does not exist
-              gpxBytes = Uint8List(0);
             }
-
-            // Print information before making the API request
+          } catch (e) {
             if (kDebugMode) {
-              print("Making API request for shop visit ID: ${v.id}");
+              print("Error posting location data for ID: ${i['id']} - $e");
             }
-            try {
-              final results = await Future.wait([
-
-                  api.masterPostWithGPX(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/location/post/', gpxBytes),
-                  // api.masterPostWithGPX(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/location/post/', gpxBytes)
-             ]);
-            if (results[0] ==true) {
-              await db.rawDelete(
-                  "DELETE FROM location WHERE id = '${i['id']}'");
-              if (kDebugMode) {
-                print("Successfully posted data for shop visit ID: ${v.id}");
-              }
-            } else {
-              if (kDebugMode) {
-                print("Failed to post data for shop visit ID: ${v.id}");
-              }
-            }
-
-          }catch (e) {
-              if (kDebugMode) {
-               print("Error posting order details for ID: ${i['id']} - $e");
-              }
-       }
-        // });
+          }
+        }
       }
-    }} catch (e) {
+    } catch (e) {
       if (kDebugMode) {
-        print("Error processing shop visit data: $e");
-    }
+        print("Error processing location data: $e");
+      }
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
   // Future<void> postlocationdata() async {

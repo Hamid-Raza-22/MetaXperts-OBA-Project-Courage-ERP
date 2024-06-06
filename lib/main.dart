@@ -10,7 +10,7 @@ import 'package:flutter/services.dart' show SystemChannels;
 import 'package:flutter_background/flutter_background.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' show AndroidConfiguration, FlutterBackgroundService, IosConfiguration, ServiceInstance;
 import 'package:flutter_background_service_android/flutter_background_service_android.dart' show AndroidServiceInstance;
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails, Priority;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails;
 import 'package:get/get.dart';
 import 'package:order_booking_shop/Tracker/trac.dart' show startTimer;
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
@@ -61,10 +61,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
 
   // await BackgroundLocator.initialize();
-  // Initialize the notification plugin
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
-  const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   runApp(
@@ -74,8 +71,6 @@ Future<void> main() async {
     ),
   );
 }
-FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
 final attendanceViewModel = Get.put(AttendanceViewModel());
 final shopisitViewModel = Get.put(ShopVisitViewModel());
 final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
@@ -106,32 +101,10 @@ void callbackDispatcher(){
     if (kDebugMode) {
       print("WorkManager MMM ");
     }
-    showNotification(inputData!['timer']);
     return Future.value(true);
   });
 }
-void showNotification(String timer) async {
-  const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-    'your_channel_id', // id
-    'your_channel_name', // name
-    channelDescription: 'your_channel_description', // description
-    importance: Importance.max,
-    priority: Priority.high,
-    ongoing: true, // Makes the notification ongoing
-  );
-  const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-  await flutterLocalNotificationsPlugin.show(
-    0,
-    'Timer Running',
-    'Your timer is still running: $timer',
-    platformChannelSpecifics,
-    payload: 'item x',
-  );
-}
 
-void cancelNotification() async {
-  await flutterLocalNotificationsPlugin.cancel(0);
-}
 Future<void> initializeServiceLocation() async {
   final service = FlutterBackgroundService();
 
@@ -182,9 +155,26 @@ Future<void> initializeServiceLocation() async {
 void monitorInternetConnection() {
   Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
     if (result == ConnectivityResult.mobile || result == ConnectivityResult.wifi) {
-      backgroundTask();
+     // backgroundTask();
     }
   });
+}
+Future<bool> isInternetAvailable() async {
+  var connectivityResult = await (Connectivity().checkConnectivity());
+
+  if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+    } on SocketException catch (_) {
+      return false;
+    }
+  } else {
+    return false; // No connectivity
+  }
+  return false;
 }
 
 // Future<void> initializeServiceBackGroundData() async {
@@ -381,23 +371,23 @@ String _formatDuration(String secondsString) {
   String secondsFormatted = twoDigits(duration.inSeconds.remainder(60));
   return '$hours:$minutes:$secondsFormatted';
 }
-Future<bool> isInternetAvailable() async {
-  try {
-    final result = await InternetAddress.lookup('google.com');
-    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-      return true;
-    }
-  } on SocketException catch (_) {
-    return false;
-  }
-  return false;
-}
+// Future<bool> isInternetAvailable() async {
+//   try {
+//     final result = await InternetAddress.lookup('google.com');
+//     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+//       return true;
+//     }
+//   } on SocketException catch (_) {
+//     return false;
+//   }
+//   return false;
+// }
 
 backgroundTask() async {
 
   try {
     bool isConnected = await isInternetAvailable();
-
+    DatabaseOutputs outputs = DatabaseOutputs();
     if (isConnected) {
       if (kDebugMode) {
         print('Internet connection is available. Initiating background data synchronization.');
@@ -419,23 +409,78 @@ backgroundTask() async {
     }
   }
 }
+
 Future<void> synchronizeData() async {
   if (kDebugMode) {
     print('Synchronizing data in the background.');
   }
-  await attendanceViewModel.postAttendance();
-  await attendanceViewModel.postAttendanceOut();
+  await postAttendanceTable();
+  await postAttendanceOutTable();
+  await postLocationData();
+  await postShopTable();
+  await postShopVisitData();
+  await postStockCheckItems();
+  await postMasterTable();
+  await postOrderDetails();
+  await postReturnFormTable();
+  await postReturnFormDetails();
+  await postRecoveryFormTable();
+
+}
+Future<void> postLocationData() async {
   await locationViewModel.postLocation();
-  await shopViewModel.postShop();
+}
+Future<void> postShopVisitData() async {
   await shopisitViewModel.postShopVisit();
-  await stockcheckitemsViewModel.postStockCheckItems();
-  await ordermasterViewModel.postOrderMaster();
-  await orderdetailsViewModel.postOrderDetails();
-  await returnformViewModel.postReturnForm();
-  await returnformdetailsViewModel.postReturnFormDetails();
-  await recoveryformViewModel.postRecoveryForm();
 }
 
+Future<void> postStockCheckItems() async {
+  await stockcheckitemsViewModel.postStockCheckItems();
+}
+
+Future<void> postAttendanceOutTable() async {
+  await attendanceViewModel.postAttendanceOut();
+}
+
+Future<void> postAttendanceTable() async {
+  await attendanceViewModel.postAttendance();
+
+}
+
+Future<void> postMasterTable() async {
+  await ordermasterViewModel.postOrderMaster();
+
+}
+
+Future<void> postOrderDetails() async {
+  await orderdetailsViewModel.postOrderDetails();
+
+}
+
+Future<void> postShopTable() async {
+  await shopViewModel.postShop();
+}
+
+Future<void> postReturnFormTable() async {
+  if (kDebugMode) {
+    print('Attempting to post Return data');
+  }
+  await returnformViewModel.postReturnForm();
+
+  if (kDebugMode) {
+    print('Return data posted successfully');
+  }
+}
+
+Future<void> postReturnFormDetails() async {
+  DBHelper dbHelper = DBHelper();
+  await returnformdetailsViewModel.postReturnFormDetails();
+}
+
+Future<void> postRecoveryFormTable() async {
+  await recoveryformViewModel.postRecoveryForm();
+
+}
 
 
 
