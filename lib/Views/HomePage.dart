@@ -1,10 +1,12 @@
 import 'dart:async' show Completer, Future, Timer;
 import 'package:flutter/foundation.dart' show Key, kDebugMode;
 import 'package:flutter/material.dart' show AlertDialog, Align, Alignment, AppBar, Border, BorderRadius, BoxDecoration, BoxShape, BuildContext, Center, CircleBorder, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, Icon, IconButton, IconData, Icons, Key, MainAxisAlignment, Material, MaterialApp, MaterialPageRoute, Navigator, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, StatelessWidget, Text, TextButton, TextStyle, Widget, WidgetsBinding, WidgetsBindingObserver, WidgetsFlutterBinding, WillPopScope, runApp, showDialog;
+import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' show FlutterBackgroundService;
 import 'package:geolocator/geolocator.dart' show Geolocator, LocationPermission, Position;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 import 'package:get/get.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
 import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNames;
@@ -97,14 +99,16 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   List<String> shopList = [];
   String? selectedShop2;
   int? attendanceId;
-
+  Timer? _timer;
   int? attendanceId1;
   double? globalLatitude1;
   double? globalLongitude1;
   DBHelper dbHelper = DBHelper();
-  bool isLoading = false; // Define isLoading variable
   bool isLoadingReturn= false;
   final loc.Location location = loc.Location();
+  bool isLoading = false; // Define isLoading variable
+
+  // }
 
   // Future<void> _logOut() async {
   //   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -113,13 +117,54 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   //   prefs.remove('userCitys');
   //   prefs.remove('userNames');
   //   // Add any additional logout logic here
-  // }
+  @override
+  void initState() {
+    super.initState();
+
+    // backgroundTask();
+    WidgetsBinding.instance.addObserver(this);
+    _loadClockStatus();
+    fetchShopList();
+    _retrieveSavedValues();
+    _clockRefresh();
+    if (kDebugMode) {
+      print("B1000 ${name.toString()}");
+    }
+    _requestPermission();
+   // location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+   // location.enableBackgroundMode(enable: true);
+    _getFormattedDate();
+    data();
+    _checkForUpdate(); // Check for updates when the screen opens
+  }
+  // Function to check for updates
+
+  void _checkForUpdate() async {
+    try {
+      final AppUpdateInfo updateInfo = await InAppUpdate.checkForUpdate();
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (e) {
+      if (e is PlatformException && e.code == 'TASK_FAILURE' && e.message?.contains('Install Error(-10)') == true) {
+        if (kDebugMode) {
+          print("The app is not owned by any user on this device. Update check skipped.");
+        }
+      } else {
+        if (kDebugMode) {
+          print("Failed to check for updates: $e");
+        }
+      }
+    }
+  }
+
 
   Future<bool> _checkLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
     return permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
   }
+
 
   Future<void> _requestLocationPermission() async {
     LocationPermission permission = await Geolocator.requestPermission();
@@ -137,8 +182,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       );
     }
   }
-
-
   _retrieveSavedValues() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -149,6 +192,10 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       userBrand = prefs.getString('userBrand') ?? '';
     });
   }
+
+
+
+
   Future<void> _toggleClockInOut() async {
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
@@ -198,6 +245,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       await location.enableBackgroundMode(enable: true);
       await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
       locationbool = true;
+      // startTimer();
       service.startService();
 
       var id = customAlphabet('1234567890', 10);
@@ -269,14 +317,11 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
 
 
-
-
   Future<bool> _isLocationEnabled() async {
     // Add your logic to check if location services are enabled
     bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
     return isLocationEnabled;
   }
-
 
   String _getFormattedtime() {
     final now = DateTime.now();
@@ -288,20 +333,20 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     isClockedIn = prefs.getBool('isClockedIn') ?? false;
     if (isClockedIn == true) {
-      //startTimerFromSavedTime();
-      final service = FlutterBackgroundService();
-      service.startService();
-      //_clockRefresh();
+      startTimerFromSavedTime();
+      // final service = FlutterBackgroundService();
+      // service.startService();
+     // _clockRefresh();
     }else{
       prefs.setInt('secondsPassed', 0);
     }
   }
-
   _saveClockStatus(bool clockedIn) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('isClockedIn', clockedIn);
     isClockedIn = clockedIn;
   }
+
   data(){
     DBHelper dbHelper = DBHelper();
     if (kDebugMode) {
@@ -309,26 +354,6 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     }
     dbHelper.getRecoveryHighestSerialNo();
     dbHelper.getHighestSerialNo();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    // backgroundTask();
-    WidgetsBinding.instance.addObserver(this);
-    _loadClockStatus();
-    fetchShopList();
-    _retrieveSavedValues();
-    _clockRefresh();
-    if (kDebugMode) {
-      print("B1000 ${name.toString()}");
-    }
-    _requestPermission();
-   // location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
-   // location.enableBackgroundMode(enable: true);
-    _getFormattedDate();
-    data();
   }
 
   void _saveCurrentTime() async {
@@ -358,6 +383,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
 
   Future<String> _stopTimer() async {
+    _timer?.cancel();
     String totalTime = _formatDuration(newsecondpassed.toString());
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setInt('secondsPassed', 0);

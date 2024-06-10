@@ -106,6 +106,7 @@ dependencies:
   internet_connection_checker_plus: ^2.2.0
   riverpod: ^2.5.1
   flutter_riverpod: ^2.5.1
+  in_app_update: ^4.2.3
 
 dev_dependencies:
   flutter_test:

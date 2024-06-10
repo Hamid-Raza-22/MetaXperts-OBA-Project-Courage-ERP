@@ -16,7 +16,7 @@ import '../main.dart';
 
 final locationViewModel = Get.put(LocationViewModel());
 String gpxString="";
-
+Timer? _timer;
 Future<void> startTimer() async {
 
   startTimerFromSavedTime();
@@ -48,7 +48,14 @@ void startTimerFromSavedTime() {
   });
 }
 
-
+// Future<void> stopTimer() async {
+//   _timer?.cancel();
+//   SharedPreferences prefs = await SharedPreferences.getInstance();
+//   await prefs.setInt('secondsPassed', secondsPassed);
+//   if (kDebugMode) {
+//     print("Timer stopped at $secondsPassed seconds.");
+//   }
+// }
 
 Future<void> postFile() async {
   // SharedPreferences pref = await SharedPreferences.getInstance();

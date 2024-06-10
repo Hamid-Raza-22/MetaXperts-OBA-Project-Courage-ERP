@@ -18,50 +18,52 @@ class _PolicyDialogState extends State<PolicyDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text("App Policies"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "By using this app, you agree to the following policies:",
-            style: TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            "- This app collects location data to enable tracking and share your location to server even when the app is closed or not in use.",
-            style: TextStyle(fontSize: 14),
-          ),
-          const Text(
-            "- This app requires access to your camera for posting images to the server through APIs.",
-            style: TextStyle(fontSize: 14),
-          ),
-          const Text(
-            "- This app uses APIs to share app data onto the server.",
-            style: TextStyle(fontSize: 14),
-          ),
-          const Text(
-            "- This app uses storage to store app data.",
-            style: TextStyle(fontSize: 14),
-          ),
-          const Text(
-            "- This app uses battery for background services.",
-            style: TextStyle(fontSize: 14),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Checkbox(
-                value: _isChecked,
-                onChanged: (bool? newValue) {
-                  setState(() {
-                    _isChecked = newValue ?? false;
-                  });
-                },
-              ),
-              const Text("I agree to the above policies"),
-            ],
-          ),
-        ],
+      content: SingleChildScrollView( // Add SingleChildScrollView here
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "By using this app, you agree to the following policies:",
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "- This app collects location data to enable tracking and share your location to server even when the app is closed or not in use.",
+              style: TextStyle(fontSize: 14),
+            ),
+            const Text(
+              "- This app requires access to your camera for posting images to the server through APIs.",
+              style: TextStyle(fontSize: 14),
+            ),
+            const Text(
+              "- This app uses APIs to share app data onto the server.",
+              style: TextStyle(fontSize: 14),
+            ),
+            const Text(
+              "- This app uses storage to store app data.",
+              style: TextStyle(fontSize: 14),
+            ),
+            const Text(
+              "- This app uses battery for background services.",
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Checkbox(
+                  value: _isChecked,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      _isChecked = newValue ?? false;
+                    });
+                  },
+                ),
+                const Text("I agree to the above policies"),
+              ],
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -124,9 +126,9 @@ class _PolicyDialogState extends State<PolicyDialog> {
       } else {
         // Navigate to the login page if all permissions are granted
         Navigator.of(context).push(
-            MaterialPageRoute(
-            builder: (context) => const LoginForm()
-            )
+          MaterialPageRoute(
+            builder: (context) => const LoginForm(),
+          ),
         );
       }
     }

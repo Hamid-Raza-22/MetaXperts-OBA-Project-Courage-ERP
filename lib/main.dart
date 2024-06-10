@@ -371,17 +371,7 @@ String _formatDuration(String secondsString) {
   String secondsFormatted = twoDigits(duration.inSeconds.remainder(60));
   return '$hours:$minutes:$secondsFormatted';
 }
-// Future<bool> isInternetAvailable() async {
-//   try {
-//     final result = await InternetAddress.lookup('google.com');
-//     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-//       return true;
-//     }
-//   } on SocketException catch (_) {
-//     return false;
-//   }
-//   return false;
-// }
+
 
 backgroundTask() async {
 

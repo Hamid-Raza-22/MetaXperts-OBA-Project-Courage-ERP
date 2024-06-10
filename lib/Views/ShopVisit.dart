@@ -247,10 +247,9 @@ class ShopVisitState extends State<ShopVisit> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation == 'ASM' && userDesignation == 'SPO' && userDesignation == 'SOS') {
+    if (userDesignation != 'ASM' && userDesignation != 'SPO'  && userDesignation != 'SOS') {
       await fetchShopNames();
     //  shopOwners = (await dbHelper.getOwnersDB())!;
-
 
     } else {
       await fetchShopNamesAll();

@@ -415,47 +415,52 @@ class newDatabaseOutputs {
         print("Data is available.");
       }
     }
-    //for the owner data
     if (owerdata == null || owerdata.isEmpty) {
       bool inserted = false;
+      const int retryLimit = 3;
 
-      try {
-
-        var response = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/shopp1/get/");
-        inserted = await db.insertownerData(response); //return True or False
-        if (inserted) {
-          if (kDebugMode) {
-            print("Owner Data inserted successfully using first API..");
-          }
-        } else {
-          if (kDebugMode) {
-            print("Error inserting data.");
+      Future<bool> fetchDataAndInsert(String url) async {
+        int retries = 0;
+        while (retries < retryLimit) {
+          try {
+            var response = await api.getApi(url);
+            inserted = await db.insertownerData(response); // returns True or False
+            if (inserted) {
+              if (kDebugMode) {
+                print("Owner Data inserted successfully from $url");
+              }
+              return true;
+            } else {
+              if (kDebugMode) {
+                print("Error inserting data from $url");
+              }
+              return false;
+            }
+          } catch (e) {
+            retries++;
+            if (kDebugMode) {
+              print("Attempt $retries failed for $url: $e");
+            }
+            if (retries >= retryLimit) {
+              if (kDebugMode) {
+                print("Exceeded retry limit for $url");
+              }
+              return false;
+            }
+            await Future.delayed(const Duration(seconds: 2)); // wait before retrying
           }
         }
-      } catch (e) {
-        // if (kDebugMode) {
-        //   print("Error with first API. Trying second API.");
-        // }
-        try {
-          var response = await api.getApi(
-              "https://apex.oracle.com/pls/apex/metaxpertss/shopp1/get/");
-          inserted = await db.insertownerData(response); // returns True or False
+        return false;
+      }
 
-          if (inserted) {
-            if (kDebugMode) {
-              print("Owner Data inserted successfully using second API.");
-            }
-          } else {
-            if (kDebugMode) {
-              print("Error inserting data using second API.");
-            }
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print(
-                "Error with second API as well. Unable to fetch or insert Owner data.");
-          }
+      try {
+        inserted = await fetchDataAndInsert("http://103.149.32.30:8080/ords/metaxperts/shopp/get/");
+        if (!inserted) {
+          inserted = await fetchDataAndInsert("https://apex.oracle.com/pls/apex/metaxpertss/shopp/get/");
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Failed to fetch and insert owner data: $e");
         }
       }
     } else {
