@@ -99,6 +99,38 @@ Future<dynamic> getApi(dynamic url) async {
   return responseJson ?? responseJson1;
 }
 
+Future<dynamic> getApi1(dynamic url) async {
+  dynamic responseJson;
+  dynamic responseJson1;
+
+  try {
+    // Try fetching data from the first API
+    final client = await getClient(tokenEndpoint, identifier, secret);
+    final response = await client.get(Uri.parse(url)).timeout(const Duration(minutes: 3));
+    responseJson = jsonDecode(response.body);
+    responseJson = responseJson['items'];
+  } catch (e) {
+    // if (kDebugMode) {
+    //   print("Error with first API. Trying second API.");
+    // }
+
+    try {
+      // If the first API fails, try fetching data from the second API
+      final client1 = await getClient(tokenEndpoint1, identifier1, secret1);
+      final response1 = await client1.get(Uri.parse(url)).timeout(const Duration(minutes: 3));
+      responseJson1 = jsonDecode(response1.body);
+      responseJson1 = responseJson1['items'];
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error with second API as well. Unable to fetch data from both APIs.");
+      }
+    }
+  }
+
+  // Return data from the first successful API call or null if both fail
+  return responseJson ?? responseJson1;
+}
+
 
 
   Future<dynamic> putApi(var data, dynamic url) async {

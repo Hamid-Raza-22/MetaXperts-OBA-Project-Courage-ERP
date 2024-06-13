@@ -415,52 +415,47 @@ class newDatabaseOutputs {
         print("Data is available.");
       }
     }
+    //for the owner data
     if (owerdata == null || owerdata.isEmpty) {
       bool inserted = false;
-      const int retryLimit = 3;
-
-      Future<bool> fetchDataAndInsert(String url) async {
-        int retries = 0;
-        while (retries < retryLimit) {
-          try {
-            var response = await api.getApi(url);
-            inserted = await db.insertownerData(response); // returns True or False
-            if (inserted) {
-              if (kDebugMode) {
-                print("Owner Data inserted successfully from $url");
-              }
-              return true;
-            } else {
-              if (kDebugMode) {
-                print("Error inserting data from $url");
-              }
-              return false;
-            }
-          } catch (e) {
-            retries++;
-            if (kDebugMode) {
-              print("Attempt $retries failed for $url: $e");
-            }
-            if (retries >= retryLimit) {
-              if (kDebugMode) {
-                print("Exceeded retry limit for $url");
-              }
-              return false;
-            }
-            await Future.delayed(const Duration(seconds: 2)); // wait before retrying
-          }
-        }
-        return false;
-      }
 
       try {
-        inserted = await fetchDataAndInsert("http://103.149.32.30:8080/ords/metaxperts/shopp/get/");
-        if (!inserted) {
-          inserted = await fetchDataAndInsert("https://apex.oracle.com/pls/apex/metaxpertss/shopp/get/");
+
+        var response = await api.getApi1(
+            "http://103.149.32.30:8080/ords/metaxperts/shopp/get/");
+        inserted = await db.insertownerData(response); //return True or False
+        if (inserted) {
+          if (kDebugMode) {
+            print("Owner Data inserted successfully using first API..");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data.");
+          }
         }
       } catch (e) {
-        if (kDebugMode) {
-          print("Failed to fetch and insert owner data: $e");
+        // if (kDebugMode) {
+        //   print("Error with first API. Trying second API.");
+        // }
+        try {
+          var response = await api.getApi(
+              "https://apex.oracle.com/pls/apex/metaxpertss/shopp/get/");
+          inserted = await db.insertownerData(response); // returns True or False
+
+          if (inserted) {
+            if (kDebugMode) {
+              print("Owner Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print(
+                "Error with second API as well. Unable to fetch or insert Owner data.");
+          }
         }
       }
     } else {
@@ -509,6 +504,275 @@ class newDatabaseOutputs {
           if (kDebugMode) {
             print(
                 "Error with second API as well. Unable to fetch or insert OrderBookingStatus data.");
+          }
+        }
+      }
+    }
+  }
+//   Future<void> initializeData() async {
+//
+//     await initializeAccountsData();
+//     await initializeNetBalanceData();
+//     await initializeRecoveryFormGetData();
+//     await initializeProductCategoryData();
+//     await initializePakCitiesData();
+//     await initializeOrderDetailsData();
+//     await initializeOrderMasterData();
+//     await initializeProductsData();
+//     await initializeOwnerData();
+//     await initializeOrderBookingStatusData();
+//   }
+
+  Future<void> initializeAccountsData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+
+    var accountsdata = await db.getAccoutsDB();
+    if (accountsdata == null || accountsdata.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/accounts/get/$id");
+        bool inserted = await db.insertAccountsData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/accounts/get/$id");
+          bool inserted = await db.insertAccountsData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Account data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeNetBalanceData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+
+    var netBalancedata = await db.getNetBalanceDB();
+    if (netBalancedata == null || netBalancedata.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/allbalance/get/$id");
+        bool inserted = await db.insertNetBalanceData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/allbalance/get/$id");
+          bool inserted = await db.insertNetBalanceData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Net Balance data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeRecoveryFormGetData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+
+    var recoveryFormGetData = await db.getAllRecoveryFormGetData();
+    if (recoveryFormGetData == null || recoveryFormGetData.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/recovery1/get/$id");
+        bool inserted = await db.insertRecoveryFormGetData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/recovery1/get/$id");
+          bool inserted = await db.insertRecoveryFormGetData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert RecoveryFormGet data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeProductCategoryData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+
+    var pCdata = await db.getAllProductCategoryData();
+    if (pCdata == null || pCdata.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/brand1/get/$id");
+        bool inserted = await db.insertProductCategoryData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/brand1/get/$id");
+          bool inserted = await db.insertProductCategoryData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Product Category data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializePakCitiesData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+
+    var pakCities = await db.getPakCitiesDB();
+    if (pakCities == null || pakCities.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/city/get/");
+        bool inserted = await db.insertPakCitiesData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/city/get/");
+          bool inserted = await db.insertPakCitiesData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Pak Cities data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeOrderDetailsData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+
+    var orderDetailsdata = await db.getAllOrderDetailsData();
+    if (orderDetailsdata == null || orderDetailsdata.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/detailsget/get/$id");
+        bool inserted = await db.insertOrderDetailsData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/detailsget/get/$id");
+          bool inserted = await db.insertOrderDetailsData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Order Details data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeOrderMasterData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+
+    var orderMasterdata = await db.getAllOrderMasterData();
+    if (orderMasterdata == null || orderMasterdata.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/masterget1/get/$id");
+        bool inserted = await db.insertOrderMasterData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/masterget1/get/$id");
+          bool inserted = await db.insertOrderMasterData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Order Master data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeProductsData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? brand = prefs.getString('userBrand');
+
+    var productdata = await db.getAllProductsData();
+    if (productdata == null || productdata.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/product1/get/$brand");
+        bool inserted = await db.insertProductsData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/product1/get/$brand");
+          bool inserted = await db.insertProductsData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Products data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeOwnerData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+
+    var owerdata = await db.getAllownerData();
+    if (owerdata == null || owerdata.isEmpty) {
+      try {
+        var response = await api.getApi1("http://103.149.32.30:8080/ords/metaxperts/shopp1/get/");
+        bool inserted = await db.insertownerData(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi1("https://apex.oracle.com/pls/apex/metaxpertss/shopp1/get/");
+          bool inserted = await db.insertownerData(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Owner data.");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> initializeOrderBookingStatusData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+
+    var oBSdata = await db.getallOrderBookingStatusDB();
+    if (oBSdata == null || oBSdata.isEmpty) {
+      try {
+        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/orderstatus1/get/$id");
+        bool inserted = await db.insertOrderBookingStatusData1(response);
+        if (!inserted) throw Exception('Error inserting data with first API');
+      } catch (e) {
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/orderstatus1/get/$id");
+          bool inserted = await db.insertOrderBookingStatusData1(response);
+          if (!inserted) throw Exception('Error inserting data with second API');
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with both APIs. Unable to fetch or insert Order Booking Status data.");
           }
         }
       }

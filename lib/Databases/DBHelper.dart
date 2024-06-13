@@ -681,6 +681,18 @@ _onCreate(Database db, int version) async {
       return false;
     }
   }
+  Future<bool> insertSingleOwnerData(dynamic data) async {
+    final Database db = await initDatabase();
+    try {
+      await db.insert('ownerData', data);
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error inserting single ownerData data: ${e.toString()}");
+      }
+      return false;
+    }
+  }
   Future<List<Map<String, dynamic>>?> getAllownerData() async {
     final Database db = await initDatabase();
     try {

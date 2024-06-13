@@ -195,7 +195,8 @@ class ShopVisitState extends State<ShopVisit> {
     //  _saveCounter();
     fetchProductsNamesByBrand();
     saveCurrentLocation();
-
+    fetchShopNames();
+    fetchShopNamesAll();
     shopNameNotifier.addListener(() {
       updateShopImage();
       if (kDebugMode) {
@@ -956,27 +957,16 @@ class ShopVisitState extends State<ShopVisit> {
                           onPressed: isButtonPressed
                               ? null
                               : () async {
+                            // Close the mobile keyboard
+                            FocusScope.of(context).unfocus();
+
+                            // Introduce a short delay to ensure the keyboard is closed
+                            await Future.delayed(const Duration(milliseconds: 100));
+
                             setState(() {
                               isButtonPressed = true;
                             });
 
-                            // List<String> allowedBrands = ['Kit Pack', 'Belini', 'Professional'];
-                            // String selectedBrand = _brandDropDownController.text.trim();
-                            //
-                            // if (!allowedBrands.contains(selectedBrand)) {
-                            //   Fluttertoast.showToast(
-                            //     msg: 'Please select a valid brand (Kit Pack, Belini, Professional).',
-                            //     toastLength: Toast.LENGTH_SHORT,
-                            //     gravity: ToastGravity.BOTTOM,
-                            //     backgroundColor: Colors.red,
-                            //     textColor: Colors.white,
-                            //   );
-                            //
-                            //   setState(() {
-                            //     isButtonPressed = false;
-                            //   });
-                            //   return;
-                            // }
                             if (!checkboxValue1 ||
                                 !checkboxValue2 ||
                                 !checkboxValue3 ||
@@ -994,16 +984,12 @@ class ShopVisitState extends State<ShopVisit> {
                                 checkboxValue2 = false;
                                 checkboxValue3 = false;
                                 checkboxValue4 = false;
-                              });
-
-                              setState(() {
                                 isButtonPressed = false;
                               });
                               return;
                             }
 
-                            if (_imageFile == null ||
-                                ShopNameController.text.isEmpty) {
+                            if (_imageFile == null || ShopNameController.text.isEmpty) {
                               Fluttertoast.showToast(
                                 msg: 'Please fulfill all requirements before proceeding.',
                                 toastLength: Toast.LENGTH_SHORT,
@@ -1017,26 +1003,24 @@ class ShopVisitState extends State<ShopVisit> {
                               return;
                             }
 
-                            String imagePath =  _imageFile!.path;
+                            String imagePath = _imageFile!.path;
                             var id = await customAlphabet('1234567890', 10);
                             List<int> imageBytesList = await File(imagePath).readAsBytes();
                             Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
                             String NewOrderId = generateNewOrderId(userId.toString());
-                            OrderMasterid= NewOrderId;
+                            OrderMasterid = NewOrderId;
                             if (kDebugMode) {
                               print(OrderMasterid);
                             }
-
-
 
                             shopVisitViewModel.addShopVisit(ShopVisitModel(
                               id: int.parse(id),
                               shopName: ShopNameController.text,
                               userId: userId,
                               bookerName: BookerNameController.text,
-                              brand:BrandNameController.text,
-                              city:selectedShopCity,
-                              date:_getFormattedDate(),
+                              brand: BrandNameController.text,
+                              city: selectedShopCity,
+                              date: _getFormattedDate(),
                               feedback: feedbackController.text,
                               walkthrough: checkboxValue1,
                               planogram: checkboxValue2,
@@ -1048,22 +1032,17 @@ class ShopVisitState extends State<ShopVisit> {
                               latitude: latitude,
                             ));
 
-                            String visitId =
-                            await shopVisitViewModel.fetchLastShopVisitId();
+                            String visitId = await shopVisitViewModel.fetchLastShopVisitId();
                             shopVisitId = int.parse(visitId);
-                            // Extract data from DataTable rows
-                            // Extract data from DataTable rows with non-zero quantities
-
 
                             List<StockCheckItemsModel> stockCheckItemsList = [];
                             SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                            for (int i = 0; i < (productsController.rows).length; i++) {
-                              DataRow row = (productsController.rows)[i];
+                            for (int i = 0; i < productsController.rows.length; i++) {
+                              DataRow row = productsController.rows[i];
                               String itemDesc = row.cells[0].child.toString();
                               String qty = productsController.controllers[i].text; // Get the value from the controller
 
-                              // Only add the item if qty is not null or empty
                               if (int.parse(qty) != 0) {
                                 stockCheckItemsList.add(
                                   StockCheckItemsModel(
@@ -1073,10 +1052,9 @@ class ShopVisitState extends State<ShopVisit> {
                                   ),
                                 );
 
-                                // Store itemDesc and qty into SharedPreferences
                                 await prefs.setString('itemDesc$i', itemDesc);
                                 await prefs.setString('qty$i', qty);
-                                // Print itemDesc and qty
+
                                 if (kDebugMode) {
                                   print('itemDesc$i: $itemDesc');
                                   print('qty$i: $qty');
@@ -1084,37 +1062,29 @@ class ShopVisitState extends State<ShopVisit> {
                               }
                             }
 
-                            // Call the method to add stock check items to the database
                             for (var stockCheckItems in stockCheckItemsList) {
                               await stockcheckitemsViewModel.addStockCheckItems(stockCheckItems);
                             }
 
                             bool isConnected = await isInternetAvailable();
 
-                            if (isConnected== true) {
+                            if (isConnected == true) {
                               await shopVisitViewModel.postShopVisit();
                               await stockcheckitemsViewModel.postStockCheckItems();
                             }
 
-
-                            // Navigate to the FinalOrderBookingPage only if all validations pass
                             Map<String, dynamic> dataToPass = {
                               'shopName': ShopNameController.text,
                               'ownerName': selectedShopOwner.toString(),
-
                               'userName': BookerNameController.text,
-                              'ownerContact': selectedOwnerContact.toString()??'No Contact',
-                              //  'rowDataDetails': rowDataDetails,
-
+                              'ownerContact': selectedOwnerContact.toString() ?? 'No Contact',
                             };
-
 
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const FinalOrderBookingPage(),
                                 settings: RouteSettings(arguments: dataToPass),
-
                               ),
                             );
 
@@ -1132,12 +1102,19 @@ class ShopVisitState extends State<ShopVisit> {
                           child: const Text('+ Order Booking Form'),
                         ),
 
+
                         const SizedBox(height: 20),
 
                         ElevatedButton(
                           onPressed: isButtonPressed2
                               ? null
                               : () async {
+                            // Close the mobile keyboard
+                            FocusScope.of(context).unfocus();
+
+                            // Introduce a short delay to ensure the keyboard is closed
+                            await Future.delayed(const Duration(milliseconds: 100));
+
                             setState(() {
                               isButtonPressed2 = true;
                             });

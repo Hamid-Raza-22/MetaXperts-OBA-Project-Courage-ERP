@@ -253,6 +253,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       _saveCurrentTime();
       _saveClockStatus(true);
       _clockRefresh();
+      isClockedIn = true;
       await Future.delayed(const Duration(seconds: 5));
       await attendanceViewModel.addAttendance(AttendanceModel(
         id: prefs.getString('clockInId'),
@@ -293,6 +294,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         lngOut: globalLongitude1,
         totalDistance: totalDistance,
       ));
+      isClockedIn = false;
+      _saveClockStatus(false);
+      await Future.delayed(const Duration(seconds: 10));
 
       await postFile();
       bool isConnected = await isInternetAvailable();
@@ -302,6 +306,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       }
 
       _stopTimer();
+      _clockRefresh();
       await prefs.remove('clockInId');
       await location.enableBackgroundMode(enable: false);
     }
