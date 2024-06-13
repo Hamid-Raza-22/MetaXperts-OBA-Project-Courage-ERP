@@ -37,6 +37,7 @@ class newDatabaseOutputs {
     }
   }
 
+
   Future<void> initializeData() async {
     final api = ApiServices();
     final db = DBHelper();
