@@ -18,7 +18,7 @@ class OrderMasterViewModel extends GetxController{
   }
 
   fetchAllOrderMaster() async{
-    var ordermaster = await ordermasterRepository.getShopVisit();
+    var ordermaster = await ordermasterRepository.getOederMaster();
 
     allOrderMaster.value = ordermaster;
   }

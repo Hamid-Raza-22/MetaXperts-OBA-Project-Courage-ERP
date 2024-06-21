@@ -424,7 +424,7 @@ class newDatabaseOutputs {
       try {
 
         var response = await api.getApi1(
-            "http://103.149.32.30:8080/ords/metaxperts/shopp/get/");
+            "http://103.149.32.30:8080/ords/metaxperts/shopp1/get/");
         inserted = await db.insertownerData(response); //return True or False
         if (inserted) {
           if (kDebugMode) {
@@ -441,7 +441,7 @@ class newDatabaseOutputs {
         // }
         try {
           var response = await api.getApi(
-              "https://apex.oracle.com/pls/apex/metaxpertss/shopp/get/");
+              "https://apex.oracle.com/pls/apex/metaxpertss/shopp1/get/");
           inserted = await db.insertownerData(response); // returns True or False
 
           if (inserted) {
