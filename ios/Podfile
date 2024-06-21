@@ -1,0 +1,114 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, '14.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def parse_KV_file(file, separator='=')
+  file_abs_path = File.expand_path(file)
+  if !File.exists? file_abs_path
+    return [];
+  end
+  flutter_configuration = File.read(file_abs_path)
+  return flutter_configuration.split("\n").map{|line|
+    line.split(separator, 2).map{|component|
+      component.strip()
+    }
+  }.reject{|components|
+    components.count != 2
+  }.map{|components|
+    [components[0], components[1]]
+  }.to_h
+end
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_root = File.dirname(File.realpath(__FILE__))
+  flutter_application_path = File.join(flutter_root, '..')
+
+  unless File.exist?(File.join(flutter_application_path, 'pubspec.yaml'))
+    raise "#{flutter_application_path} is not a valid Flutter project directory."
+  end
+
+  pod 'Flutter', :path => File.join(flutter_application_path, '.')
+
+  # Ensure this line is updated to the correct method
+  install_all_flutter_pods(flutter_application_path)
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+  end
+end
+# Uncomment this line to define a global platform for your project
+platform :ios, '14.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def parse_KV_file(file, separator='=')
+  file_abs_path = File.expand_path(file)
+  if !File.exists? file_abs_path
+    return [];
+  end
+  flutter_configuration = File.read(file_abs_path)
+  return flutter_configuration.split("\n").map{|line|
+    line.split(separator, 2).map{|component|
+      component.strip()
+    }
+  }.reject{|components|
+    components.count != 2
+  }.map{|components|
+    [components[0], components[1]]
+  }.to_h
+end
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_root = File.dirname(File.realpath(__FILE__))
+  flutter_application_path = File.join(flutter_root, '..')
+
+  unless File.exist?(File.join(flutter_application_path, 'pubspec.yaml'))
+    raise "#{flutter_application_path} is not a valid Flutter project directory."
+  end
+
+  pod 'Flutter', :path => File.join(flutter_application_path, '.')
+
+  # Install pods for Flutter
+  flutter_pod_install(flutter_application_path)
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+  end
+end
