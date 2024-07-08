@@ -39,7 +39,9 @@ String checkbox4="";
 String shopName="";
 String OrderMasterid= "";
 String address = "";
+String shopAddress = "";
 bool locationbool = true;
 //dynamic serialCounter ='';
 String globalcurrentMonth= DateFormat('MMM').format(DateTime.now());
 
+List<String>? cachedShopNames =[];

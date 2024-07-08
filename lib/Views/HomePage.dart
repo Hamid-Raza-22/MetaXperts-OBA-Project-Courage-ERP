@@ -6,6 +6,7 @@ import 'package:flutter_background_service/flutter_background_service.dart' show
 import 'package:geolocator/geolocator.dart' show Geolocator, LocationPermission, Position;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
@@ -14,6 +15,7 @@ import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:order_booking_shop/main.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Tracker/trac.dart';
@@ -95,6 +97,8 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   final ordermasterViewModel = Get.put(OrderMasterViewModel());
   final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
   final locationViewModel = Get.put(LocationViewModel());
+  final  ownerViewModeldata =  ShopVisitState();
+
 // Add this line
   List<String> shopList = [];
   String? selectedShop2;
@@ -138,6 +142,78 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     _checkForUpdate(); // Check for updates when the screen opens
   }
   // Function to check for updates
+  Future<void> checkUserIdAndFetchShopNames() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userDesignation = prefs.getString('userDesignation');
+
+    if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
+      await fetchShopNamesAll();
+    } else {
+      await fetchShopNames();
+    }
+  }
+
+  Future<void> fetchShopNames() async {
+    var box = await Hive.openBox('shopNamesByCities');
+    List<String> shopNamesByCities = box.get('shopNamesByCities', defaultValue: <String>[]);
+
+    // Check if data is already in Hive
+    if (shopNamesByCities.isEmpty) {
+      // Fetch shop names from database
+      await ownerViewModel.fetchShopNamesbycities();
+      List<String> shopNames = ownerViewModel.shopNamesbycites
+          .map((dynamic item) => item.toString())
+          .toSet()
+          .toList(); // Ensure data is unique and converted to a list of strings
+
+      // Save shop names to Hive
+      await box.put('shopNamesByCities', shopNames);
+      shopNamesByCities = shopNames; // Update the local variable
+      if (kDebugMode) {
+        print('Shop names by cities: $shopNamesByCities');
+      }
+    } else {
+      if (kDebugMode) {
+        print('Shop names by cities already exist in Hive: $shopNamesByCities');
+      }
+    }
+
+
+
+    await box.close();
+  }
+
+  Future<void> fetchShopNamesAll() async {
+    var box = await Hive.openBox('shopNames');
+    List<String> allShopNames = box.get('shopNames', defaultValue: <String>[]);
+
+    // Check if data is already in Hive
+    if (allShopNames.isEmpty) {
+      // Fetch shop names from database
+      await ownerViewModel.fetchShopNames();
+      List<String> shopNames = ownerViewModel.shopNames
+          .map((dynamic item) => item.toString())
+          .toSet()
+          .toList(); // Ensure data is unique and converted to a list of strings
+
+      // Save shop names to Hive
+      await box.put('shopNames', shopNames);
+      allShopNames = shopNames; // Update the local variable
+      if (kDebugMode) {
+        print('All shop names: $allShopNames');
+      }
+
+    } else {
+      if (kDebugMode) {
+        print('All shop names already exist in Hive: $allShopNames');
+      }
+    }
+
+
+    await box.close();
+  }
+
+
 
   void _checkForUpdate() async {
     try {
@@ -746,8 +822,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           height: 150,
                           width: 150,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                              if (isClockedIn) {
+                               await checkUserIdAndFetchShopNames();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -1015,7 +1092,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           height: 150,
                           width: 150,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              //await initializeDatabase();
+                             // await deleteDatabaseFile();
                              // if (isClockedIn) {
                                 Navigator.push(
                                   context,

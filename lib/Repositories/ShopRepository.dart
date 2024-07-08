@@ -17,7 +17,7 @@ class ShopRepository {
 
   Future<List<ShopModel>> getShop() async {
     var dbClient = await dbHelper.db;
-    List<Map> maps = await dbClient!.query('shop', columns: ['id', 'shopName' , 'city' ,'date', 'shopAddress' , 'ownerName' , 'ownerCNIC' , 'phoneNo' , 'alternativePhoneNo', 'latitude', 'longitude','userId','posted','body']);
+    List<Map> maps = await dbClient!.query('shop', columns: ['id', 'shopName' , 'city' ,'date', 'shopAddress' , 'ownerName' , 'ownerCNIC' , 'phoneNo' , 'alternativePhoneNo', 'latitude', 'longitude','userId','address','posted']);
     List<ShopModel> shop = [];
 
     for (int i = 0; i < maps.length; i++) {
@@ -61,39 +61,40 @@ class ShopRepository {
             latitude: i['latitude'].toString(),
             longitude: i['longitude'].toString(),
             userId: i['userId'].toString(),
-            body: i['body'] != null && i['body'].toString().isNotEmpty
-                ? Uint8List.fromList(base64Decode(i['body'].toString()))
-                : Uint8List(0),
+            address: i['address'].toString(),
+            // body: i['body'] != null && i['body'].toString().isNotEmpty
+            //     ? Uint8List.fromList(base64Decode(i['body'].toString()))
+            //     : Uint8List(0),
           );
 
-          if (kDebugMode) {
-            print("Image Path from Database: ${i['body']}");
-          }
+          // if (kDebugMode) {
+          //   print("Image Path from Database: ${i['body']}");
+          // }
           if (kDebugMode) {
             print("lat:${i['latitude']}");
           }
 
-          Uint8List imageBytes;
-          final directory = await getApplicationDocumentsDirectory();
-          final filePath = File('${directory.path}/captured_image.jpg');
-          if (filePath.existsSync()) {
-            List<int> imageBytesList = await filePath.readAsBytes();
-            imageBytes = Uint8List.fromList(imageBytesList);
-          } else {
-            if (kDebugMode) {
-              print("File does not exist at the specified path: ${filePath.path}");
-            }
-            continue; // Skip to the next iteration if the file doesn't exist
-          }
+          // Uint8List imageBytes;
+          // final directory = await getApplicationDocumentsDirectory();
+          // final filePath = File('${directory.path}/captured_image.jpg');
+          // if (filePath.existsSync()) {
+          //   List<int> imageBytesList = await filePath.readAsBytes();
+          //   imageBytes = Uint8List.fromList(imageBytesList);
+          // } else {
+          //   if (kDebugMode) {
+          //     print("File does not exist at the specified path: ${filePath.path}");
+          //   }
+          //   continue; // Skip to the next iteration if the file doesn't exist
+          // }
 
           if (kDebugMode) {
             print("Making API request for shop ID: ${v.id}");
           }
 
-          bool result1 = await api.masterPostWithImage(
+          bool result1 = await api.masterPost(
             v.toMap(),
-            'http://103.149.32.30:8080/ords/metaxperts/addshops/post/',
-            imageBytes,
+            'http://103.149.32.30:8080/ords/metaxperts/addshop/post/',
+           // imageBytes,
           );
           // await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/addshops/post/', imageBytes,);
 

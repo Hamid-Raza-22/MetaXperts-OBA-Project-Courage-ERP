@@ -1,5 +1,6 @@
 import 'dart:async' show Future, Timer;
-import 'dart:io' show InternetAddress, Platform, SocketException;
+import 'dart:io' as io;
+import 'dart:io' show Directory, InternetAddress, Platform, SocketException;
 import 'dart:ui' show DartPluginRegistrant;
 import 'package:connectivity/connectivity.dart';
 import 'package:device_info_plus/device_info_plus.dart' show DeviceInfoPlugin;
@@ -12,11 +13,16 @@ import 'package:flutter_background_service/flutter_background_service.dart' show
 import 'package:flutter_background_service_android/flutter_background_service_android.dart' show AndroidServiceInstance;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails;
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:order_booking_shop/Tracker/trac.dart' show startTimer;
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
 import 'package:order_booking_shop/location00.dart' show LocationService;
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
+import 'package:sqflite/sqflite.dart';
 import 'package:workmanager/workmanager.dart' show Workmanager;
 import 'API/DatabaseOutputs.dart';
 import 'API/Globals.dart';
@@ -35,11 +41,15 @@ import '../View_Models/OrderViewModels/ReturnFormDetailsViewModel.dart';
 import '../View_Models/OrderViewModels/ReturnFormViewModel.dart';
 import '../View_Models/RecoveryFormViewModel.dart';
 import '../View_Models/ShopViewModel.dart';
-
+DBHelper dbHelper = DBHelper();
 Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+
   Upgrader;
+await dbHelper.db;
+  // Clear previous database if exists
+  //await _clearDatabaseIfFirstLaunch();
   //iqra
 // hamid
   // // AndroidAlarmManager.initialize();
@@ -59,7 +69,7 @@ Future<void> main() async {
 
   // Ensure Firebase is initialized before running the apm
   await Firebase.initializeApp();
-
+  await Hive.initFlutter();
   // await BackgroundLocator.initialize();
 
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
@@ -71,10 +81,10 @@ Future<void> main() async {
     ),
   );
 }
+final shopViewModel = Get.put(ShopViewModel());
 final attendanceViewModel = Get.put(AttendanceViewModel());
 final shopisitViewModel = Get.put(ShopVisitViewModel());
 final stockcheckitemsViewModel = Get.put(StockCheckItemsViewModel());
-final shopViewModel = Get.put(ShopViewModel());
 final recoveryformViewModel = Get.put(RecoveryFormViewModel());
 final returnformdetailsViewModel = Get.put(ReturnFormDetailsViewModel());
 final returnformViewModel = Get.put(ReturnFormViewModel());
@@ -96,6 +106,50 @@ Future<void> _requestPermissions() async {
   }
 }
 
+Future<void> initializeDatabase() async {
+
+  await dbHelper.db;
+}
+Future<void> _clearDatabaseIfFirstLaunch() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+  if (isFirstLaunch) {
+    io.Directory documentDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentDirectory.path, 'shop.db');
+
+    if (await io.File(path).exists()) {
+      // await deleteDatabase(path);
+      await _logOut();
+      if (kDebugMode) {
+        print('Previous database cleared.');
+      }
+    } else {
+      if (kDebugMode) {
+        print('No previous database found to clear.');
+      }
+    }
+
+    await prefs.setBool('isFirstLaunch', false);
+  } else {
+    if (kDebugMode) {
+      print('This is not the first launch. Database was not cleared.');
+    }
+  }
+}
+Future<void> _logOut() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  // Clear the user ID or any other relevant data from SharedPreferences
+  prefs.remove('userId');
+  prefs.remove('userCitys');
+  prefs.remove('userNames');
+  prefs.remove('userDesignation');
+  prefs.remove('userBrand');
+  if (kDebugMode) {
+    print('Previous SharedPreferences cleared.');
+  }
+  // Add any additional logout logic here
+}
 void callbackDispatcher(){
   Workmanager().executeTask((task, inputData) async {
     if (kDebugMode) {
@@ -104,7 +158,11 @@ void callbackDispatcher(){
     return Future.value(true);
   });
 }
-
+// Future<void> deleteDatabaseFile() async {
+//   io.Directory documentDirectory = await getApplicationDocumentsDirectory();
+//   String path = join(documentDirectory.path, 'shop.db');
+//   await deleteDatabase(path);
+// }
 Future<void> initializeServiceLocation() async {
   final service = FlutterBackgroundService();
 

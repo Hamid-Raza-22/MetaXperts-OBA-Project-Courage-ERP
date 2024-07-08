@@ -1,7 +1,9 @@
-import 'dart:io' show File;
+import 'dart:io' as io;
+import 'dart:io';
+import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart' show Uint8List, kDebugMode;
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BuildContext, Colors, Column, CrossAxisAlignment, DropdownButton, DropdownMenuItem, EdgeInsets, ElevatedButton, Expanded, InputDecoration, MainAxisAlignment, MaterialPageRoute, ModalRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, Size, SizedBox, State, StatefulWidget, Text, TextAlign, TextEditingController, TextFormField, TextStyle, Widget, WillPopScope;
+import 'package:flutter/material.dart' show Align, Alignment, BorderRadius, BuildContext, CircularProgressIndicator, Colors, Column, CrossAxisAlignment, DropdownButton, DropdownMenuItem, EdgeInsets, ElevatedButton, Expanded, InputDecoration, MainAxisAlignment, MaterialPageRoute, ModalRoute, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, Size, SizedBox, State, StatefulWidget, Text, TextAlign, TextEditingController, TextFormField, TextStyle, Widget, WillPopScope;
 import 'package:flutter/services.dart' show Size, TextAlign, Uint8List, rootBundle;
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +11,7 @@ import 'package:nanoid/nanoid.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:order_booking_shop/main.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share/share.dart' show Share;
 import 'package:pdf/widgets.dart' as pw;
@@ -37,6 +40,8 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
   bool isDataSavedInApex = true;
   bool isReConfirmButtonPressed = false;
   bool isOrderConfirmed = false;
+  bool isOrderConfirmedback = false;
+  bool showLoading = false;
   final ordermasterViewModel = Get.put(OrderMasterViewModel());
   final orderdetailsViewModel = Get.put(OrderDetailsViewModel());
   String currentUserId = '';
@@ -125,7 +130,7 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
         body:  WillPopScope(
           onWillPop: () async {
             // Check if the order is confirmed
-            if (isOrderConfirmed) {
+            if (isOrderConfirmedback) {
               // Order is confirmed, prevent going back
               return false;
             } else {
@@ -199,12 +204,14 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                           SizedBox(
                             width: 170,
                             child: ElevatedButton(
-                              onPressed: isReConfirmButtonPressed
+                              onPressed: isReConfirmButtonPressed || showLoading
                                   ? null // Disable the button if isReConfirmButtonPressed is true
                                   : () async {
+                                setState(() {
+                                  showLoading= true;
+                                });
+                                isOrderConfirmedback=true;
 
-                                // Your existing code for handling the "Re Confirm" button press
-                                isOrderConfirmed = true;
 
                                 await ordermasterViewModel.addOrderMaster(OrderMasterModel(
                                   orderId: OrderMasterid,
@@ -222,6 +229,11 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                                 ));
                                  await saveRowDataDetailsToDatabase(rowDataDetails);
 
+                                setState(() {
+                                  isReConfirmButtonPressed = true; // Mark the button as pressed
+                                });
+                                await Future.delayed(const Duration(seconds: 10));
+
                                 Fluttertoast.showToast(
                                   msg: "Order confirmed!",
                                   toastLength: Toast.LENGTH_SHORT,
@@ -230,8 +242,10 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                                   textColor: Colors.white,
                                 );
                                 setState(() {
-                                  isReConfirmButtonPressed = true; // Mark the button as pressed
+                                  showLoading= false;
                                 });
+                                // Your existing code for handling the "Re Confirm" button press
+                                isOrderConfirmed = true;
 
                                 bool isConnected = await isInternetAvailable();
 
@@ -246,7 +260,11 @@ class OrderBooking2ndPageState extends State<OrderBooking2ndPage> {
                                   borderRadius: BorderRadius.circular(8), // Optional: Set border radius
                                 ),
                               ),
-                              child: const Text('Re Confirm'),
+                              child:  showLoading
+                                  ? const CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                              )
+                                  :const Text('Re Confirm'),
                             ),
                           ),
                         ],

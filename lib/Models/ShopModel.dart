@@ -14,7 +14,8 @@ class ShopModel {
   dynamic latitude;
   dynamic longitude;
   dynamic userId;
-  Uint8List? body;
+  dynamic? address;
+  // Uint8List? body;
 
   ShopModel({
     this.id,
@@ -27,7 +28,8 @@ class ShopModel {
     this.phoneNo,
     this.alternativePhoneNo,
      this.latitude,
-    this.body,
+    this.address,
+    // this.body,
      this.longitude,
     this.userId
   });
@@ -47,9 +49,10 @@ class ShopModel {
       latitude:json['latitude'],
       longitude: json['longitude'],
         userId: json['userId'],
-      body: json['body'] != null && json['body'].toString().isNotEmpty
-          ? Uint8List.fromList(base64Decode(json['body'].toString()))
-          : null,
+      address: json['address'],
+      // body: json['body'] != null && json['body'].toString().isNotEmpty
+      //     ? Uint8List.fromList(base64Decode(json['body'].toString()))
+      //     : null,
     );
   }
 
@@ -67,7 +70,8 @@ class ShopModel {
       'latitude':latitude,
       'longitude':longitude,
       'userId': userId,
-      'body':  body != null ? base64Encode(body!) : null
+      'address': address
+      // 'body':  body != null ? base64Encode(body!) : null
     };
   }
 }

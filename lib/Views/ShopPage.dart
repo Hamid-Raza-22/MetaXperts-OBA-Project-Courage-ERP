@@ -6,12 +6,14 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart' show TextFieldConfiguration, TypeAheadFormField;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 import 'package:flutter/foundation.dart' show Key, Uint8List, kDebugMode;
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator, LocationAccuracy, Position;
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/async.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show userCitys, userDesignation, userId;
+import 'package:order_booking_shop/API/Globals.dart' show shopAddress, userCitys, userDesignation, userId;
 import 'package:order_booking_shop/View_Models/ShopViewModel.dart' show ShopViewModel;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
 import 'package:path_provider/path_provider.dart';
@@ -100,6 +102,8 @@ class _ShopPageState extends State<ShopPage> {
   final FocusNode alternativePhoneNoFocusNode = FocusNode();
   static double? globalLatitude;
   static double? globalLongitude;
+  bool isButtonPressed2 = false;
+  bool showLoading = false;
   int? shopId;
   String currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   bool isLocationAdded = false;
@@ -107,9 +111,9 @@ class _ShopPageState extends State<ShopPage> {
   final ImagePicker _imagePicker = ImagePicker();
   get shopData => null;
   List<String> citiesDropdownItems = [];
-
+bool isOrderConfirmedback = false;
   DBHelper dbHelper = DBHelper();
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   List<Map<String, dynamic>> shopOwners = [];
 
@@ -203,6 +207,16 @@ class _ShopPageState extends State<ShopPage> {
         if (kDebugMode) {
           print('Latitude: $globalLatitude, Longitude: $globalLongitude');
         }
+        // Using geocoding to convert latitude and longitude to an address
+        List<Placemark> placemarks = await placemarkFromCoordinates(globalLatitude! , globalLongitude!);
+        Placemark currentPlace = placemarks[0];
+
+        String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
+        shopAddress = address1;
+
+        if (kDebugMode) {
+          print('Address is: $address1');
+        }
 
         //print('Address is: $address1');
       } catch (e) {
@@ -238,6 +252,9 @@ class _ShopPageState extends State<ShopPage> {
     super.dispose();
   }
   Future<void> _validateAndSave() async {
+    setState(() {
+      isButtonPressed2= true;
+    });
     final form = _formKey.currentState;
     if (form!.validate()) {
       String selectedCity = cityController.text.trim();
@@ -246,11 +263,29 @@ class _ShopPageState extends State<ShopPage> {
       }
       bool isCityValid = true;
       if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
+        var box = await Hive.openBox('shopNames');
+        List<String> shopNames = box.get('shopNames')?.cast<String>() ?? [];
+        shopNames.add(shopNameController.text);
+        await box.put('shopNames', shopNames);
+        await box.close();
+        if (kDebugMode) {
+          print(' Hive shopNames');
+        }
         isCityValid = selectedCity.isNotEmpty && citiesDropdownItems.contains(selectedCity);
+      }else{
+        var box = await Hive.openBox('shopNamesByCities');
+        List<String> shopNamesByCities = box.get('shopNamesByCities')?.cast<String>() ?? [];
+        shopNamesByCities.add(shopNameController.text);
+        await box.put('shopNamesByCities', shopNamesByCities);
+        await box.close();
+        if (kDebugMode) {
+          print(' Hive shopNamesby cities');
+        }
       }
 
       if (isCityValid) {
-      if (_imageFile == null ||
+      if (
+      // _imageFile == null ||
           shopNameController.text.isEmpty ||
           cityController.text.isEmpty ||
           shopAddressController.text.isEmpty ||
@@ -283,16 +318,22 @@ class _ShopPageState extends State<ShopPage> {
         } else if (alternativePhoneNoController.text.isEmpty) {
           alternativePhoneNoFocusNode.requestFocus();
         }
+        setState(() {
+          isButtonPressed2= false;
+        });
 
         return;
       }
-
+      setState(() {
+        showLoading = true;
+      });
+      isOrderConfirmedback= true;
       // Proceed with saving data if validation passes
       // Add your data saving logic here
-      String imagePath =  _imageFile!.path;
-      List<int> imageBytesList = await File(imagePath).readAsBytes();
-      Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
-      var id = await customAlphabet('1234567890', 12);
+      // String imagePath =  _imageFile!.path;
+      // List<int> imageBytesList = await File(imagePath).readAsBytes();
+      // Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
+       var id = await customAlphabet('1234567890', 12);
 
       // double? latitude = currentLocation['latitude'];
       // double? longitude = currentLocation['longitude'];
@@ -310,7 +351,8 @@ class _ShopPageState extends State<ShopPage> {
         latitude: globalLatitude,
         longitude: globalLongitude,
         userId: userId,
-        body: imageBytes,
+        address: shopAddress
+        //body: imageBytes,
         // ... existing parameters ...
         // latitude: shopViewModel.latitude,
         // longitude: shopViewModel.longitude,
@@ -320,13 +362,17 @@ class _ShopPageState extends State<ShopPage> {
       String shopid = await shopViewModel.fetchLastShopId();
       shopId = int.parse(shopid);
 
-      shopNameController.text = "";
-      cityController.text = "";
-      shopAddressController.text = "";
-      ownerNameController.text = "";
-      ownerCNICController.text = "";
-      phoneNoController.text = "";
-      alternativePhoneNoController.text = "";
+
+
+      //
+      //
+      // shopNameController.text = "";
+      // cityController.text = "";
+      // shopAddressController.text = "";
+      // ownerNameController.text = "";
+      // ownerCNICController.text = "";
+      // phoneNoController.text = "";
+      // alternativePhoneNoController.text = "";
       bool isConnected = await isInternetAvailable();
       if (isConnected== true) {
         shopViewModel.postShop();
@@ -338,6 +384,10 @@ class _ShopPageState extends State<ShopPage> {
 
       // Navigate to the home page after saving
       // Inside the ShopPage where you navigate back to HomePage
+      // Introduce a 5-second delay
+
+      await Future.delayed(const Duration(seconds: 8));
+
       Navigator.pop(context);
       const HomePage(); // Stop the timer when navigating back
 
@@ -370,14 +420,29 @@ class _ShopPageState extends State<ShopPage> {
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
+      isOrderConfirmedback=false;
     }
+    setState(() {
+      showLoading = false;
+      isButtonPressed2 = false;
+    });
   }
 
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+      // Check if the order is confirmed
+      if (isOrderConfirmedback) {
+        // Order is confirmed, prevent going back
+        return false;
+      } else {
+        return true;
+      }
+    },
+    child: SafeArea(
+     child: Scaffold(
           body: SingleChildScrollView(
             child: Container(
               margin: const EdgeInsets.all(8),
@@ -747,71 +812,71 @@ class _ShopPageState extends State<ShopPage> {
                               ],
                             ),
 
-                            const SizedBox(height: 20),
-                            ElevatedButton(
-                              onPressed: () async {
-                                try {
-                                  final image = await _imagePicker.getImage(
-                                    source: ImageSource.camera,
-                                    imageQuality: 40, // Adjust the quality (0 to 100)
-                                  );
-
-                                  if (image != null) {
-                                    setState(() {
-                                      _imageFile = File(image.path);
-
-                                      shopData?['imagePath'] = _imageFile!.path;
-
-                                      // // Convert the image file to bytes and store it in _imageBytes
-                                      // List<int> imageBytesList = _imageFile!.readAsBytesSync();
-                                      // _imageBytes = Uint8List.fromList(imageBytesList);
-                                    });
-
-                                    // Save only the image
-                                    await saveImage();
-
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                      content: Text('No image selected.'),
-                                    ));
-                                  }
-                                } catch (e) {
-                                  if (kDebugMode) {
-                                    print('Error capturing image: $e');
-                                  }
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                              child: const Text('+ Add Photo'),
-                            ),
-
-                            const SizedBox(height: 10),
-                            // Add the Stack widget to overlay the warning icon on top of the image
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                if (_imageFile != null)
-                                  Image.file(
-                                    _imageFile!,
-                                    height: 300,
-                                    width: 400,
-                                    fit: BoxFit.cover,
-                                  ),
-                                if (_imageFile == null)
-                                  const Icon(
-                                    Icons.warning,
-                                    color: Colors.red,
-                                    size: 48,
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
+                             const SizedBox(height: 20),
+                            // ElevatedButton(
+                            //   onPressed: () async {
+                            //     try {
+                            //       final image = await _imagePicker.getImage(
+                            //         source: ImageSource.camera,
+                            //         imageQuality: 40, // Adjust the quality (0 to 100)
+                            //       );
+                            //
+                            //       if (image != null) {
+                            //         setState(() {
+                            //           _imageFile = File(image.path);
+                            //
+                            //           shopData?['imagePath'] = _imageFile!.path;
+                            //
+                            //           // // Convert the image file to bytes and store it in _imageBytes
+                            //           // List<int> imageBytesList = _imageFile!.readAsBytesSync();
+                            //           // _imageBytes = Uint8List.fromList(imageBytesList);
+                            //         });
+                            //
+                            //         // Save only the image
+                            //         await saveImage();
+                            //
+                            //       } else {
+                            //         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            //           content: Text('No image selected.'),
+                            //         ));
+                            //       }
+                            //     } catch (e) {
+                            //       if (kDebugMode) {
+                            //         print('Error capturing image: $e');
+                            //       }
+                            //     }
+                            //   },
+                            //   style: ElevatedButton.styleFrom(
+                            //     backgroundColor: Colors.green,
+                            //     foregroundColor: Colors.white,
+                            //     shape: RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.circular(5),
+                            //     ),
+                            //   ),
+                            //   child: const Text('+ Add Photo'),
+                            // ),
+                            //
+                            // const SizedBox(height: 10),
+                            // // Add the Stack widget to overlay the warning icon on top of the image
+                            // Stack(
+                            //   alignment: Alignment.center,
+                            //   children: [
+                            //     if (_imageFile != null)
+                            //       Image.file(
+                            //         _imageFile!,
+                            //         height: 300,
+                            //         width: 400,
+                            //         fit: BoxFit.cover,
+                            //       ),
+                            //     if (_imageFile == null)
+                            //       const Icon(
+                            //         Icons.warning,
+                            //         color: Colors.red,
+                            //         size: 48,
+                            //       ),
+                            //   ],
+                            // ),
+                            // const SizedBox(height: 20),
                             // Align the "save" button to the bottom right
                             Align(
                               alignment: Alignment.bottomRight,
@@ -819,148 +884,30 @@ class _ShopPageState extends State<ShopPage> {
                                 width: 100,
                                 height: 30,
                                 child: ElevatedButton(
-                                  onPressed: _validateAndSave,
-                                  style: ElevatedButton.styleFrom(
+                                 onPressed: isButtonPressed2 || showLoading
+                                         ? null
+                                     : () async {_validateAndSave();},
+
+                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: Colors.white, backgroundColor: Colors.green,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     minimumSize: const Size(200, 50),
                                   ),
-                                  child: const Text(
+
+                                  child:  showLoading
+                                ? const CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              )
+                                 : const Text(
                                     'Save',
                                     style: TextStyle(
                                       fontSize: 18,
                                     ),
                                 ),
 
-                                // child: ElevatedButton(
-                                //   onPressed: () async {
-                                //     // Validate the selected city
-                                //     String selectedCity = cityController.text.trim();
-                                //     if (kDebugMode) {
-                                //       print('Selected City: $selectedCity');
-                                //     }
-                                //     bool isCityValid = true;
-                                //     if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
-                                //       isCityValid = selectedCity.isNotEmpty && citiesDropdownItems.contains(selectedCity);
-                                //     }
-                                //
-                                //     if (isCityValid) {
-                                //
-                                //       // City is valid, proceed with the rest of the code
-                                //
-                                //       // Continue with the rest of the validation and data saving logic
-                                //       if (_imageFile != null &&
-                                //           shopNameController.text.isNotEmpty &&
-                                //           cityController.text.isNotEmpty &&
-                                //           shopAddressController.text.isNotEmpty &&
-                                //           ownerNameController.text.isNotEmpty &&
-                                //           ownerCNICController.text.length >= 13 &&
-                                //           ownerCNICController.text.isNotEmpty &&
-                                //           phoneNoController.text.isNotEmpty &&
-                                //           alternativePhoneNoController.text.isNotEmpty) {
-                                //         String imagePath =  _imageFile!.path;
-                                //         List<int> imageBytesList = await File(imagePath).readAsBytes();
-                                //         Uint8List? imageBytes = Uint8List.fromList(imageBytesList);
-                                //         var id = await customAlphabet('1234567890', 12);
-                                //
-                                //         // double? latitude = currentLocation['latitude'];
-                                //         // double? longitude = currentLocation['longitude'];
-                                //
-                                //         shopViewModel.addShop(ShopModel(
-                                //           id: int.parse(id),
-                                //           shopName: shopNameController.text,
-                                //           city: cityController.text,
-                                //           date: currentDate,
-                                //           shopAddress: shopAddressController.text,
-                                //           ownerName: ownerNameController.text,
-                                //           ownerCNIC: ownerCNICController.text,
-                                //           phoneNo: phoneNoController.text,
-                                //           alternativePhoneNo: alternativePhoneNoController.text,
-                                //           latitude: globalLatitude,
-                                //           longitude: globalLongitude,
-                                //           userId: userId,
-                                //           body: imageBytes,
-                                //           // ... existing parameters ...
-                                //           // latitude: shopViewModel.latitude,
-                                //           // longitude: shopViewModel.longitude,
-                                //         ));
-                                //
-                                //
-                                //         String shopid = await shopViewModel.fetchLastShopId();
-                                //         shopId = int.parse(shopid);
-                                //
-                                //         shopNameController.text = "";
-                                //         cityController.text = "";
-                                //         shopAddressController.text = "";
-                                //         ownerNameController.text = "";
-                                //         ownerCNICController.text = "";
-                                //         phoneNoController.text = "";
-                                //         alternativePhoneNoController.text = "";
-                                //         bool isConnected = await isInternetAvailable();
-                                //         if (isConnected== true) {
-                                //           shopViewModel.postShop();
-                                //         }
-                                //
-                                //         // DBHelper dbmaster = DBHelper();
-                                //         //
-                                //         // dbmaster.postShopTable();
-                                //
-                                //         // Navigate to the home page after saving
-                                //         // Inside the ShopPage where you navigate back to HomePage
-                                //         Navigator.pop(context);
-                                //         const HomePage(); // Stop the timer when navigating back
-                                //
-                                //         // Show toast message
-                                //         Fluttertoast.showToast(
-                                //           msg: 'Data saved successfully!',
-                                //           toastLength: Toast.LENGTH_SHORT,
-                                //           gravity: ToastGravity.BOTTOM,
-                                //           timeInSecForIosWeb: 1,
-                                //           backgroundColor: Colors.green,
-                                //           textColor: Colors.white,
-                                //           fontSize: 16.0,
-                                //         );
-                                //       } else {
-                                //         // Show toast message for invalid input
-                                //         Fluttertoast.showToast(
-                                //           msg: 'Please fill all fields properly.',
-                                //           toastLength: Toast.LENGTH_SHORT,
-                                //           gravity: ToastGravity.BOTTOM,
-                                //           timeInSecForIosWeb: 1,
-                                //           backgroundColor: Colors.red,
-                                //           textColor: Colors.white,
-                                //           fontSize: 16.0,
-                                //         );
-                                //       }
-                                //     } else {
-                                //       // Show toast message for invalid city
-                                //       Fluttertoast.showToast(
-                                //         msg: 'Please select a valid city.',
-                                //         toastLength: Toast.LENGTH_SHORT,
-                                //         gravity: ToastGravity.BOTTOM,
-                                //         timeInSecForIosWeb: 1,
-                                //         backgroundColor: Colors.red,
-                                //         textColor: Colors.white,
-                                //         fontSize: 16.0,
-                                //       );
-                                //     }
-                                //   },
-                                //   style: ElevatedButton.styleFrom(
-                                //     foregroundColor: Colors.white, backgroundColor: Colors.green,
-                                //     shape: RoundedRectangleBorder(
-                                //       borderRadius: BorderRadius.circular(10),
-                                //     ),
-                                //     minimumSize: const Size(200, 50),
-                                //   ),
-                                //   child: const Text(
-                                //     'Save',
-                                //     style: TextStyle(
-                                //       fontSize: 18,
-                                //     ),
-                                //   ),
-                                // ),
+
                               ),
                             ),
                             )
@@ -974,6 +921,6 @@ class _ShopPageState extends State<ShopPage> {
             ),
           ),
         )
-    );
+    ));
     }
 }

@@ -2,14 +2,19 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import 'package:order_booking_shop/Views/ShopVisit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/Globals.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/loginModel.dart';
+import '../View_Models/OwnerViewModel.dart';
 import '../main.dart';
 import 'HomePage.dart';
+
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -26,7 +31,7 @@ class LoginFormState extends State<LoginForm> {
 
   bool _isLoading = false;
   int _loadingProgress = 0;
-
+  final  ownerViewModel = Get.put(OwnerViewModel());
   @override
   void initState() {
     super.initState();
@@ -128,10 +133,17 @@ class LoginFormState extends State<LoginForm> {
 
         newDatabaseOutputs outputs = newDatabaseOutputs();
         setState(() {
-          _loadingProgress = 90; // Update progress
+          _loadingProgress = 75; // Update progress
         });
         await outputs.checkFirstRun();
+        setState(() {
+          _loadingProgress = 90; // Update progress
+        });
+        // await checkUserIdAndFetchShopNames();
 
+        // Call _checkUserIdAndFetchShopNames from ShopVisitState
+        // await shopVisitState.checkUserIdAndFetchShopNames();
+        // await ShopVisitState().checkUserIdAndFetchShopNames();
         if (isLoggedIn) {
           Map<String, dynamic> dataToPass = {
             'userName': userNames
@@ -179,6 +191,70 @@ class LoginFormState extends State<LoginForm> {
     String? userBrand = prefs.getString('userBrand');
     return userBrand != null && userBrand.isNotEmpty && userDesignation != null && userId != null && userId.isNotEmpty && userCitys != null && userCitys.isNotEmpty && userNames != null && userNames.isNotEmpty;
   }
+  // Future<void> checkUserIdAndFetchShopNames() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? userDesignation = prefs.getString('userDesignation');
+  //
+  //   if (userDesignation == 'ASM' || userDesignation == 'SPO' ||
+  //       userDesignation == 'SOS') {
+  //     await fetchShopNamesAll();
+  //   } else {
+  //     await fetchShopNames();
+  //   }
+  // }
+  //
+  // Future<void> fetchShopNames() async {
+  //   // Fetch shop names from database
+  //  await ownerViewModel.fetchShopNamesbycities();
+  //   List<String> shopNames = ownerViewModel.shopNamesbycites
+  //       .map((dynamic item) => item.toString())
+  //       .toSet()
+  //       .toList(); // Ensure data is unique and converted to a list of strings
+  //   //shopOwners = (await dbHelper.getOwnersDB())!;// Example: Replace with actual fetch from your database
+  //   // Save shop names to Hive
+  //   var box = await Hive.openBox('shopNamesByCities');
+  //   await box.put('shopNamesByCities', shopNames);
+  //   List<String> shopNamesByCities = box.get('shopNamesByCities', defaultValue: <String>[]);
+  //   if (kDebugMode) {
+  //     print('Shop names by cities: $shopNamesByCities');
+  //   }
+  //   await box.close();
+  // }
+  //
+  // Future<void> fetchShopNamesAll() async {
+  //   // Fetch shop names from database
+  //  await ownerViewModel.fetchShopNames();// Example: Replace with actual fetch from your database
+  //   List<String> shopNames = ownerViewModel.shopNames
+  //       .map((dynamic item) => item.toString())
+  //       .toSet()
+  //       .toList(); // Ensure data is unique and converted to a list of strings
+  //   //shopOwners = (await dbHelper.getOwnersDB())!;
+  //   // Save shop names to Hive
+  //   var box = await Hive.openBox('shopNames');
+  //   await box.put('shopNames', shopNames);
+  //   List<String> allShopNames = box.get('shopNames', defaultValue: <String>[]);
+  //   if (kDebugMode) {
+  //     print('All shop names: $allShopNames');
+  //   }
+  //   await box.close();
+  //
+  // }
+  // Future<void> checkStoredData() async {
+  //   var box = await Hive.openBox('shopNamesByCities');
+  //   List<String> shopNamesByCities = box.get('shopNamesByCities', defaultValue: <String>[]);
+  //   if (kDebugMode) {
+  //     print('Shop names by cities: $shopNamesByCities');
+  //   }
+  //   await box.close();
+  //
+  //   box = await Hive.openBox('shopNames');
+  //   List<String> shopNames = box.get('shopNames', defaultValue: <String>[]);
+  //   if (kDebugMode) {
+  //     print('All shop names: $shopNames');
+  //   }
+  //   await box.close();
+  // }
+
 
   @override
   Widget build(BuildContext context) {

@@ -33,7 +33,11 @@ class ShopViewModel extends GetxController{
     allShop.value= shop;
 
   }
-
+  // refreshDatabase() async {
+  //   DBHelper dbHelper = DBHelper();
+  //   await dbHelper.db; // Ensure the latest database instance is used
+  //   fetchAllShop(); // Fetch updated data
+  // }
   Future<String> fetchLastShopId() async{
     String shopvisit = await shopRepository.getLastid();
     return shopvisit;
@@ -42,10 +46,10 @@ class ShopViewModel extends GetxController{
   Future<void> addShop(ShopModel shopModel) async {
     await shopRepository.add(shopModel);
     // Convert image to base64 string
-    String base64Image = '';
-    if (shopModel.body != null) {
-      base64Image = base64Encode(shopModel.body!);
-    }
+    // String base64Image = '';
+    // if (shopModel.body != null) {
+    //   base64Image = base64Encode(shopModel.body!);
+    // }
     // Implementing logic to insert data into 'ownerData' table
     await ownerViewModel.addOwner(OwnerModel(
         id: shopModel.id,
@@ -56,7 +60,8 @@ class ShopViewModel extends GetxController{
        shop_address : shopModel.shopAddress,
        user_id :shopModel.userId,
         created_date :shopModel.date,
-       images: shopModel.body
+
+      // images: shopModel.body
     ));
 
     await fetchAllShop();

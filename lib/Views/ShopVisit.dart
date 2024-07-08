@@ -1,6 +1,7 @@
 import 'dart:convert' show base64Decode;
+import 'package:flutter/animation.dart' show AlwaysStoppedAnimation, Color;
 import 'package:flutter/foundation.dart' show Key, Uint8List, kDebugMode;
-import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, FocusScope, Form, FormState, GestureDetector, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, imageCache;
+import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, CircularProgressIndicator, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, FocusNode, FocusScope, Form, FormState, GestureDetector, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, imageCache;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'dart:io';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -88,6 +90,7 @@ class ShopVisitState extends State<ShopVisit> {
   TextEditingController BookerNameController = TextEditingController();
   TextEditingController BrandNameController = TextEditingController();
   TextEditingController ShopAddressController = TextEditingController();
+  TextEditingController ShopOwnerController = TextEditingController();
   final  ownerViewModel = Get.put(OwnerViewModel());
 
 
@@ -145,6 +148,7 @@ class ShopVisitState extends State<ShopVisit> {
   dynamic longitude ='';
   bool isButtonPressed = false;
   bool isButtonPressed2 = false;
+  bool showLoading = false;
   List<DataRow> rows = [];
   final FocusNode _shopNameFocusNode = FocusNode();
   // Uint8List? _imageBytes;
@@ -195,8 +199,7 @@ class ShopVisitState extends State<ShopVisit> {
     //  _saveCounter();
     fetchProductsNamesByBrand();
     saveCurrentLocation();
-    fetchShopNames();
-    fetchShopNamesAll();
+
     shopNameNotifier.addListener(() {
       updateShopImage();
       if (kDebugMode) {
@@ -244,41 +247,103 @@ class ShopVisitState extends State<ShopVisit> {
   }
 
 
+  // Future<void> _checkUserIdAndFetchShopNames() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? userDesignation = prefs.getString('userDesignation');
+  //
+  //   if (userDesignation != 'ASM' && userDesignation != 'SPO'  && userDesignation != 'SOS') {
+  //     await fetchShopNames();
+  //   //  shopOwners = (await dbHelper.getOwnersDB())!;
+  //
+  //   } else {
+  //     await fetchShopNamesAll();
+  //     // shopOwners = (await dbHelper.getOwnersDB())!;
+  //
+  //   }
+  // }
+
   Future<void> _checkUserIdAndFetchShopNames() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation != 'ASM' && userDesignation != 'SPO'  && userDesignation != 'SOS') {
-      await fetchShopNames();
-    //  shopOwners = (await dbHelper.getOwnersDB())!;
+    var boxName = (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS')
+        ? 'shopNames'
+        : 'shopNamesByCities';
+    var box = await Hive.openBox(boxName);
 
+   cachedShopNames = box.get(boxName) as List<String>?;
+    await box.close();
+
+    if (cachedShopNames != null && cachedShopNames!.isNotEmpty) {
+      setState(() {
+        dropdownItems = cachedShopNames!.map((dynamic item) => item.toString()).toSet().toList();
+      });
     } else {
-      await fetchShopNamesAll();
-      // shopOwners = (await dbHelper.getOwnersDB())!;
-
+      if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
+        await fetchShopNamesAll();
+      } else {
+        await fetchShopNames();
+      }
     }
   }
 
   Future<void> fetchShopNames() async {
-
+    // Fetch shop names from database
     ownerViewModel.fetchShopNamesbycities();
-   shopOwners = (await dbHelper.getOwnersDB())!;
+    List<String> shopNames =  ownerViewModel.shopNamesbycites.map((dynamic item) => item.toString()).toSet().toList(); // Example: Replace with actual fetch from your database
+    //shopOwners = (await dbHelper.getOwnersDB())!;// Example: Replace with actual fetch from your database
+
+    // Save shop names to Hive
+    var box = await Hive.openBox('shopNamesByCities');
+    await box.put('shopNamesByCities', shopNames);
+    List<String> shopNamesByCities = box.get('shopNamesByCities', defaultValue: <String>[]);
+    if (kDebugMode) {
+      print('Shop names by cities: $shopNamesByCities');
+    }
+    await box.close();
+
     setState(() {
-      // Explicitly cast each element to String
-      dropdownItems = ownerViewModel.shopNamesbycites.map((dynamic item) => item.toString()).toSet().toList();
+      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
     });
   }
-
+  //
+  // Future<void> fetchShopNames() async {
+  //
+  //   ownerViewModel.fetchShopNamesbycities();
+  //  shopOwners = (await dbHelper.getOwnersDB())!;
+  //   setState(() {
+  //     // Explicitly cast each element to String
+  //     dropdownItems = ownerViewModel.shopNamesbycites.map((dynamic item) => item.toString()).toSet().toList();
+  //   });
+  // }
 
   Future<void> fetchShopNamesAll() async {
+    // Fetch shop names from database
+     ownerViewModel.fetchShopNames();// Example: Replace with actual fetch from your database
+     List<String> shopNames =  ownerViewModel.shopNames.map((dynamic item) => item.toString()).toSet().toList();
+     //shopOwners = (await dbHelper.getOwnersDB())!;
+    // Save shop names to Hive
+     var box = await Hive.openBox('shopNames');
+     await box.put('shopNames', shopNames);
+     List<String> allShopNames = box.get('shopNames', defaultValue: <String>[]);
+     if (kDebugMode) {
+       print('All shop names: $allShopNames');
+     }
+     await box.close();
 
-    ownerViewModel.fetchShopNames();
-    shopOwners = (await dbHelper.getOwnersDB())!;
     setState(() {
-      // Explicitly cast each element to String
-      dropdownItems = ownerViewModel.shopNames.map((dynamic item) => item.toString()).toSet().toList();
-    });
+      dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
+      });
   }
+  // Future<void> fetchShopNamesAll() async {
+  //
+  //   ownerViewModel.fetchShopNames();
+  //   shopOwners = (await dbHelper.getOwnersDB())!;
+  //   setState(() {
+  //     // Explicitly cast each element to String
+  //     dropdownItems = ownerViewModel.shopNames.map((dynamic item) => item.toString()).toSet().toList();
+  //   });
+  // }
 
   Future<void> saveCurrentLocation() async {
     PermissionStatus permission = await Permission.location.request();
@@ -454,6 +519,8 @@ class ShopVisitState extends State<ShopVisit> {
     );
   }
   Future<void> updateShopImage() async {
+    shopOwners = (await dbHelper.getOwnersDB())!;// Example: Replace with actual fetch from your database
+
     for (var owner in shopOwners) {
       if (owner['shop_name'] == shopNameNotifier.value) {
         selectedShopOwner = owner['owner_name'];
@@ -461,6 +528,7 @@ class ShopVisitState extends State<ShopVisit> {
         selectedShopCity= owner['city'];
         selectedShopAddress= owner['shop_address'];
         ShopAddressController.text = selectedShopAddress ?? 'Not Address';
+        ShopOwnerController.text = selectedShopOwner ?? 'No Owner name';
         String base64Image = owner['images'];
        await _shopImageController.loadImageFile(base64Image);
        if (kDebugMode) {
@@ -481,8 +549,6 @@ class ShopVisitState extends State<ShopVisit> {
   void dispose() {
     _shopImageController.clearShopImageFile();
     ShopNameController.dispose(); // Clear the text in the shop name field
-
-
     _shopNameFocusNode.dispose(); // Dispose the FocusNode
     feedbackController.dispose();
     feedbackFocusNode.dispose();
@@ -521,28 +587,26 @@ class ShopVisitState extends State<ShopVisit> {
                         style: const TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     const Text(
                       'Shop Name',
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      style: TextStyle(fontSize: 20, color: Colors.black),
                     ),
                  GestureDetector(
-                  onTap: () {
+                  onTap: () async {
+                   //z await _checkUserIdAndFetchShopNames();
                     _shopImageController.clearShopImageFile();
                     ShopNameController.clear();
                   },
                   child: SizedBox(
                       height: 30,
-
-
                       child:TypeAheadField<String>(
                         textFieldConfiguration: TextFieldConfiguration(
-
                           focusNode: _shopNameFocusNode, // Assign the focus node here
                           controller: TextEditingController(text: selectedItem),
                           decoration: InputDecoration(
                             enabled: false,
-                            hintText: '---Select Shop---',
+                            hintText: '-------Select Shop------',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.0),
                             ),
@@ -569,14 +633,11 @@ class ShopVisitState extends State<ShopVisit> {
                               shopNameNotifier.value = selectedItem; // Update the shop name
                             });
                             updateShopImage();
-
                             productsController.rows;
                             productsController.fetchProducts();
                             for (int i = 0; i < productsController.rows.length; i++) {
                               removeSavedValues(i);
                             }
-
-
                           }
                         },
                       ),
@@ -592,7 +653,7 @@ class ShopVisitState extends State<ShopVisit> {
                     ),
                     SizedBox(
                       height: 30,
-                      child: TextFormField(enabled: true, readOnly: true,
+                      child: TextFormField(enabled: false, readOnly: true,
                         controller: ShopAddressController,
 
                         decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
@@ -609,14 +670,41 @@ class ShopVisitState extends State<ShopVisit> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    // Add the Stack widget to overlay the warning icon on top of the image
-                    const Text(
-                      'Shop Image',
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                    const SizedBox(height: 10.0),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Shop Owner',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    buildShopImageStack(),
+                    SizedBox(
+                      height: 30,
+                      child: TextFormField(enabled: false, readOnly: true,
+                        controller: ShopOwnerController,
+
+                        decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                          ),
+                        ),
+
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    // const SizedBox(height: 10),
+                    // // Add the Stack widget to overlay the warning icon on top of the image
+                    // const Text(
+                    //   'Shop Image',
+                    //   style: TextStyle(fontSize: 16, color: Colors.black),
+                    // ),
+                    // const SizedBox(height: 10),
+                    // buildShopImageStack(),
                     const SizedBox(height: 10),
                     const Align(
                       alignment: Alignment.centerLeft,
@@ -718,7 +806,7 @@ class ShopVisitState extends State<ShopVisit> {
                     ),
                     SizedBox(
                       height: 30,
-                      child: TextFormField(enabled: true, readOnly: true,
+                      child: TextFormField(enabled: false, readOnly: true,
                         controller: BrandNameController,
 
                         decoration: InputDecoration(contentPadding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
@@ -735,22 +823,22 @@ class ShopVisitState extends State<ShopVisit> {
                         },
                       ),
                     ),
-                    const Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Checklist',
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                    ),
+                    // const Align(
+                    //   alignment: Alignment.center,
+                    //   child: Text(
+                    //     'Checklist',
+                    //     style: TextStyle(fontSize: 16, color: Colors.black),
+                    //   ),
+                    // ),
                     const SizedBox(height: 20),
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        '1-Stock Check (Current Balance)',
+                        '1-Stock Check',
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 10),
                     Column(
                       children: [
 
@@ -1106,7 +1194,7 @@ class ShopVisitState extends State<ShopVisit> {
                         const SizedBox(height: 20),
 
                         ElevatedButton(
-                          onPressed: isButtonPressed2
+                          onPressed: isButtonPressed2 || showLoading
                               ? null
                               : () async {
                             // Close the mobile keyboard
@@ -1118,7 +1206,6 @@ class ShopVisitState extends State<ShopVisit> {
                             setState(() {
                               isButtonPressed2 = true;
                             });
-
                             if (feedbackController.text.isEmpty) {
                               Fluttertoast.showToast(
                                 msg: 'Please provide feedback before proceeding.',
@@ -1172,6 +1259,11 @@ class ShopVisitState extends State<ShopVisit> {
                               });
                               return;
                             }
+
+                            // Show loading indicator
+                            setState(() {
+                              showLoading = true;
+                            });
 
                             String imagePath = _imageFile!.path;
                             var id = await customAlphabet('1234567890', 12);
@@ -1241,6 +1333,9 @@ class ShopVisitState extends State<ShopVisit> {
                               await stockcheckitemsViewModel.postStockCheckItems();
                             }
 
+                            // Introduce a 5-second delay
+                            await Future.delayed(const Duration(seconds: 5));
+
                             // Additional validation that everything must be filled
                             if (ShopNameController.text.isNotEmpty) {
                               Navigator.push(
@@ -1259,7 +1354,9 @@ class ShopVisitState extends State<ShopVisit> {
                               );
                             }
 
+                            // Hide loading indicator
                             setState(() {
+                              showLoading = false;
                               isButtonPressed2 = false;
                             });
                           },
@@ -1270,8 +1367,13 @@ class ShopVisitState extends State<ShopVisit> {
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
-                          child: const Text('No Order'),
+                          child: showLoading
+                              ? const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                          )
+                              : const Text('No Order'),
                         ),
+
 
                         const SizedBox(height: 50),
                       ],
