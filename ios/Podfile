@@ -35,6 +35,8 @@ target 'Runner' do
   pod 'Firebase/Auth'
   pod 'Firebase/Firestore'
   pod 'Firebase/Functions'
+  pod 'CropViewController'
+  pod 'DKImagePickerController'
 
   target 'RunnerTests' do
     inherit! :search_paths
