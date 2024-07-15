@@ -1,5 +1,6 @@
 
 import 'package:flutter/foundation.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
 
 import '../../API/ApiServices.dart';
@@ -44,7 +45,7 @@ class StockCheckItemsRepository {
 
           try {
             final results = await Future.wait([
-              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/shopvisit/post/'),
+              api.masterPost(v.toMap(), stockCheckItemsApi),
               // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/shopvisit/post/'),
             ]);
 

@@ -2,6 +2,7 @@
 
 
 import 'package:flutter/foundation.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 import '../API/ApiServices.dart';
 import '../API/Globals.dart';
 import '../Databases/DBHelper.dart';
@@ -52,7 +53,7 @@ class AttendanceRepository {
 
           try {
             final results = await Future.wait([
-              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendance/post/'),
+              api.masterPost(v.toMap(), attendanceApi),
               // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendance/post/'),
             ]);
 
@@ -146,7 +147,7 @@ class AttendanceRepository {
               lngOut: i['lngOut'].toString(),
               totalDistance: i['totalDistance']?.toString() ?? '0.0'
           );
-          var result1 = await api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/attendanceout/post/');
+          var result1 = await api.masterPost(v.toMap(), attendanceOutApi);
           // var result1 = await api.masterPost(v.toMap(), 'https://webhook.site/3f874f5d-2d23-493b-a3a0-855f77ded7fb');
           // var result = await api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/attendanceout/post/',);
 

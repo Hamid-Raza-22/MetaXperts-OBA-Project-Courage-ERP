@@ -1,5 +1,6 @@
 
 import 'package:flutter/foundation.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 
 import '../../API/ApiServices.dart';
@@ -58,7 +59,7 @@ class OrderDetailsRepository {
           try {
             bool results = await api.masterPost(
               v.toMap(),
-              'http://103.149.32.30:8080/ords/metaxperts/orderdetail/post/',
+              orderDetailsApi,
             );
 
             if (results == true) {

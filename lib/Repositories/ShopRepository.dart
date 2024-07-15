@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 import 'package:order_booking_shop/Databases/DBHelper.dart';
 
 import 'package:order_booking_shop/Models/ShopModel.dart';
@@ -93,7 +94,7 @@ class ShopRepository {
 
           bool result1 = await api.masterPost(
             v.toMap(),
-            'http://103.149.32.30:8080/ords/metaxperts/addshop/post/',
+            addShopApi,
            // imageBytes,
           );
           // await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/addshops/post/', imageBytes,);

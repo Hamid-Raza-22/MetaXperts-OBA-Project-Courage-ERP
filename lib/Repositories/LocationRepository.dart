@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 import 'package:order_booking_shop/location00.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -94,7 +95,7 @@ class LocationRepository {
             final results = await Future.wait([
               api.masterPostWithGPX(
                 v.toMap(),
-                'http://103.149.32.30:8080/ords/metaxperts/location/post/',
+                locationApi,
                 gpxBytes,
               ),
               // api.masterPostWithGPX(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/location/post/', gpxBytes)

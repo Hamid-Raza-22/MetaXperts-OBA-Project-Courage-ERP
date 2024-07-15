@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../API/ApiServices.dart';
@@ -95,7 +96,7 @@ class ShopVisitRepository {
 
           try {
             final results = await Future.wait([
-              api.masterPostWithImage(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/report/post/', imageBytes),
+              api.masterPostWithImage(v.toMap(), shopVisitApi, imageBytes),
               // api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/report/post/', imageBytes),
             ]);
 

@@ -1,5 +1,6 @@
 
 import 'package:flutter/foundation.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 
 import '../../API/ApiServices.dart';
 import '../../API/Globals.dart';
@@ -48,7 +49,7 @@ class ReturnFormRepository{
 
           try {
             final results = await Future.wait([
-              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/returnform/post/'),
+              api.masterPost(v.toMap(), returnFormApi),
               // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/returnform/post/'),
             ]);
 

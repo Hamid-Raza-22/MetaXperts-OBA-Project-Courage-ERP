@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 
 import 'login.dart';
 
@@ -18,7 +19,7 @@ class _PolicyDialogState extends State<PolicyDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text("App Policies"),
-      content: SingleChildScrollView( // Add SingleChildScrollView here
+      content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,8 +77,8 @@ class _PolicyDialogState extends State<PolicyDialog> {
         TextButton(
           onPressed: _isChecked
               ? () {
-            _showProminentDisclosure();
-          }
+                  _showProminentDisclosure();
+                }
               : null, // Disable the button if checkbox is not checked
           child: const Text("Agree"),
         ),
@@ -107,64 +108,63 @@ class _PolicyDialogState extends State<PolicyDialog> {
   }
 
   Future<void> _requestPermissions() async {
-    // Request notification permission
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const LoginForm(),
+      ),
+    );
+
+
+    if (kDebugMode) {
+      print('Requesting notification permission...');
+    }
     if (await Permission.notification.request().isDenied) {
       // Notification permission not granted
+      if (kDebugMode) {
+        print('Notification permission denied');
+      }
       SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       return;
     }
 
-    // Request location permission
+    if (kDebugMode) {
+      print('Requesting location permission...');
+    }
     if (await Permission.location.request().isDenied) {
       // Location permission not granted
+      if (kDebugMode) {
+        print('Location permission denied');
+      }
       SystemChannels.platform.invokeMethod('SystemNavigator.pop');
     } else if (await Permission.location.request().isGranted) {
+      if (kDebugMode) {
+        print('Location permission granted');
+      }
       // Check and request background location permission if necessary
       if (await Permission.locationAlways.request().isDenied) {
         // Background location permission not granted
+        if (kDebugMode) {
+          print('Background location permission denied');
+        }
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       } else {
+        if (kDebugMode) {
+          print('All permissions granted');
+        }
         // Navigate to the login page if all permissions are granted
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const LoginForm(),
-          ),
-        );
       }
     }
   }
 }
 
-// Example usage in main.dart
-void main() {
-  runApp(const MyApp());
-}
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text("App Policies")),
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () {
-              showDialog<bool>(
-                context: context,
-                builder: (context) => const PolicyDialog(),
-              ).then((agreed) {
-                if (agreed ?? false) {
-                  // Handle the case when user agrees to the policies
-                  // You can request permissions or proceed with the app logic
-                }
-              });
-            },
-            child: const Text("Show Policies"),
-          ),
-        ),
-      ),
-    );
-  }
-}
+
+
+
+
+
+
+
+
+

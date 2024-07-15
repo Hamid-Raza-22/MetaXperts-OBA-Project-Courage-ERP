@@ -1,5 +1,7 @@
-platform :ios, '15.0'
+# Uncomment this line to define a global platform for your project
+ platform :ios, '15.0'
 
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -30,17 +32,8 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-
-  pod 'Firebase/Core'
-  pod 'Firebase/Auth'
-  pod 'Firebase/Firestore'
-  pod 'Firebase/Functions'
-  pod 'CropViewController'
-  pod 'DKImagePickerController'
-
   target 'RunnerTests' do
     inherit! :search_paths
-    # Pods for testing
   end
 end
 

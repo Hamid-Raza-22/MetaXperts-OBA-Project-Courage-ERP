@@ -456,29 +456,38 @@ class ShopVisitState extends State<ShopVisit> {
       brandDropdownItems = uniqueBrandNames;
     });
   }
-  Future<void> saveImage()  async {
+  Future<void> saveImage() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final filePath = '${directory.path}/captured_image.jpg';
 
-      // Compress the image76
       Uint8List? compressedImageBytes = await FlutterImageCompress.compressWithFile(
         _imageFile!.path,
         minWidth: 400,
         minHeight: 600,
-        quality:40,
+        quality: 40,
       );
 
-      // Save the compressed image
-      await File(filePath).writeAsBytes(compressedImageBytes!);
-
-      if (kDebugMode) {
-        print('Compressed image saved successfully at $filePath');
+      if (compressedImageBytes != null) {
+        await File(filePath).writeAsBytes(compressedImageBytes);
+        if (kDebugMode) {
+          print('Compressed image saved successfully at $filePath');
+        }
+      } else {
+        if (kDebugMode) {
+          print('Image compression failed.');
+        }
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Image compression failed.'),
+        ));
       }
     } catch (e) {
       if (kDebugMode) {
         print('Error compressing and saving image: $e');
       }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error compressing and saving image: $e'),
+      ));
     }
   }
 

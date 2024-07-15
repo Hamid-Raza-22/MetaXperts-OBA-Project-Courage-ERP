@@ -47,7 +47,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Upgrader;
-await dbHelper.db;
+// await dbHelper.db;
   // Clear previous database if exists
   //await _clearDatabaseIfFirstLaunch();
   //iqra
@@ -106,10 +106,10 @@ Future<void> _requestPermissions() async {
   }
 }
 
-Future<void> initializeDatabase() async {
-
-  await dbHelper.db;
-}
+// Future<void> initializeDatabase() async {
+//
+//   await dbHelper.db;
+// }
 Future<void> _clearDatabaseIfFirstLaunch() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;

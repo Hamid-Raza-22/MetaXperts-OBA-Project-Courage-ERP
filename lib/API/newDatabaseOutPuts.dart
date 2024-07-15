@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:intl/intl.dart';
+
+import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 import '../Databases/DBHelper.dart';
@@ -62,7 +64,7 @@ class newDatabaseOutputs {
       bool inserted = false;
 
       try{
-      var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/accounts/get/$id");
+        var response3 = await api.getApi("$accountApi$id");
       inserted = await db.insertAccountsData(response3);
       // var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/account/get/");
       //
@@ -106,7 +108,7 @@ class newDatabaseOutputs {
     if (netBalancedata == null || netBalancedata.isEmpty ) {
       bool inserted = false;
       try{
-      var response3 = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/allbalance/get/$id");
+      var response3 = await api.getApi("$balance$id");
       inserted = await db.insertNetBalanceData(response3);
       // var response2 = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/balance/get/");
       //
@@ -154,7 +156,7 @@ class newDatabaseOutputs {
 
       try {
         var response = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/recovery1/get/$id");
+            "$recoveryForm$id");
 
         inserted = await db.insertRecoveryFormGetData(
             response); //return True or False
@@ -198,7 +200,7 @@ class newDatabaseOutputs {
 
       try {
         var response1 = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/brand1/get/$id");
+            "$brandsApi$id");
         inserted= await db.insertProductCategoryData(
             response1); //return True or False
         if (inserted) {
@@ -244,7 +246,7 @@ class newDatabaseOutputs {
         // https://apex.oracle.com/pls/apex/metaa/owner/get/
         //http://103.149.32.30:8080/ords/metaxperts/owner/get/
         var response = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/city/get/");
+            "$city");
         inserted= await db.insertPakCitiesData(response); //return True or False
         if (inserted== true) {
           if (kDebugMode) {
@@ -292,7 +294,7 @@ class newDatabaseOutputs {
 
       try {
         var response1 = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/detailsget/get/$id");
+            "$orderDetails$id");
         inserted = await db.insertOrderDetailsData(
             response1); //return True or False
         if (inserted==true) {
@@ -333,7 +335,7 @@ class newDatabaseOutputs {
 
       try {
         var response1 = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/masterget1/get/$id");
+            "$orderMaster$id");
         inserted = await db.insertOrderMasterData(
             response1); //return True or False
         if (inserted) {
@@ -377,7 +379,7 @@ class newDatabaseOutputs {
 
       try {
         var response1 = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/product1/get/$brand");
+            "$productsApi$brand");
         inserted = await db.insertProductsData(
             response1); //return True or False
         if (inserted) {
@@ -424,7 +426,7 @@ class newDatabaseOutputs {
       try {
 
         var response = await api.getApi1(
-            "http://103.149.32.30:8080/ords/metaxperts/shopp1/get/");
+            "$shopDetails");
         inserted = await db.insertownerData(response); //return True or False
         if (inserted) {
           if (kDebugMode) {
@@ -471,7 +473,7 @@ class newDatabaseOutputs {
 
       try {
         var response = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/statusget1/get/$id");
+            "$orderBookingStatus$id");
         inserted = await db.insertOrderBookingStatusData1(
             response); //return True or False
         if (inserted) {
@@ -560,7 +562,7 @@ class newDatabaseOutputs {
     var netBalancedata = await db.getNetBalanceDB();
     if (netBalancedata == null || netBalancedata.isEmpty) {
       try {
-        var response = await api.getApi("http://103.149.32.30:8080/ords/metaxperts/allbalance/get/$id");
+        var response = await api.getApi("$balance$id");
         bool inserted = await db.insertNetBalanceData(response);
         if (!inserted) throw Exception('Error inserting data with first API');
       } catch (e) {
@@ -792,7 +794,7 @@ class newDatabaseOutputs {
 
       try {
         var response = await api.getApi(
-            "http://103.149.32.30:8080/ords/metaxperts/login1/get/");
+            loginApi);
         inserted = await db.insertLogin(response); // returns True or False
 
         if (inserted == true) {
@@ -841,7 +843,7 @@ class newDatabaseOutputs {
       List<dynamic>? RF;
       try {
         RF = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newaccounttime/get/$id/$formattedDateTime");
+            "$refRecoveryForm$id/$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -924,7 +926,7 @@ class newDatabaseOutputs {
       List<dynamic>? ProductCat;
       try {
         ProductCat = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newbrands/get/$formattedDateTime");
+            "$refBrandsApi$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -986,7 +988,7 @@ class newDatabaseOutputs {
       List<dynamic>? details;
       try {
         details = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newdetailsgettime/get/$id/$formattedDateTime");
+            "$refOrderDetails$id/$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -1050,7 +1052,7 @@ class newDatabaseOutputs {
       List<dynamic>? master;
       try {
         master = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newmastergettime/get/$id/$formattedDateTime");
+            "$refOrderMaster$id/$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from  1st API: $e");
@@ -1128,7 +1130,7 @@ class newDatabaseOutputs {
       List<dynamic>? balance;
       try {
         balance = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/totalbalance/get/$shopname/$id"
+            "$refBalance$shopname/$id"
         );
       } catch (e) {
         if (kDebugMode) {
@@ -1193,7 +1195,7 @@ class newDatabaseOutputs {
       List<dynamic>? productsdata;
       try {
         productsdata = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newproductget/get/$userBrand/$formattedDateTime");
+            "$refProductsApi$userBrand/$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -1256,7 +1258,7 @@ class newDatabaseOutputs {
       List<dynamic>? ownerdata;
       try {
         ownerdata = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newshop1/get/$formattedDateTime");
+            "$refShopDetails$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -1318,7 +1320,7 @@ class newDatabaseOutputs {
       List<dynamic>? citydata;
       try {
         citydata = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newcities/get/$formattedDateTime");
+            "$refCity$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -1402,7 +1404,7 @@ class newDatabaseOutputs {
       List<dynamic>? orderBookingStatusData;
       try {
         orderBookingStatusData = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newstatusgettime/get/$id/$formattedDateTime");
+            "$refOrderBookingStatus$id/$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -1465,7 +1467,7 @@ class newDatabaseOutputs {
       List<dynamic>? login;
       try {
         login = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/logindata/get/$formattedDateTime");
+            "$refLoginApi$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");
@@ -1527,7 +1529,7 @@ class newDatabaseOutputs {
       List<dynamic>? accounts;
       try {
         accounts = await api.getupdateData(
-            "http://103.149.32.30:8080/ords/metaxperts/newaccounttime/get/$id/$formattedDateTime");
+            "$refAccountApi$id/$formattedDateTime");
       } catch (e) {
         if (kDebugMode) {
           print("Error fetching data from API: $e");

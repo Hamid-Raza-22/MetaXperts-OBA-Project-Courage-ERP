@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     if (kDebugMode) {
       print("B1000 ${name.toString()}");
     }
-    _requestPermission();
+    //_requestPermission();
    // location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
    // location.enableBackgroundMode(enable: true);
     _getFormattedDate();

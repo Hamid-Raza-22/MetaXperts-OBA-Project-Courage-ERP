@@ -1,5 +1,6 @@
 
 import 'package:flutter/foundation.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 
 import 'package:order_booking_shop/Models/OrderModels/OrderMasterModel.dart';
@@ -62,7 +63,7 @@ class OrderMasterRepository{
 
           try {
             final results = await Future.wait([
-              api.masterPost(v.toMap(), 'http://103.149.32.30:8080/ords/metaxperts/ordermaster/post/'),
+              api.masterPost(v.toMap(), orderMasterApi),
               // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/'),
             ]);
 
