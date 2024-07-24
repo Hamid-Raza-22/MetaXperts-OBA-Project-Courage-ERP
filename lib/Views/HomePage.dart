@@ -1,6 +1,6 @@
 import 'dart:async' show Completer, Future, Timer;
 import 'package:flutter/foundation.dart' show Key, kDebugMode;
-import 'package:flutter/material.dart' show AlertDialog, Align, Alignment, AppBar, Border, BorderRadius, BoxDecoration, BoxShape, BuildContext, Center, CircleBorder, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, Icon, IconButton, IconData, Icons, Key, MainAxisAlignment, Material, MaterialApp, MaterialPageRoute, Navigator, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, StatelessWidget, Text, TextButton, TextStyle, Widget, WidgetsBinding, WidgetsBindingObserver, WidgetsFlutterBinding, WillPopScope, runApp, showDialog;
+import 'package:flutter/material.dart' show AlertDialog, Align, Alignment, AppBar, Border, BorderRadius, BoxDecoration, BoxShape, BuildContext, Center, CircleBorder, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, Icon, IconButton, IconData, Icons, Key, MainAxisAlignment, MainAxisSize, Material, MaterialApp, MaterialPageRoute, Navigator, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, StatelessWidget, Text, TextButton, TextStyle, Widget, WidgetsBinding, WidgetsBindingObserver, WidgetsFlutterBinding, WillPopScope, runApp, showDialog;
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' show FlutterBackgroundService;
 import 'package:geolocator/geolocator.dart' show Geolocator, LocationPermission, Position;
@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
 import '../API/newDatabaseOutPuts.dart';
+import '../RSMS_Views/RSM_HomePage.dart';
 import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
 import '../View_Models/LocationViewModel.dart';
@@ -146,7 +147,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
+    if (userDesignation == 'NSM' ||userDesignation == 'RSM' ||userDesignation == 'SM' ||userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
       await fetchShopNamesAll();
     } else {
       await fetchShopNames();
@@ -318,6 +319,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     bool newIsClockedIn = !isClockedIn;
 
     if (newIsClockedIn) {
+      await initializeServiceLocation();
       await location.enableBackgroundMode(enable: true);
       await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
       locationbool = true;
@@ -1100,6 +1102,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => const OrderBookingStatus(),
+                                   // builder: (context) => const RSMHomepage(),
                                   ),
                                 );
                               // } else {
@@ -1151,31 +1154,45 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 20.0),
-
-            child:ElevatedButton.icon(
-              onPressed:() async {
-                // await MoveToBackground.moveTaskToBack();
-
-                await _toggleClockInOut();
-              },
-              icon: Icon(
-                isClockedIn ? Icons.timer_off : Icons.timer,
-                color: isClockedIn ? Colors.red : Colors.green,
-              ),
-              label: Text(
-                isClockedIn ? 'Clock Out' : 'Clock In',
-                style: const TextStyle(fontSize: 14),
-              ),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: isClockedIn ? Colors.red : Colors.green, backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    // await MoveToBackground.moveTaskToBack();
+                    await _toggleClockInOut();
+                  },
+                  icon: Icon(
+                    isClockedIn ? Icons.timer_off : Icons.timer,
+                    color: isClockedIn ? Colors.red : Colors.green,
+                  ),
+                  label: Text(
+                    isClockedIn ? 'Clock Out' : 'Clock In',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: isClockedIn ? Colors.red : Colors.green,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 2.0), // Adds some space between the button and the text
+                const Text(
+                  'v: 0.9.2',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
-
           ),
         ),
+
+
       ),
     );
   }

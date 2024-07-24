@@ -14,7 +14,7 @@ import 'package:flutter_background_service_android/flutter_background_service_an
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' show AndroidFlutterLocalNotificationsPlugin, AndroidInitializationSettings, AndroidNotificationChannel, AndroidNotificationDetails, DarwinInitializationSettings, FlutterLocalNotificationsPlugin, Importance, InitializationSettings, NotificationDetails;
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'package:metaxperts_dynamic_apis/ip_addresses/IP_addresses.dart';
 import 'package:order_booking_shop/Tracker/trac.dart' show startTimer;
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
 import 'package:order_booking_shop/location00.dart' show LocationService;
@@ -47,6 +47,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   Upgrader;
+  try {
+    //await getIpAddress();
+    if (kDebugMode) {
+      print('IP Address: $IP_Address');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('Failed to get IP Address: $e');
+    }
+  }
 // await dbHelper.db;
   // Clear previous database if exists
   //await _clearDatabaseIfFirstLaunch();
@@ -65,7 +75,7 @@ Future<void> main() async {
   // Request notification permissions
   // await _requestPermissions();
 
-  await initializeServiceLocation();
+  // await initializeServiceLocation();
 
   // Ensure Firebase is initialized before running the apm
   await Firebase.initializeApp();
@@ -201,7 +211,7 @@ Future<void> initializeServiceLocation() async {
       foregroundServiceNotificationId: 888,
     ),
     iosConfiguration: IosConfiguration(
-      autoStart: true,
+      autoStart: false,
       onForeground: onStart,
     ),
   );

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:intl/intl.dart';
-
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
@@ -246,7 +245,7 @@ class newDatabaseOutputs {
         // https://apex.oracle.com/pls/apex/metaa/owner/get/
         //http://103.149.32.30:8080/ords/metaxperts/owner/get/
         var response = await api.getApi(
-            "$city");
+            city);
         inserted= await db.insertPakCitiesData(response); //return True or False
         if (inserted== true) {
           if (kDebugMode) {

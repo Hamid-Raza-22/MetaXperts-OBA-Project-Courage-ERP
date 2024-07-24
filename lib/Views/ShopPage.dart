@@ -121,7 +121,7 @@ bool isOrderConfirmedback = false;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    if (userDesignation != 'ASM' && userDesignation != 'SPO' && userDesignation != 'SOS' ) {
+    if (userDesignation != 'SM' && userDesignation != 'NSM' && userDesignation != 'RSM' && userDesignation != 'ASM' && userDesignation != 'SPO' && userDesignation != 'SOS' ) {
       //  await fetchShopNames();
       setState(() {
         cityController.text = userCitys;
@@ -262,7 +262,7 @@ bool isOrderConfirmedback = false;
         print('Selected City: $selectedCity');
       }
       bool isCityValid = true;
-      if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
+      if (userDesignation == 'RSM' || userDesignation == 'NSM' || userDesignation == 'SM' || userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
         var box = await Hive.openBox('shopNames');
         List<String> shopNames = box.get('shopNames')?.cast<String>() ?? [];
         shopNames.add(shopNameController.text);
@@ -527,7 +527,8 @@ bool isOrderConfirmedback = false;
                                     ),
                                   ),
                                 ),
-                                if (userDesignation != 'ASM' && userDesignation != 'SPO'  && userDesignation != 'SOS') TextFormField(
+                                if (userDesignation != 'SM' && userDesignation != 'NSM' && userDesignation != 'RSM' && userDesignation != 'ASM' && userDesignation != 'SPO'  && userDesignation != 'SOS')
+                                  TextFormField(
                                   controller: cityController,
 
                                   readOnly: true,
@@ -615,7 +616,8 @@ bool isOrderConfirmedback = false;
                                 TextFormField(
                                   controller: shopAddressController,
                                   focusNode: shopAddressFocusNode,
-                                  decoration: InputDecoration( contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),                              labelText: 'Enter Shop Address',
+                                  decoration: InputDecoration( contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                                    labelText: 'Enter Shop Address',
                                     floatingLabelBehavior:
                                     FloatingLabelBehavior.never,
                                     border: OutlineInputBorder(

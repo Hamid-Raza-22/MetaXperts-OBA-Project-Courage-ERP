@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:metaxperts_dynamic_apis/ip_addresses/IP_addresses.dart';
 import 'package:order_booking_shop/Views/ShopVisit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,6 +76,7 @@ class LoginFormState extends State<LoginForm> {
 
     bool isConnected = await isInternetAvailable();
     if (isConnected) {
+
       await _login();
     } else {
       Fluttertoast.showToast(
@@ -135,6 +137,7 @@ class LoginFormState extends State<LoginForm> {
         setState(() {
           _loadingProgress = 75; // Update progress
         });
+       // await getIpAddress();
         await outputs.checkFirstRun();
         setState(() {
           _loadingProgress = 90; // Update progress
@@ -434,8 +437,28 @@ class LoginFormState extends State<LoginForm> {
                                 ),
                               ),
                             ),
+
                           ],
                         ),
+                      ),
+                      const SizedBox(height: 6.0),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'v: 0.9.2',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 30.0),
                       Row(

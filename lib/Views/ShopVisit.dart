@@ -266,7 +266,7 @@ class ShopVisitState extends State<ShopVisit> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userDesignation = prefs.getString('userDesignation');
 
-    var boxName = (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS')
+    var boxName = (userDesignation == 'RSM' || userDesignation == 'NSM' ||userDesignation == 'SM' || userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS')
         ? 'shopNames'
         : 'shopNamesByCities';
     var box = await Hive.openBox(boxName);
@@ -279,7 +279,7 @@ class ShopVisitState extends State<ShopVisit> {
         dropdownItems = cachedShopNames!.map((dynamic item) => item.toString()).toSet().toList();
       });
     } else {
-      if (userDesignation == 'ASM' || userDesignation == 'SPO' || userDesignation == 'SOS') {
+      if (userDesignation == 'RSM' || userDesignation == 'NSM' || userDesignation == 'SM'|| userDesignation == 'ASM'  || userDesignation == 'SPO' || userDesignation == 'SOS') {
         await fetchShopNamesAll();
       } else {
         await fetchShopNames();

@@ -108,12 +108,6 @@ class _PolicyDialogState extends State<PolicyDialog> {
   }
 
   Future<void> _requestPermissions() async {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const LoginForm(),
-      ),
-    );
-
 
     if (kDebugMode) {
       print('Requesting notification permission...');
@@ -151,10 +145,46 @@ class _PolicyDialogState extends State<PolicyDialog> {
         if (kDebugMode) {
           print('All permissions granted');
         }
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const LoginForm(),
+          ),
+        );
         // Navigate to the login page if all permissions are granted
       }
     }
   }
+  // Future<void> _requestPermissions() async {
+  //   // Request notification permission
+  //   if (await Permission.notification
+  //       .request()
+  //       .isDenied) {
+  //     // @@ -105,6 +116,19 @@ class _PolicyDialogState extends State<PolicyDialog> {
+  //     if (await Permission.location
+  //         .request()
+  //         .isDenied) {
+  //       // Location permission not granted
+  //       SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+  //     } else if (await Permission.location
+  //         .request()
+  //         .isGranted) {
+  //       // Check and request background location permission if necessary
+  //       if (await Permission.locationAlways
+  //           .request()
+  //           .isDenied) {
+  //         // Background location permission not granted
+  //         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+  //       } else {
+  //         // Navigate to the login page if all permissions are granted
+  //         Navigator.of(context).push(
+  //             MaterialPageRoute(
+  //                 builder: (context) => const LoginForm()
+  //             )
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 
