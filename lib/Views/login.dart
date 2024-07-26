@@ -15,6 +15,7 @@ import '../Models/loginModel.dart';
 import '../View_Models/OwnerViewModel.dart';
 import '../main.dart';
 import 'HomePage.dart';
+import 'RSMS_Views/RSM_HomePage.dart';
 
 
 class LoginForm extends StatefulWidget {
@@ -105,6 +106,7 @@ class LoginFormState extends State<LoginForm> {
       setState(() {
         _loadingProgress = 20; // Start progress
       });
+
       var userName = await dblogin.getUserName(_emailController.text);
       var userCity = await dblogin.getUserCity(_emailController.text);
       var designation = await dblogin.getUserDesignation(_emailController.text);
@@ -118,6 +120,7 @@ class LoginFormState extends State<LoginForm> {
         if (kDebugMode) {
           print('User Name: $userName, City: $userCity, Designation: $designation, Brand: $brand');
         }
+
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('userId', _emailController.text);
         prefs.setString('userNames', userName);
@@ -125,55 +128,56 @@ class LoginFormState extends State<LoginForm> {
         prefs.setString('userDesignation', designation);
         prefs.setString('userBrand', brand);
 
-        if (kDebugMode) {
-          print('Saved userId: ${prefs.getString('userId')}');
-          print('Saved userNames: ${prefs.getString('userNames')}');
-          print('Saved userCitys: ${prefs.getString('userCitys')}');
-          print('Saved userDesignation: ${prefs.getString('userDesignation')}');
-          print('Saved userBrand: ${prefs.getString('userBrand')}');
-        }
-
-        newDatabaseOutputs outputs = newDatabaseOutputs();
         setState(() {
           _loadingProgress = 75; // Update progress
         });
-       // await getIpAddress();
+
+        newDatabaseOutputs outputs = newDatabaseOutputs();
         await outputs.checkFirstRun();
+
         setState(() {
           _loadingProgress = 90; // Update progress
         });
-        // await checkUserIdAndFetchShopNames();
 
-        // Call _checkUserIdAndFetchShopNames from ShopVisitState
-        // await shopVisitState.checkUserIdAndFetchShopNames();
-        // await ShopVisitState().checkUserIdAndFetchShopNames();
         if (isLoggedIn) {
           Map<String, dynamic> dataToPass = {
-            'userName': userNames
+            'userName': userName,
           };
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-              settings: RouteSettings(arguments: dataToPass),
-            ),
-          );
+
+          // Debugging print to check designation
+          if (kDebugMode) {
+            print('Navigating user with designation: $designation');
+          }
+
+          // Navigate based on designation
+          if (designation == 'RSM') {
+            if (kDebugMode) {
+              print('Navigating to RSMHomepage');
+            }
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const RSMHomepage(),
+                settings: RouteSettings(arguments: dataToPass),
+              ),
+            );
+          } else {
+            if (kDebugMode) {
+              print('Navigating to HomePage');
+            }
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+                settings: RouteSettings(arguments: dataToPass),
+              ),
+            );
+          }
+
+          setState(() {
+            _loadingProgress = 100; // Update progress
+          });
+
           return;
         }
-
-        setState(() {
-          _loadingProgress = 100; // Update progress
-        });
-
-        Map<String, dynamic> dataToPass = {
-          'userName': userName,
-        };
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const HomePage(),
-            settings: RouteSettings(arguments: dataToPass),
-          ),
-        );
       } else {
         if (kDebugMode) {
           print('Failed to fetch user name or city');
@@ -184,6 +188,7 @@ class LoginFormState extends State<LoginForm> {
       Fluttertoast.showToast(msg: "Failed login", toastLength: Toast.LENGTH_LONG);
     }
   }
+
 
   Future<bool> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -390,7 +395,7 @@ class LoginFormState extends State<LoginForm> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      Container(
+                      SizedBox(
                         height: 40,
                         width: 200,
                         child: Stack(

@@ -4,11 +4,13 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
+import 'package:metaxperts_dynamic_apis/post_apis/RSMS_POst_Api.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../API/ApiServices.dart';
 import '../API/Globals.dart';
 import '../Databases/DBHelper.dart';
+import '../Models/HeadsShopVistModels.dart';
 import '../Models/ShopVisitModels.dart';
 
 class ShopVisitRepository {
@@ -17,7 +19,24 @@ class ShopVisitRepository {
 
   Future<List<ShopVisitModel>> getShopVisit() async {
     var dbClient = await dbHelpershopvisit.db;
-    List<Map> maps = await dbClient!.query('shopVisit', columns: ['id','date', 'shopName','userId', 'city' , 'bookerName' , 'brand' ,'walkthrough', 'planogram' , 'signage', 'productReviewed','feedback','longitude','latitude','address', 'body']);
+    List<Map> maps = await dbClient!.query('shopVisit', columns: [
+      'id',
+      'date',
+      'shopName',
+      'userId',
+      'city',
+      'bookerName',
+      'brand',
+      'walkthrough',
+      'planogram',
+      'signage',
+      'productReviewed',
+      'feedback',
+      'longitude',
+      'latitude',
+      'address',
+      'body'
+    ]);
     List<ShopVisitModel> shopvisit = [];
 
     for (int i = 0; i < maps.length; i++) {
@@ -125,6 +144,94 @@ class ShopVisitRepository {
       PostingStatus.isPosting.value = false; // Set posting status to false
     }
   }
+  Future<void> postHeadsShopVisitData() async {
+    var dbClient = await dbHelper.db;
+    final ApiServices api = ApiServices();
+
+    try {
+      PostingStatus.isPosting.value = true; // Set posting status to true
+
+      final List<Map<String, dynamic>> records = await dbClient!.query('HeadsShopVisits');
+
+      for (var record in records) {
+        if (kDebugMode) {
+          print(record.toString());
+        }
+      }
+
+      final products = await dbClient.rawQuery('SELECT * FROM HeadsShopVisits');
+      if (products.isNotEmpty) {
+        for (var i in products) {
+          if (kDebugMode) {
+            print("FIRST ${i.toString()}");
+          }
+
+          HeadsShopVisitModel v = HeadsShopVisitModel(
+            id: i['id'].toString(),
+            shopName: i['shopName'].toString(),
+            city: i['city'].toString(),
+            date: i['date'].toString(),
+            bookerName: i['bookerName'].toString(),
+            bookerId: i['bookerId'].toString(),
+            userId: i['userId'].toString(),
+            address: i['address'].toString(),
+            feedback: i['feedback'].toString(),
+            // body: i['body'] != null && i['body'].toString().isNotEmpty
+            //     ? Uint8List.fromList(base64Decode(i['body'].toString()))
+            //     : Uint8List(0),
+          );
+
+          // if (kDebugMode) {
+          //   print("Image Path from Database: ${i['body']}");
+          // }
+          if (kDebugMode) {
+            print("lat:${i['latitude']}");
+          }
+
+          // Uint8List imageBytes;
+          // final directory = await getApplicationDocumentsDirectory();
+          // final filePath = File('${directory.path}/captured_image.jpg');
+          // if (filePath.existsSync()) {
+          //   List<int> imageBytesList = await filePath.readAsBytes();
+          //   imageBytes = Uint8List.fromList(imageBytesList);
+          // } else {
+          //   if (kDebugMode) {
+          //     print("File does not exist at the specified path: ${filePath.path}");
+          //   }
+          //   continue; // Skip to the next iteration if the file doesn't exist
+          // }
+
+          if (kDebugMode) {
+            print("Making API request for shop ID: ${v.id}");
+          }
+
+          bool result1 = await api.masterPost(
+            v.toMap(),
+            headsShopVisitApi,
+            // imageBytes,
+          );
+          // await api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/addshops/post/', imageBytes,);
+
+          if (result1 == true) {
+            await dbClient.rawDelete('DELETE FROM HeadsShopVisits WHERE id = ?', [i['id']]);
+            if (kDebugMode) {
+              print("Successfully posted data for HeadsShopVisits ID: ${v.id}");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Failed to post data for HeadsShopVisits ID: ${v.id}");
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error processing shop visit data: $e");
+      }
+    } finally {
+      PostingStatus.isPosting.value = false; // Set posting status to false
+    }
+  }
   Future<String> getLastid() async {
     var dbClient = await dbHelpershopvisit.db;
     List<Map> maps = await dbClient!.query(
@@ -146,8 +253,10 @@ class ShopVisitRepository {
       var dbClient = await dbHelpershopvisit.db;
       return await dbClient!.insert('shopVisit', shopvisitModel.toMap());
     }
-
-
+    Future<int> addHeasdsShopVisits(HeadsShopVisitModel headsshopvisitModel) async {
+      var dbClient = await dbHelpershopvisit.db;
+      return await dbClient!.insert('HeadsShopVisits', headsshopvisitModel.toMap());
+    }
 
     Future<int> update(ShopVisitModel shopvisitModel) async {
       var dbClient = await dbHelpershopvisit.db;

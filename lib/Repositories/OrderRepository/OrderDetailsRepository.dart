@@ -1,7 +1,9 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:metaxperts_dynamic_apis/post_apis/Post_apis.dart';
+import 'package:mutex/mutex.dart';
 import 'package:order_booking_shop/API/Globals.dart';
+import 'package:synchronized/extension.dart';
 
 import '../../API/ApiServices.dart';
 import '../../Databases/DBHelper.dart';
@@ -23,81 +25,232 @@ class OrderDetailsRepository {
     return orderdetails;
   }
   Future<bool> postOrderDetails() async {
-    var db = await dbHelper.db;
-    final ApiServices api = ApiServices();
+    final Mutex mutex = Mutex();
+    return mutex.synchronized(() async {
+      var db = await dbHelper.db;
+      final ApiServices api = ApiServices();
 
-    try {
-      PostingStatus.isPosting.value = true; // Set posting status to true
+      try {
+        final List<Map<String, dynamic>> records = await db!.query('order_details');
 
-      final List<Map<String, dynamic>> records = await db!.query('order_details');
-
-      for (var record in records) {
-        if (kDebugMode) {
-          print(record.toString());
-        }
-      }
-
-      final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
-      if (products.isNotEmpty) {
-        List<int> successfullyPostedIds = [];
-
-        for (var i in products) {
+        for (var record in records) {
           if (kDebugMode) {
-            print("Posting order details for ${i['id']}");
+            print(record.toString());
           }
+        }
 
-          OrderDetailsModel v = OrderDetailsModel(
-            id: i['id'].toString(),
-            orderMasterId: i['order_master_id'].toString(),
-            productName: i['productName'].toString(),
-            price: i['price'].toString(),
-            quantity: i['quantity'].toString(),
-            amount: i['amount'].toString(),
-            userId: i['userId'].toString(),
-          );
+        final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
+        if (products.isNotEmpty) {
+          for (var i in products) {
+            if (kDebugMode) {
+              print("Posting order details for ${i['id']}");
+            }
 
-          try {
-            bool results = await api.masterPost(
-              v.toMap(),
-              orderDetailsApi,
+            OrderDetailsModel v = OrderDetailsModel(
+              id: i['id'].toString(),
+              orderMasterId: i['order_master_id'].toString(),
+              productName: i['productName'].toString(),
+              price: i['price'].toString(),
+              quantity: i['quantity'].toString(),
+              amount: i['amount'].toString(),
+              userId: i['userId'].toString(),
             );
 
-            if (results == true) {
-              if (kDebugMode) {
-                print('Successfully posted order details for ID: ${i['id']}');
+            try {
+              bool result = await api.masterPost(
+                v.toMap(),
+                orderDetailsApi,
+              );
+
+              if (result==true) {
+                if (kDebugMode) {
+                  print('Successfully posted order details for ID: ${i['id']}');
+                }
+                await db.rawUpdate(
+                    'UPDATE order_details SET posted = 1 WHERE id = ?', [i['id']]
+                );
+              } else {
+                if (kDebugMode) {
+                  print('Failed to post order details for ID: ${i['id']}');
+                }
               }
-              successfullyPostedIds.add(i['id'] as int);
-            } else {
+            } catch (e) {
               if (kDebugMode) {
-                print('Failed to post order details for ID: ${i['id']}');
+                print("Error posting order details for ID: ${i['id']} - $e");
               }
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              print("Error posting order details for ID: ${i['id']} - $e");
             }
           }
+          return true;
+        } else {
+          return false;
         }
-
-        if (successfullyPostedIds.isNotEmpty) {
-          String ids = successfullyPostedIds.join(',');
-          await db.rawUpdate(
-            'UPDATE order_details SET posted = 1 WHERE id IN ($ids)',
-          );
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error processing order details data: $e");
         }
-        return true;
-      } else {
         return false;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error processing order details data: $e");
-      }
-      return false;
-    } finally {
-      PostingStatus.isPosting.value = false; // Set posting status to false
-    }
+    });
   }
+
+
+  // Future<bool> postOrderDetails() async {
+  //   if (PostingStatus.isPosting.value) {
+  //     // If posting is already in progress, do not start another process
+  //     return false;
+  //   }
+  //
+  //   var db = await dbHelper.db;
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     PostingStatus.isPosting.value = true; // Set posting status to true
+  //
+  //     final List<Map<String, dynamic>> records = await db!.query('order_details');
+  //
+  //     for (var record in records) {
+  //       if (kDebugMode) {
+  //         print(record.toString());
+  //       }
+  //     }
+  //
+  //     final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
+  //     if (products.isNotEmpty) {
+  //       List<int> successfullyPostedIds = [];
+  //
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("Posting order details for ${i['id']}");
+  //         }
+  //
+  //         OrderDetailsModel v = OrderDetailsModel(
+  //           id: i['id'].toString(),
+  //           orderMasterId: i['order_master_id'].toString(),
+  //           productName: i['productName'].toString(),
+  //           price: i['price'].toString(),
+  //           quantity: i['quantity'].toString(),
+  //           amount: i['amount'].toString(),
+  //           userId: i['userId'].toString(),
+  //         );
+  //
+  //         try {
+  //           bool results = await api.masterPost(
+  //             v.toMap(),
+  //             orderDetailsApi,
+  //           );
+  //
+  //           if (results == true) {
+  //             if (kDebugMode) {
+  //               print('Successfully posted order details for ID: ${i['id']}');
+  //             }
+  //             successfullyPostedIds.add(i['id'] as int);
+  //           } else {
+  //             if (kDebugMode) {
+  //               print('Failed to post order details for ID: ${i['id']}');
+  //             }
+  //           }
+  //         } catch (e) {
+  //           if (kDebugMode) {
+  //             print("Error posting order details for ID: ${i['id']} - $e");
+  //           }
+  //         }
+  //       }
+  //
+  //       if (successfullyPostedIds.isNotEmpty) {
+  //         String ids = successfullyPostedIds.join(',');
+  //         await db.rawUpdate(
+  //           'UPDATE order_details SET posted = 1 WHERE id IN ($ids)',
+  //         );
+  //       }
+  //       return true;
+  //     } else {
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error processing order details data: $e");
+  //     }
+  //     return false;
+  //   } finally {
+  //     PostingStatus.isPosting.value = false; // Set posting status to false
+  //   }
+  // }
+  // Future<bool> postOrderDetails() async {
+  //   var db = await dbHelper.db;
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     PostingStatus.isPosting.value = true; // Set posting status to true
+  //
+  //     final List<Map<String, dynamic>> records = await db!.query('order_details');
+  //
+  //     for (var record in records) {
+  //       if (kDebugMode) {
+  //         print(record.toString());
+  //       }
+  //     }
+  //
+  //     final products = await db.rawQuery('SELECT * FROM order_details WHERE posted = 0');
+  //     if (products.isNotEmpty) {
+  //       List<int> successfullyPostedIds = [];
+  //
+  //       for (var i in products) {
+  //         if (kDebugMode) {
+  //           print("Posting order details for ${i['id']}");
+  //         }
+  //
+  //         OrderDetailsModel v = OrderDetailsModel(
+  //           id: i['id'].toString(),
+  //           orderMasterId: i['order_master_id'].toString(),
+  //           productName: i['productName'].toString(),
+  //           price: i['price'].toString(),
+  //           quantity: i['quantity'].toString(),
+  //           amount: i['amount'].toString(),
+  //           userId: i['userId'].toString(),
+  //         );
+  //
+  //         try {
+  //           bool results = await api.masterPost(
+  //             v.toMap(),
+  //             orderDetailsApi,
+  //           );
+  //
+  //           if (results == true) {
+  //             if (kDebugMode) {
+  //               print('Successfully posted order details for ID: ${i['id']}');
+  //             }
+  //             successfullyPostedIds.add(i['id'] as int);
+  //           } else {
+  //             if (kDebugMode) {
+  //               print('Failed to post order details for ID: ${i['id']}');
+  //             }
+  //           }
+  //         } catch (e) {
+  //           if (kDebugMode) {
+  //             print("Error posting order details for ID: ${i['id']} - $e");
+  //           }
+  //         }
+  //       }
+  //
+  //       if (successfullyPostedIds.isNotEmpty) {
+  //         String ids = successfullyPostedIds.join(',');
+  //         await db.rawUpdate(
+  //           'UPDATE order_details SET posted = 1 WHERE id IN ($ids)',
+  //         );
+  //       }
+  //       return true;
+  //     } else {
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error processing order details data: $e");
+  //     }
+  //     return false;
+  //   } finally {
+  //     PostingStatus.isPosting.value = false; // Set posting status to false
+  //   }
+  // }
    // Return true if posting is successful
 
 

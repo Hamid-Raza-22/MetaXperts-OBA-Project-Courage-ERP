@@ -106,6 +106,8 @@ class ShopViewModel extends GetxController{
     shopRepository.postShopTable();
   }
 
+
+
 }
 
 

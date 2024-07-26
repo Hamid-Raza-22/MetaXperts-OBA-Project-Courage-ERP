@@ -2,8 +2,10 @@ import 'dart:async' show Future, Timer;
 import 'package:flutter/material.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
+import 'package:order_booking_shop/Views/RSMS_Views/RSM_HomePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../API/Globals.dart';
 import 'login.dart';
 
 
@@ -26,11 +28,18 @@ class _SplashScreenState extends State<SplashScreen> {
         // Redirect to the home page if the user is already logged in
         Navigator.of(context).push(
           MaterialPageRoute(
-              builder: (context) => const HomePage(),
+              builder: (context) => const RSMHomepage(),
              // settings: RouteSettings(arguments: dataToPass)
           ),
         );
-      } else {
+      }  else if (userDesignation == 'SO') {
+        // Redirect to the HomePage if the user is an SO
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const HomePage(),
+          ),
+        );
+      }else {
         // Redirect to the login page if the user is not logged in
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -48,7 +57,8 @@ class _SplashScreenState extends State<SplashScreen> {
     String? userId = prefs.getString('userId');
     String? userNames = prefs.getString('userNames');
     String? userCitys = prefs.getString('userCitys');
-    return userId != null && userId.isNotEmpty && userCitys!=null && userCitys.isNotEmpty && userNames!=null && userNames.isNotEmpty;
+    String? userDesignation = prefs.getString('userDesignation');
+    return userId != null && userId.isNotEmpty && userCitys!=null && userCitys.isNotEmpty && userNames!=null && userNames.isNotEmpty && userDesignation!=null && userDesignation.isNotEmpty;
   }
 
   @override

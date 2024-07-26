@@ -47,7 +47,7 @@ dependencies:
   http: ^1.1.0
   http_parser: ^4.0.2
   path: ^1.8.3
-  dropdown_search: ^5.0.6
+  dropdown_search: ^5.0.2
   dropdown_button2: ^2.3.9
   flutter_typeahead: ^4.8.0
   timezone_utc_offset:
@@ -109,6 +109,11 @@ dependencies:
   in_app_update: ^4.2.3
   hive_flutter: ^1.1.0
   serverpod: ^2.0.2
+  synchronized: ^3.1.0+1
+  mutex: ^3.1.0
+  flutter_svg: ^2.0.10+1
+  loading_animation_widget: ^1.0.0
+
 
 dev_dependencies:
   flutter_test:
@@ -137,6 +142,9 @@ flutter:
     - assets/images/p2.png
     - assets/images/p1.png
     - assets/images/b1.png
+    - assets/icons/shop_icon.svg
+    - assets/icons/shop-svg-3.png
+    - assets/icons/OIP.png
     - assets/images/WhatsApp Image 2023-11-24 at 11.13.50 AM.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

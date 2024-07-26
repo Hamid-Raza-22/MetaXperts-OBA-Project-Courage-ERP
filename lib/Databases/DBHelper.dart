@@ -29,7 +29,7 @@ class DBHelper {
     String path = join(documentDirectory.path, 'shop.db');
     var db = await openDatabase(
       path,
-      version: 2, // Increment the version number
+      version: 3, // Increment the version number
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -102,6 +102,12 @@ class DBHelper {
         await db.execute("ALTER TABLE shop_new RENAME TO shop");
         if (kDebugMode) {
           print('Renamed shop_new to shop');
+        }
+      }
+      if (oldVersion < 3) {
+        await db.execute("CREATE TABLE HeadsShopVisits(id TEXT PRIMARY KEY, date TEXT, shopName TEXT, userId TEXT, city TEXT, bookerName TEXT, feedback TEXT, address TEXT, bookerId TEXT)");
+        if (kDebugMode) {
+          print('Created HeadsShopVisits table');
         }
       }
     } catch (e) {

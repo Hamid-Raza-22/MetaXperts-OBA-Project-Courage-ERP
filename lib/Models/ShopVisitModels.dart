@@ -19,6 +19,7 @@ class ShopVisitModel {
   dynamic? longitude;
   dynamic? address;
   dynamic city;
+  dynamic bookerId;
 
   ShopVisitModel({
 
@@ -37,7 +38,8 @@ class ShopVisitModel {
     this.longitude,
     this.latitude,
     this.address,
-    this.city
+    this.city,
+    this.bookerId
   });
 
   factory ShopVisitModel.fromMap(Map<dynamic, dynamic> json) {
@@ -47,6 +49,7 @@ class ShopVisitModel {
         shopName: json['shopName'],
         userId: json['userId'],
         bookerName: json['bookerName'],
+        bookerId: json['bookerId'],
         brand: json['brand'],
         city: json['city'],
         walkthrough: json['walkthrough'] == 1 || json['walkthrough'] == 'true' || json['walkthrough'] == true,
@@ -71,6 +74,7 @@ class ShopVisitModel {
       'userId': userId,
     'shopName': shopName,
     'bookerName': bookerName,
+      'bookerId': bookerId,
     'brand': brand,
     'city': city,
     'walkthrough': walkthrough,
