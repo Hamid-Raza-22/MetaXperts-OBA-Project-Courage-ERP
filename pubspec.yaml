@@ -145,6 +145,7 @@ flutter:
     - assets/icons/shop_icon.svg
     - assets/icons/shop-svg-3.png
     - assets/icons/OIP.png
+    - assets/icons/avatar3.png
     - assets/images/WhatsApp Image 2023-11-24 at 11.13.50 AM.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

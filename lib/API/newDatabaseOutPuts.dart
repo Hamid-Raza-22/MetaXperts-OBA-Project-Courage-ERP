@@ -793,7 +793,7 @@ class newDatabaseOutputs {
 
       try {
         var response = await api.getApi(
-            loginApi);
+            loginApi1);
         inserted = await db.insertLogin(response); // returns True or False
 
         if (inserted == true) {
@@ -829,7 +829,9 @@ class newDatabaseOutputs {
           }
         }
       }
-    }await showLoginGetData();
+    }await db.getAllLogins();
+    await db.debugDatabase();
+    await showLoginGetData();
   }
   // function for the update recovery from the data table
   Future<void> updateRecoveryFormGetData() async {

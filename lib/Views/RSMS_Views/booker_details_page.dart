@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'RSM_Booker_Details.dart';
+import '../../Models/BookerStatusModel/BookerStatusModel.dart';
+import 'BookerStatus.dart';
 
 class BookerDetailsPage extends StatelessWidget {
-  final Booker booker;
+  final BookerStatusModel booker;
 
   BookerDetailsPage({required this.booker});
 
@@ -23,10 +24,10 @@ class BookerDetailsPage extends StatelessWidget {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 16),
-            // Text(
-            //   'City: ${booker.city}',
-            //   style: const TextStyle(fontSize: 18),
-            // ),
+            Text(
+              'City: ${booker.city}',
+              style: const TextStyle(fontSize: 18),
+            ),
             SizedBox(height: 8),
             Text(
               'Designation: ${booker.designation}',

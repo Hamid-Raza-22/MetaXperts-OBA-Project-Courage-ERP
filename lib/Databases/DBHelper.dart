@@ -11,7 +11,7 @@ import 'dart:async' show Future;
 import '../Models/OrderModels/OrderDetailsModel.dart';
 import '../Models/ShopModel.dart';
 import '../Models/StockCheckItems.dart';
-import '../Models/loginModel.dart';
+import '../Models/LoginModel.dart';
 
 class DBHelper {
   static Database? _db;
@@ -105,6 +105,16 @@ class DBHelper {
         }
       }
       if (oldVersion < 3) {
+        // Adding new columns RSM, SM, and NMS to the login table
+        await db.execute("ALTER TABLE login ADD COLUMN RSM TEXT;");
+        await db.execute("ALTER TABLE login ADD COLUMN SM TEXT;");
+        await db.execute("ALTER TABLE login ADD COLUMN NSM TEXT;");
+        await db.execute("ALTER TABLE login ADD COLUMN RSM_ID TEXT;");
+        await db.execute("ALTER TABLE login ADD COLUMN SM_ID TEXT;");
+        await db.execute("ALTER TABLE login ADD COLUMN NSM_ID TEXT;");
+        if (kDebugMode) {
+          print('Added RSM, SM, NSM, RSM_ID, SM_ID and NSM_ID columns to login table');
+        }
         await db.execute("CREATE TABLE HeadsShopVisits(id TEXT PRIMARY KEY, date TEXT, shopName TEXT, userId TEXT, city TEXT, bookerName TEXT, feedback TEXT, address TEXT, bookerId TEXT)");
         if (kDebugMode) {
           print('Created HeadsShopVisits table');
@@ -669,18 +679,34 @@ class DBHelper {
       return false;
     }
   }
+  Future<void> debugDatabase() async {
+    final Database db = await initDatabase();
+    var result = await db.rawQuery('PRAGMA table_info(login)');
+    for (var row in result) {
+      if (kDebugMode) {
+        print(row);
+      }
+    }
+  }
+
   Future<List<Map<String, dynamic>>?> getAllLogins() async {
     final Database db = await initDatabase();
     try {
       final List<Map<String, dynamic>> logins = await db.query('login');
+      for (var login in logins) {
+        if (kDebugMode) {
+          print(login);
+        } // Print each login to debug
+      }
       return logins;
     } catch (e) {
       if (kDebugMode) {
-        print("Error retrieving products: $e");
+        print("Error retrieving logins: $e");
       }
       return null;
     }
   }
+
   Future<bool> updateloginTable(List<dynamic> dataList) async {
     final Database db = await initDatabase();
     try {
@@ -1956,7 +1982,7 @@ class DBHelper {
   }
 
 
-  Future<bool>login(Users user) async{
+  Future<bool>login(LoginModel user) async{
     final Database db = await initDatabase();
     var results=await db.rawQuery("select * from login where user_id = '${user.user_id}' AND password = '${user.password}'");
     if(results.isNotEmpty){

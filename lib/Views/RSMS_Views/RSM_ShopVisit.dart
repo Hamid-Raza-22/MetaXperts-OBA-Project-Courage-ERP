@@ -15,6 +15,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../API/Globals.dart';
 import '../../Models/HeadsShopVistModels.dart';
 import '../../Models/ShopVisitModels.dart';
+import '../../View_Models/LoginViewModel.dart';
 import '../../View_Models/OwnerViewModel.dart';
 import '../../View_Models/ShopVisitViewModel.dart';
 
@@ -42,8 +43,10 @@ class ShopVisitPageState extends State<ShopVisitPage> {
   bool isLocationFetched = false;
   bool isLocationChecked = false; // Checkbox state
   final ownerViewModel = Get.put(OwnerViewModel());
+  final loginViewModel = Get.put(LoginViewModel());
   final shopVisitViewModel = Get.put(ShopVisitViewModel());
   List<String> dropdownItems = [];
+  List<String> bookersDropdownItems = [];
   List<String> citiesDropdownItems = [];
   final TextEditingController rsmNameController = TextEditingController(text: userNames);
   final String currentDate = DateFormat('dd-MMMM-yyyy hh:mm a').format(DateTime.now());
@@ -52,6 +55,7 @@ class ShopVisitPageState extends State<ShopVisitPage> {
   void initState() {
     super.initState();
     _checkUserIdAndFetchShopNames();
+    fetchBookerNamesByRSMDesignation();
     fetchCitiesNames();
   }
 
@@ -152,6 +156,22 @@ class ShopVisitPageState extends State<ShopVisitPage> {
       dropdownItems = shopNames.map((dynamic item) => item.toString()).toSet().toList();
     });
   }
+  Future<void> fetchBookerNamesByRSMDesignation() async {
+    loginViewModel.fetchBookerNamesByRSMDesignation();
+    List<String> bookerNames = loginViewModel.bookerNamesByRSMDesignation.map((dynamic item) => item.toString()).toSet().toList();
+
+    var box = await Hive.openBox('bookerNames');
+    await box.put('bookerNames', bookerNames);
+    List<String> allBookerNames = box.get('bookerNames', defaultValue: <String>[]);
+    if (kDebugMode) {
+      print('All shop names: $allBookerNames');
+    }
+    await box.close();
+
+    setState(() {
+      bookersDropdownItems = bookerNames.map((dynamic item) => item.toString()).toSet().toList();
+    });
+  }
 
   bool _isSubmitButtonEnabled() {
     return isLocationFetched &&
@@ -172,6 +192,19 @@ class ShopVisitPageState extends State<ShopVisitPage> {
     );
   }
 
+
+
+  Future<void> onDropdownTapRegion() async {
+    await fetchCitiesNames();
+  }
+  Future<void> onDropdownTapBooker() async {
+   await fetchBookerNamesByRSMDesignation();
+  }
+  Future<void> onDropdownTapShop() async {
+    await _checkUserIdAndFetchShopNames();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,11 +222,11 @@ class ShopVisitPageState extends State<ShopVisitPage> {
             const SizedBox(height: 16),
             buildAnimatedDateField(currentDate),
             const SizedBox(height: 16),
-            _buildAnimatedDropdown("Select Region", citiesDropdownItems, Icons.location_on, regionController),
+            _buildAnimatedDropdown("Select City", citiesDropdownItems, Icons.location_on, regionController,onDropdownTapRegion),
             const SizedBox(height: 16),
-            _buildAnimatedDropdown("Select Booker", ["Booker 1", "Booker 2", "Booker 3"], Icons.book, bookerController),
+            _buildAnimatedDropdown("Select Booker ID", bookersDropdownItems, Icons.book, bookerController, onDropdownTapBooker),
             const SizedBox(height: 16),
-            _buildAnimatedDropdown("Select Shop", dropdownItems, Icons.store, shopController),
+            _buildAnimatedDropdown("Select Shop", dropdownItems, Icons.store, shopController,onDropdownTapShop),
             const SizedBox(height: 16),
             _buildAnimatedFeedbackBox(),
             const SizedBox(height: 10),
@@ -296,8 +329,10 @@ class ShopVisitPageState extends State<ShopVisitPage> {
     );
   }
 
-  Widget _buildAnimatedDropdown(String label, List<String> items, IconData icon, TextEditingController controller) {
-    return AnimatedContainer(
+  Widget _buildAnimatedDropdown(String label, List<String> items, IconData icon, TextEditingController controller, VoidCallback onTap) {
+    return GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       decoration: BoxDecoration(
@@ -339,6 +374,7 @@ class ShopVisitPageState extends State<ShopVisitPage> {
           },
         ),
       ),
+    ),
     );
   }
 

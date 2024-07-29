@@ -293,18 +293,18 @@ packages:
     dependency: transitive
     description:
       name: connectivity_plus
-      sha256: db7a4e143dc72cc3cb2044ef9b052a7ebfe729513e6a82943bc3526f784365b8
+      sha256: "3e7d1d9dbae40ae82cbe6c23c518f0c4ffe32764ee9749b9a99d32cbac8734f6"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.3"
+    version: "6.0.4"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
       name: connectivity_plus_platform_interface
-      sha256: b6a56efe1e6675be240de39107281d4034b64ac23438026355b4234042a35adb
+      sha256: "42657c1715d48b167930d5f34d00222ac100475f73d10162ddf43e714932f204"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.1"
   convert:
     dependency: transitive
     description:
@@ -373,10 +373,10 @@ packages:
     dependency: transitive
     description:
       name: device_info_plus_platform_interface
-      sha256: d3b01d5868b50ae571cd1dc6e502fc94d956b665756180f7b16ead09e836fd64
+      sha256: "282d3cf731045a2feb66abfe61bbc40870ae50a3ed10a4d3d217556c35c8c2ba"
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.0"
+    version: "7.0.1"
   dio:
     dependency: transitive
     description:
@@ -746,10 +746,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_plugin_android_lifecycle
-      sha256: c6b0b4c05c458e1c01ad9bcc14041dd7b1f6783d487be4386f793f47a8a4d03e
+      sha256: "9d98bd47ef9d34e803d438f17fd32b116d31009f534a6fa5ce3a1167f189a6de"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.20"
+    version: "2.0.21"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -900,10 +900,10 @@ packages:
     dependency: transitive
     description:
       name: geolocator_android
-      sha256: "00c7177a95823dd3ee35ef42fd8666cd27d219ae14cea472ac76a21dff43000b"
+      sha256: "7aefc530db47d90d0580b552df3242440a10fe60814496a979aa67aa98b1fd47"
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.0"
+    version: "4.6.1"
   geolocator_apple:
     dependency: transitive
     description:
@@ -964,10 +964,10 @@ packages:
     dependency: transitive
     description:
       name: google_maps_flutter_android
-      sha256: f6306d83edddba7aa017ca6f547d6f36a1443f90ed49d91d48ef70d7aa86e2e1
+      sha256: "5d444f4135559488d7ea325eae710ae3284e6951b1b61729a0ac026456fe1548"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.12.1"
   google_maps_flutter_ios:
     dependency: transitive
     description:
@@ -1068,10 +1068,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_android
-      sha256: a26dc9a03fe042440c1e4be554fb0fceae2bf6d887d7467fc48c688fa4a81889
+      sha256: "3fe99e3a459b969f657565a853353bdea7e3d3cae34f7dd124836267d426ec87"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.12+7"
+    version: "0.8.12+10"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -1268,16 +1268,16 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "25dfcaf170a0190f47ca6355bdd4552cb8924b430512ff0cafb8db9bd41fe33b"
+      sha256: bdb68674043280c3428e9ec998512fb681678676b3c54e773629ffe74419f8c7
       url: "https://pub.dev"
     source: hosted
-    version: "1.14.0"
+    version: "1.15.0"
   metaxperts_dynamic_apis:
     dependency: "direct main"
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "97832e1ec0270b90cd7b7898b9951ab841cedbb7"
+      resolved-ref: f1ba96616cafb46a383eb3965f6b070e8b27ef75
       url: "https://github.com/Hamid-Raza-22/metaxperts_dynamic_apis.git"
     source: git
     version: "1.0.0+1"
@@ -1413,10 +1413,10 @@ packages:
     dependency: transitive
     description:
       name: path_provider_android
-      sha256: "30c5aa827a6ae95ce2853cdc5fe3971daaac00f6f081c419c013f7f57bff2f5e"
+      sha256: "490539678396d4c3c0b06efdaab75ae60675c3e0c66f72bc04c2e2c1e0e2abeb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.7"
+    version: "2.2.9"
   path_provider_foundation:
     dependency: transitive
     description:
@@ -1669,10 +1669,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_android
-      sha256: "93d0ec9dd902d85f326068e6a899487d1f65ffcd5798721a95330b26c8131577"
+      sha256: "3d4571b3c5eb58ce52a419d86e655493d0bc3020672da79f72fa0c16ca3a8ec1"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.3"
+    version: "2.2.4"
   shared_preferences_foundation:
     dependency: transitive
     description:
@@ -1762,10 +1762,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3
-      sha256: "6d17989c0b06a5870b2190d391925186f944cb943e5262d0d3f778fcfca3bc6e"
+      sha256: fde692580bee3379374af1f624eb3e113ab2865ecb161dbe2d8ac2de9735dbdb
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.4"
+    version: "2.4.5"
   stack_trace:
     dependency: transitive
     description:
@@ -1842,10 +1842,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: "2419f20b0c8677b2d67c8ac4d1ac7372d862dc6c460cdbb052b40155408cd794"
+      sha256: "5b8a98dafc4d5c4c9c72d8b31ab2b23fc13422348d2997120294d3bac86b4ddb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.1"
+    version: "0.7.2"
   timezone:
     dependency: "direct main"
     description:
@@ -1906,10 +1906,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_android
-      sha256: "95d8027db36a0e52caf55680f91e33ea6aa12a3ce608c90b06f4e429a21067ac"
+      sha256: "678979703e10d7862c551c736fe6b9f185261bddf141b46672063b99790bc700"
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.5"
+    version: "6.3.7"
   url_launcher_ios:
     dependency: transitive
     description:
@@ -2018,10 +2018,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_android
-      sha256: fdc0331ce9f808cc2714014cb8126bd6369943affefd54f8fdab0ea0bb617b7f
+      sha256: "4de50df9ee786f5891d3281e1e633d7b142ef1acf47392592eb91cba5d355849"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.2"
+    version: "2.6.0"
   video_player_avfoundation:
     dependency: transitive
     description:
@@ -2050,10 +2050,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "7475cb4dd713d57b6f7464c0e13f06da0d535d8b2067e188962a59bac2cf280b"
+      sha256: f652077d0bdf60abe4c1f6377448e8655008eef28f128bc023f7b5e8dfeb48fc
       url: "https://pub.dev"
     source: hosted
-    version: "14.2.2"
+    version: "14.2.4"
   web:
     dependency: transitive
     description:
@@ -2074,10 +2074,10 @@ packages:
     dependency: transitive
     description:
       name: win32_registry
-      sha256: "10589e0d7f4e053f2c61023a31c9ce01146656a70b7b7f0828c0b46d7da2a9bb"
+      sha256: "723b7f851e5724c55409bb3d5a32b203b3afe8587eaf5dafb93a5fed8ecda0d6"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.3"
+    version: "1.1.4"
   workmanager:
     dependency: "direct main"
     description:

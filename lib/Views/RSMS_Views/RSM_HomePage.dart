@@ -23,7 +23,7 @@ import '../../location00.dart';
 import '../../main.dart';
 import '../HomePage.dart';
 import 'LIVE_location_page.dart';
-import 'RSM_Booker_Details.dart';
+import 'BookerStatus.dart';
 import 'RSM_ShopDetails.dart';
 import 'RSM_ShopVisit.dart';
 // Import other pages if needed
@@ -536,7 +536,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
       case 'BOOKERS STATUS':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => BookerDetailPage()),
+          MaterialPageRoute(builder: (context) => BookerStatus()),
         );
         break;
       case 'SHOPS DETAILS':

@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../API/Globals.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
-import '../Models/loginModel.dart';
+import '../Models/LoginModel.dart';
 import '../View_Models/OwnerViewModel.dart';
 import '../main.dart';
 import 'HomePage.dart';
@@ -99,7 +99,7 @@ class LoginFormState extends State<LoginForm> {
     bool isLoggedIn = await _checkLoginStatus();
 
     var response = await dblogin.login(
-      Users(user_id: _emailController.text, password: _passwordController.text, user_name: ''),
+      LoginModel(user_id: _emailController.text, password: _passwordController.text, user_name: ''),
     );
 
     if (response == true) {
