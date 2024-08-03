@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Add this import for date formatting
-
 import 'package:order_booking_shop/Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
 
-import 'RSM_ShopDetails.dart';
+import 'sm_shopdetails.dart';
 import 'order_details_page.dart';
 
 class ShopDetailsPage extends StatelessWidget {

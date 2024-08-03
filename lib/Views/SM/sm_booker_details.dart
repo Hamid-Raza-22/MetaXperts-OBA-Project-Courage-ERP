@@ -3,21 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:order_booking_shop/Models/Bookers_RSM_SM_NSM_Models/BookerStatusModel.dart';
 import 'package:http/http.dart' as http;
+import 'package:order_booking_shop/Models/Bookers_RSM_SM_NSM_Models/RSMStatusModel.dart';
 import 'dart:convert';
 
 import '../../Models/Bookers_RSM_SM_NSM_Models/AttendanceStatusModel.dart';
 
 
 
-class RSMBookerDetailsPage extends StatefulWidget {
-  final BookerStatusModel booker;
+class SMBookerDetailPage extends StatefulWidget {
+  final RSMStatusModel booker;
 
-  RSMBookerDetailsPage({required this.booker});
+  SMBookerDetailPage({required this.booker});
 
   @override
   _RSMBookerDetailsPageState createState() => _RSMBookerDetailsPageState();
 }
-class _RSMBookerDetailsPageState extends State<RSMBookerDetailsPage> {
+class _RSMBookerDetailsPageState extends State<SMBookerDetailPage> {
   final List<String> _statusOptions = ["Clock in", "Clock out"];
   List<AttendanceStatusModel> _attendanceData = [];
   List<AttendanceStatusModel> _filteredData = [];

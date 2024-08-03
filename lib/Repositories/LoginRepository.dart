@@ -72,7 +72,29 @@ class LoginRepository {
     );
     return bookerNames.map((map) => map['user_id'] as String).toList();
 
+  }Future<List<String>> getBookerNamesBySMDesignation() async {
+    var dbClient = await dbHelper.db;
+
+    final List<Map<String, dynamic>> bookerNames = await dbClient!.query(
+      'login',
+      where: 'SM_ID = ?',
+      whereArgs: [userId],
+    );
+    return bookerNames.map((map) => map['user_id'] as String).toList();
+
   }
+  Future<List<String>> getBookerNamesByNSMDesignation() async {
+    var dbClient = await dbHelper.db;
+
+    final List<Map<String, dynamic>> bookerNames = await dbClient!.query(
+      'login',
+      where: 'NSM_ID = ?',
+      whereArgs: [userId],
+    );
+    return bookerNames.map((map) => map['user_id'] as String).toList();
+
+  }
+
 }
 
 

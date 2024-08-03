@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:order_booking_shop/Views/HomePage.dart';
 import 'package:order_booking_shop/Views/PolicyDBox.dart';
 import 'package:order_booking_shop/Views/RSMS_Views/RSM_HomePage.dart';
+import 'package:order_booking_shop/Views/SM/sm_homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../API/Globals.dart';
+import 'NSM/nsm_homepage.dart';
 import 'login.dart';
 
 
@@ -32,7 +34,21 @@ class _SplashScreenState extends State<SplashScreen> {
              // settings: RouteSettings(arguments: dataToPass)
           ),
         );
-      }  else if (userDesignation == 'SO') {
+      }  else if (userDesignation == 'SM') {
+        // Redirect to the HomePage if the user is an SO
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const SMHomepage(),
+          ),
+        );
+      } else if (userDesignation == 'NSM') {
+        // Redirect to the HomePage if the user is an SO
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const NSMHomepage(),
+          ),
+        );
+      }else if (userDesignation == 'SO'||userDesignation == 'SPO'||userDesignation == 'ASM'||userDesignation == 'SOS') {
         // Redirect to the HomePage if the user is an SO
         Navigator.of(context).push(
           MaterialPageRoute(

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Add this import for date formatting
+import 'package:intl/intl.dart';
+import 'nsm_order_details_page.dart';
+import 'nsm_shopdetails.dart'; // Add this import for date formatting
 
-import 'package:order_booking_shop/Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
+class NSMShopDetailsPage extends StatelessWidget {
+  final Shop shop;
 
-import 'RSM_ShopDetails.dart';
-import 'order_details_page.dart';
-
-class ShopDetailsPage extends StatelessWidget {
-  final ShopStatusModel shop;
-
-  ShopDetailsPage({required this.shop});
+  NSMShopDetailsPage({required this.shop});
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +179,7 @@ class ShopDetailsPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OrderDetailsPage(order: order),
+                  builder: (context) =>  NSMOrderDetailsPage(order: order),
                 ),
               );
             },

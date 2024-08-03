@@ -11,17 +11,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../API/Globals.dart';
 
+
 import '../../Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
 import '../../View_Models/OwnerViewModel.dart';
 import '../../main.dart';
 import 'shop_details_page..dart';
 
-class ShopDetailPage extends StatefulWidget {
+class SMShopDetailPage extends StatefulWidget {
   @override
-  _ShopDetailPageState createState() => _ShopDetailPageState();
+  _SMShopDetailPageState createState() => _SMShopDetailPageState();
 }
 
-class _ShopDetailPageState extends State<ShopDetailPage> {
+class _SMShopDetailPageState extends State<SMShopDetailPage> {
 
   List<ShopStatusModel> _allShops = [];
   List<ShopStatusModel> _filteredShops = [];
@@ -33,6 +34,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
   @override
   void initState() {
     super.initState();
+    print(userId);
     _loadData();
   }
   Future<void> _loadData() async {
@@ -56,7 +58,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
 
       // Show last sync time
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? lastSyncTime = prefs.getString('last_shoo_sync_time');
+      String? lastSyncTime = prefs.getString('last_SMshop_sync_time');
       if (lastSyncTime != null) {
         DateTime syncDateTime = DateTime.parse(lastSyncTime);
         String formattedTime = "${syncDateTime.toLocal()}";
@@ -68,7 +70,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
   }
 
   Future<bool> _fetchAndSaveData() async {
-    final url = '$rsmShopStatusGetApi$userId';
+    final url = '$smShopStatusGetApi$userId';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -84,7 +86,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
 
         // Save the last sync timestamp
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('last_shop_sync_time', DateTime.now().toIso8601String());
+        await prefs.setString('last_SMshop_sync_time', DateTime.now().toIso8601String());
       }
 
       return isNewData;
@@ -103,7 +105,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
 
   Future<String?> _getLastSyncTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lastSyncTime = prefs.getString('last_shop_sync_time');
+    String? lastSyncTime = prefs.getString('last_SMshop_sync_time');
     if (lastSyncTime != null) {
       DateTime syncDateTime = DateTime.parse(lastSyncTime);
       return "${syncDateTime.toLocal()}";
@@ -115,12 +117,12 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
   Future<void> _saveBookersData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String bookersJson = jsonEncode(_allShops.map((b) => b.toJson()).toList());
-    prefs.setString('shops_data', bookersJson);
+    prefs.setString('SMshops_data', bookersJson);
   }
 
   Future<void> _loadBookersData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? bookersJson = prefs.getString('shops_data');
+    String? bookersJson = prefs.getString('SMshops_data');
     if (bookersJson != null) {
       List<dynamic> jsonList = jsonDecode(bookersJson);
       _allShops = jsonList.map((json) => ShopStatusModel.fromJson(json)).toList();
@@ -319,7 +321,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
   }
 
 
- 
+
 
   Widget _buildTextField(String hint, TextEditingController controller, bool isDate, bool isReadOnly) {
     return Padding(
@@ -436,79 +438,79 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('RSM SHOP DETAIL'),
-        backgroundColor: Colors.green,
-      ),
-    body: RefreshIndicator(
-    onRefresh: _handleRefresh,
-    child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            Card(
-              elevation: 2.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    _buildTextField('Search by City', _cityController, false, false),
-                    _buildTextField('Search by Shop Name', _nameController, false, false),
-                  ],
-                ),
-              ),
-            ),
-            FutureBuilder<String?>(
-              future: _getLastSyncTime(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasData && snapshot.data != null) {
-                  DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
-                  String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Card(
-                      elevation: 2.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.access_time, color: Colors.blue),
-                        title: const Text(
-                          'Last Sync',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                        ),
-                        subtitle: Text(
-                          formattedTime,
-                          style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
-                  return Container(); // No data to display
-                }
-              },
-            ),
-            Expanded(
-              child: AnimatedList(
-                key: _listKey,
-                initialItemCount: _displayedShops.length,
-                itemBuilder: (context, index, animation) {
-                  final shop = _displayedShops[index];
-                  return _buildShopCard(shop, animation);
-                },
-              ),
-            ),
-          ],
+        appBar: AppBar(
+          title: const Text('SM SHOP DETAIL'),
+          backgroundColor: Colors.green,
         ),
-      ),
-    )
+        body: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              children: [
+                Card(
+                  elevation: 2.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        _buildTextField('Search by City', _cityController, false, false),
+                        _buildTextField('Search by Shop Name', _nameController, false, false),
+                      ],
+                    ),
+                  ),
+                ),
+                FutureBuilder<String?>(
+                  future: _getLastSyncTime(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasData && snapshot.data != null) {
+                      DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
+                      String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Card(
+                          elevation: 2.0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: ListTile(
+                            leading: const Icon(Icons.access_time, color: Colors.blue),
+                            title: const Text(
+                              'Last Sync',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                            ),
+                            subtitle: Text(
+                              formattedTime,
+                              style: const TextStyle(color: Colors.black54, fontSize: 14.0),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else {
+                      return Container(); // No data to display
+                    }
+                  },
+                ),
+                Expanded(
+                  child: AnimatedList(
+                    key: _listKey,
+                    initialItemCount: _displayedShops.length,
+                    itemBuilder: (context, index, animation) {
+                      final shop = _displayedShops[index];
+                      return _buildShopCard(shop, animation);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
     );
   }
 

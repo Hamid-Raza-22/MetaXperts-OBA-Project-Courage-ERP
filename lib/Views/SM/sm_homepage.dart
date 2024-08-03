@@ -1,43 +1,40 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
-import 'package:location/location.dart' as loc;
 import 'package:nanoid/nanoid.dart';
+
+import 'package:order_booking_shop/API/Globals.dart';
+import 'package:order_booking_shop/Views/SM/sm_shopdetails.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:async';
-import 'dart:io' show File, InternetAddress, SocketException;
-
-import '../../API/Globals.dart';
+import 'package:location/location.dart' as loc;
 import '../../Databases/DBHelper.dart';
 import '../../Models/AttendanceModel.dart';
 import '../../Tracker/trac.dart';
 import '../../location00.dart';
 import '../../main.dart';
 import '../HomePage.dart';
-import 'LIVE_location_page.dart';
-import 'BookerStatus.dart';
-import 'RSM_ShopDetails.dart';
-import 'RSM_ShopVisit.dart';
-import 'RSM_bookerbookingdetails.dart';
-import 'landing_page.dart';
-// Import other pages if needed
+import 'SM_bookerbookingdetails.dart';
+import 'sm_bookingstatus.dart';
+import 'sm_location_navigation.dart';
+import 'sm_shopvisit.dart';
 
-class RSMHomepage extends StatefulWidget {
-  const RSMHomepage({Key? key}) : super(key: key);
+class SMHomepage extends StatefulWidget {
+  const SMHomepage({super.key});
 
   @override
-  _RSMHomepageState createState() => _RSMHomepageState();
+  _SMHomepageState createState() => _SMHomepageState();
 }
 
-class _RSMHomepageState extends State<RSMHomepage> {
+class _SMHomepageState extends State<SMHomepage> {
   int? attendanceId;
   int? attendanceId1;
   double? globalLatitude1;
@@ -368,6 +365,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -377,97 +375,109 @@ class _RSMHomepageState extends State<RSMHomepage> {
     },
     child: Scaffold(
       appBar: AppBar(
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.home, color: Colors.white),
-            SizedBox(width: 10),
-            Text(
-              'RSM Homepage',
-              style: TextStyle(
-                fontFamily: 'Pacifico',
-                fontSize: 24,
-                color: Colors.white
-              ),
-            ),
-          ],
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.green, Colors.teal],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        title: const Center(
+          child: Text(
+            'SM DASHBOARD',
+            style: TextStyle(
+              fontFamily: 'avenir next',
+              fontSize: 17,
             ),
           ),
         ),
-        centerTitle: true,
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  //const Icon(Icons.info, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Timer: ${_formatDuration(newsecondpassed.toString())}',
-                    style: const TextStyle(color: Colors.black, fontSize: 17),
-                  ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  await _toggleClockInOut();
-                },
-                icon: Icon(
-                  isClockedIn ? Icons.timer_off : Icons.timer,
-                  color: isClockedIn ? Colors.red : Colors.white
-                ),
-                label: Text(
-                  isClockedIn ? 'Clock Out' : 'Clock In',
-                  style: const TextStyle(fontSize: 15),
-                ),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: isClockedIn ? Colors.red : Colors.white,
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-              ),
-            ],
-          ),
+        backgroundColor: Colors.white, // White background
+        elevation: 1, // Add a subtle shadow
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.green), // Green back arrow
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.green),
+            onPressed: () {
+              // Add reload functionality here
+            },
+          ),
+        ],
       ),
-      body: Padding(
+      body:Padding(
         padding: const EdgeInsets.all(16.0),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16.0,
-          mainAxisSpacing: 16.0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildCard(context, 'SHOP VISIT', Icons.store, Colors.green),
-            _buildCard(context, 'BOOKERS STATUS', Icons.person, Colors.blue),
-            _buildCard(context, 'SHOPS DETAILS', Icons.info, Colors.orange),
-            _buildCard(context, 'BOOKERS ORDER DETAILS', Icons.book, Colors.purple),
-            _buildCard(context, 'LIVE LOCATION', Icons.location_on, Colors.red),
+            const SizedBox(height: 20),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16.0,
+                  mainAxisSpacing: 16.0,
+                ),
+                itemCount: 5, // Updated item count
+                itemBuilder: (context, index) {
+                  final cardInfo = [
+                    {'title': 'Shop Visit', 'icon': Icons.store},
+                    {'title': 'Booker Status', 'icon': Icons.person},
+                    {'title': 'Shop Details', 'icon': Icons.info},
+                    {'title': 'Booker Order Details', 'icon': Icons.book},
+                    {'title': 'Location', 'icon': Icons.location_on}, // New card
+                  ][index];
+
+                  return _buildCard(
+                    context,
+                    cardInfo['title'] as String,
+                    cardInfo['icon'] as IconData,
+                    Colors.green,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'TIMER: ${_formatDuration(newsecondpassed.toString())}',
+                  style: const TextStyle(
+                    fontFamily: 'avenir next',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 50),
+                ElevatedButton.icon(
+                  onPressed: _toggleClockInOut,
+                  icon: Icon(isClockedIn ? Icons.timer_off : Icons.timer,color: isClockedIn ? Colors.red : Colors.white),
+                  label: Text(
+                    isClockedIn ? 'Clock Out' : 'Clock In',
+                    style: const TextStyle(
+                      // color: Colors.white,
+                      fontFamily: 'avenir next',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: isClockedIn ? Colors.red : Colors.white,
+                    backgroundColor: Colors.green, // Background color
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-     )
+    )
     );
   }
 
   Widget _buildCard(BuildContext context, String title, IconData icon, Color color) {
     return Card(
-      elevation: 5,
+      elevation: 4, // Slightly reduced elevation for a smaller card
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(10.0), // Slightly smaller border radius
       ),
       child: InkWell(
         onTap: () {
@@ -483,16 +493,16 @@ class _RSMHomepageState extends State<RSMHomepage> {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                   ),
+                  borderRadius: BorderRadius.circular(10.0), // Match border radius
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.center,
+            Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(10.0), // Reduced padding
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [color, color.withOpacity(0.7)],
@@ -503,17 +513,17 @@ class _RSMHomepageState extends State<RSMHomepage> {
                     ),
                     child: Icon(
                       icon,
-                      size: 40,
+                      size: 24, // Slightly smaller icon size
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12), // Reduced space between icon and title
                   Text(
                     title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: 'avenir next',
-                      fontSize: 18,
+                      fontSize: 12, // Slightly smaller font size
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -529,38 +539,37 @@ class _RSMHomepageState extends State<RSMHomepage> {
   void _navigateToPage(BuildContext context, String title) {
     // Navigation logic based on the title
     switch (title) {
-      case 'SHOP VISIT':
+      case 'Shop Visit':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ShopVisitPage()),
+          MaterialPageRoute(builder: (context) => const ShopVisitPage()),
         );
         break;
-      case 'BOOKERS STATUS':
+      case 'Booker Status':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => RSMBookerStatus()),
+          MaterialPageRoute(builder: (context) => BookingStatus()),
         );
         break;
-      case 'SHOPS DETAILS':
+      case 'Shop Details':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ShopDetailPage()),
+          MaterialPageRoute(builder: (context) => SMShopDetailPage()),
         );
         break;
-      case 'BOOKERS ORDER DETAILS':
+      case 'Booker Order Details':
+
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => RSMBookingBookPage()),
+          MaterialPageRoute(builder: (context) => SMBookingBookPage()),
         );
         break;
-      case 'LIVE LOCATION':
+      case 'Location':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => LandingPage()),
+          MaterialPageRoute(builder: (context) => smnavigation()),
         );
         break;
     }
   }
 }
-
-

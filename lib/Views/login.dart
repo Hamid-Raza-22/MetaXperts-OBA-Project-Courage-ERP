@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:metaxperts_dynamic_apis/ip_addresses/IP_addresses.dart';
+import 'package:order_booking_shop/Views/SM/sm_homepage.dart';
 import 'package:order_booking_shop/Views/ShopVisit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ import '../Models/LoginModel.dart';
 import '../View_Models/OwnerViewModel.dart';
 import '../main.dart';
 import 'HomePage.dart';
+import 'NSM/nsm_homepage.dart';
 import 'RSMS_Views/RSM_HomePage.dart';
 
 
@@ -150,27 +152,53 @@ class LoginFormState extends State<LoginForm> {
           }
 
           // Navigate based on designation
-          if (designation == 'RSM') {
-            if (kDebugMode) {
-              print('Navigating to RSMHomepage');
-            }
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const RSMHomepage(),
-                settings: RouteSettings(arguments: dataToPass),
-              ),
-            );
-          } else {
-            if (kDebugMode) {
-              print('Navigating to HomePage');
-            }
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const HomePage(),
-                settings: RouteSettings(arguments: dataToPass),
-              ),
-            );
+          switch (designation) {
+            case 'RSM':
+              if (kDebugMode) {
+                print('Navigating to RSMHomepage');
+              }
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const RSMHomepage(),
+                ),
+              );
+              break;
+
+            case 'SM':
+              if (kDebugMode) {
+                print('Navigating to SMHomepage');
+              }
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const SMHomepage(),
+                ),
+              );
+              break;
+
+            case 'NSM':
+              if (kDebugMode) {
+                print('Navigating to NSMHomepage');
+              }
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const NSMHomepage(),
+                ),
+              );
+              break;
+
+            default:
+              if (kDebugMode) {
+                print('Navigating to HomePage');
+              }
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const HomePage(),
+                  settings: RouteSettings(arguments: dataToPass),
+                ),
+              );
+              break;
           }
+
 
           setState(() {
             _loadingProgress = 100; // Update progress

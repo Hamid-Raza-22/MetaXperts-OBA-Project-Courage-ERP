@@ -12,6 +12,8 @@ class LoginViewModel extends GetxController{
   var allLogin = <LoginModel>[].obs;
   // var shopNames = <String>[].obs;
   var bookerNamesByRSMDesignation = <String>[].obs;
+ var bookerNamesBySMDesignation = <String>[].obs;
+ var bookerNamesByNSMDesignation = <String>[].obs;
 
   LoginRepository loginRepository = LoginRepository ();
 
@@ -21,14 +23,28 @@ class LoginViewModel extends GetxController{
     fetchAllLogin();
     // fetchShopNames();
     fetchBookerNamesByRSMDesignation();
+    fetchBookerNamesBySMDesignation();
+    fetchBookerNamesByNSMDesignation();
   }
   // fetchShopNames() async {
   //   var names = await loginRepository.getShopNames();
   //   shopNames.value = names;
   // }
   fetchBookerNamesByRSMDesignation() async {
-    var names = await loginRepository.getBookerNamesByRSMDesignation();
-    bookerNamesByRSMDesignation.value = names;
+    var rsmnames = await loginRepository.getBookerNamesByRSMDesignation();
+    bookerNamesByRSMDesignation.value = rsmnames;
+
+  }
+  fetchBookerNamesBySMDesignation() async {
+
+     var smnames = await loginRepository.getBookerNamesBySMDesignation();
+    bookerNamesBySMDesignation.value = smnames;
+
+  }
+  fetchBookerNamesByNSMDesignation() async {
+
+     var nsmnames = await loginRepository.getBookerNamesByNSMDesignation();
+    bookerNamesByNSMDesignation.value = nsmnames;
   }
   fetchAllLogin() async {
     var login = await loginRepository.getLogin();
