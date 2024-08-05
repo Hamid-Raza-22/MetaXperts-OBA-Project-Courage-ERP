@@ -1,4 +1,3 @@
-
 import 'package:order_booking_shop/Databases/DBHelper.dart';
 import '../../API/Globals.dart';
 import '../Models/LoginModel.dart';
@@ -96,6 +95,5 @@ class LoginRepository {
   }
 
 }
-
 
 

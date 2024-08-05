@@ -556,7 +556,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
       case 'LIVE LOCATION':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => LandingPage()),
+          MaterialPageRoute(builder: (context) => LiveLocationPage()),
         );
         break;
     }

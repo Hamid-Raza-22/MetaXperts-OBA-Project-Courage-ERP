@@ -1,6 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+
+Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designations) async {
+  Map<String, LatLng> markers = {};
+  QuerySnapshot snapshot = await FirebaseFirestore.instance
+      .collection('location') // Adjust this collection path as needed
+      .where('designation', whereIn: designations) // Fetch markers for specified designations
+      .get();
+
+  for (var doc in snapshot.docs) {
+    final data = doc.data() as Map<String, dynamic>;
+    markers[data['name']] = LatLng(data['latitude'], data['longitude']); // Ensure that your document has 'name', 'latitude', 'longitude' fields
+  }
+
+  return markers;
+}
 
 class LiveLocationPage extends StatefulWidget {
   @override
@@ -9,13 +25,22 @@ class LiveLocationPage extends StatefulWidget {
 
 class _LiveLocationPageState extends State<LiveLocationPage> {
   late GoogleMapController mapController;
+  Map<String, LatLng> _markers = {};
+  LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
+  final List<String> designations = ['ASM', 'SO', 'SOS', 'SPO']; // List of designations to fetch
 
-  final Map<String, LatLng> _dummyMarkers = {
-    '📍 Booker 1 (Islamabad)': const LatLng(33.6844, 73.0479),  // Islamabad
-    '📍 Booker 2 (Lahore)': const LatLng(31.5497, 74.3436),     // Lahore
-    '📍 Booker 3 (Sialkot)': const LatLng(32.5149, 74.5430),     // Sialkot
-    '📍 Booker 4 (Peshawar)': const LatLng(34.0151, 71.5249),    // Peshawar
-  };
+  @override
+  void initState() {
+    super.initState();
+    _loadMarkers();
+  }
+
+  Future<void> _loadMarkers() async {
+    Map<String, LatLng> fetchedMarkers = await fetchMarkersByDesignation(designations);
+    setState(() {
+      _markers = fetchedMarkers; // Update state with fetched markers
+    });
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -23,22 +48,22 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
   }
 
   void _onMarkerSelected(String markerName) {
-    LatLng? position = _dummyMarkers[markerName];
+    LatLng? position = _markers[markerName];
     if (position != null) {
       mapController.animateCamera(CameraUpdate.newLatLngZoom(position, 15));
     }
   }
 
   void _fitAllMarkers() {
-    if (_dummyMarkers.isNotEmpty) {
+    if (_markers.isNotEmpty) {
       LatLngBounds bounds;
       LatLng southwest = LatLng(
-        _dummyMarkers.values.map((latlng) => latlng.latitude).reduce((a, b) => a < b ? a : b),
-        _dummyMarkers.values.map((latlng) => latlng.longitude).reduce((a, b) => a < b ? a : b),
+        _markers.values.map((latlng) => latlng.latitude).reduce((a, b) => a < b ? a : b),
+        _markers.values.map((latlng) => latlng.longitude).reduce((a, b) => a < b ? a : b),
       );
       LatLng northeast = LatLng(
-        _dummyMarkers.values.map((latlng) => latlng.latitude).reduce((a, b) => a > b ? a : b),
-        _dummyMarkers.values.map((latlng) => latlng.longitude).reduce((a, b) => a > b ? a : b),
+        _markers.values.map((latlng) => latlng.latitude).reduce((a, b) => a > b ? a : b),
+        _markers.values.map((latlng) => latlng.longitude).reduce((a, b) => a > b ? a : b),
       );
       bounds = LatLngBounds(southwest: southwest, northeast: northeast);
 
@@ -77,13 +102,13 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: DropdownSearch<String>(
-                  items: _dummyMarkers.keys.toList(),
+                  items: _markers.keys.toList(),
                   onChanged: (String? newValue) {
                     if (newValue != null) {
                       _onMarkerSelected(newValue);
                     }
                   },
-                  selectedItem: _dummyMarkers.keys.first,
+                  selectedItem: _markers.isNotEmpty ? _markers.keys.first : null,
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       labelText: "Select Marker",
@@ -129,18 +154,17 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
                   borderRadius: BorderRadius.circular(12),
                   child: GoogleMap(
                     onMapCreated: _onMapCreated,
-                    initialCameraPosition: const CameraPosition(
-                      target: LatLng(30.3753, 69.3451), // Central position in Pakistan
+                    initialCameraPosition: CameraPosition(
+                      target: _initialCameraPosition,
                       zoom: 4.0,
                     ),
-                    markers: _dummyMarkers.entries.map((entry) {
+                    markers: _markers.entries.map((entry) {
                       return Marker(
                         markerId: MarkerId(entry.key),
                         position: entry.value,
                         infoWindow: InfoWindow(title: entry.key),
                       );
                     }).toSet(),
-                    // You can apply a custom map style here
                   ),
                 ),
               ),
@@ -150,8 +174,7 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          mapController.animateCamera(CameraUpdate.newLatLngZoom(
-              const LatLng(30.3753, 69.3451), 6)); // Center camera on Pakistan
+          mapController.animateCamera(CameraUpdate.newLatLngZoom(_initialCameraPosition, 6));
         },
         backgroundColor: Colors.green,
         child: const Icon(Icons.my_location, color: Colors.white),
