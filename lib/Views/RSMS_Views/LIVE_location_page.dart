@@ -6,15 +6,14 @@ import 'package:dropdown_search/dropdown_search.dart';
 Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designations) async {
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
-      .collection('location') // Adjust this collection path as needed
-      .where('designation', whereIn: designations) // Fetch markers for specified designations
+      .collection('location')
+      .where('designation', whereIn: designations)
       .get();
 
   for (var doc in snapshot.docs) {
     final data = doc.data() as Map<String, dynamic>;
-    markers[data['name']] = LatLng(data['latitude'], data['longitude']); // Ensure that your document has 'name', 'latitude', 'longitude' fields
+    markers[data['name']] = LatLng(data['latitude'], data['longitude']);
   }
-
   return markers;
 }
 
@@ -27,7 +26,7 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
   LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
-  final List<String> designations = ['ASM', 'SO', 'SOS', 'SPO']; // List of designations to fetch
+  final List<String> designations = ['ASM', 'SO', 'SOS', 'SPO'];
 
   @override
   void initState() {
