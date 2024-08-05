@@ -1,65 +1,61 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 import '../../API/Globals.dart';
 
-
-import '../../Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
-import '../../View_Models/OwnerViewModel.dart';
+import '../../Models/Bookers_RSM_SM_NSM_Models/BookerStatusModel.dart';
 import '../../main.dart';
-import '../SM/shop_details_page..dart';
+import '../RSMS_Views/booker_details_page.dart';
 
 
-class NSMShopDetailPage extends StatefulWidget {
+class NSMBookerStatus extends StatefulWidget {
   @override
-  _NSMShopDetailPageState createState() => _NSMShopDetailPageState();
+  _NSMBookerStatusState createState() => _NSMBookerStatusState();
 }
 
-class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
-
-  List<ShopStatusModel> _allShops = [];
-  List<ShopStatusModel> _filteredShops = [];
-  final List<ShopStatusModel> _displayedShops = [];
+class _NSMBookerStatusState extends State<NSMBookerStatus> {
+  List<BookerStatusModel> _allBookers = [];
+  List<BookerStatusModel> _filteredBookers = [];
+  final List<BookerStatusModel> _displayedBookers = [];
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _attendanceController = TextEditingController();
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
   @override
   void initState() {
     super.initState();
-    print(userId);
     _loadData();
   }
+
   Future<void> _loadData() async {
     bool isConnected = await isInternetAvailable();
     if (isConnected) {
       bool newDataFetched = await _fetchAndSaveData();
       if (newDataFetched) {
         await _loadBookersData();
-        _filteredShops = _allShops;
-        _addBookersToList(_filteredShops);
+        _filteredBookers = _allBookers;
+        _addBookersToList(_filteredBookers);
       } else {
         await _loadBookersData();
-        _filteredShops = _allShops;
-        _addBookersToList(_filteredShops);
+        _filteredBookers = _allBookers;
+        _addBookersToList(_filteredBookers);
       }
     } else {
       // Load cached data
       await _loadBookersData();
-      _filteredShops = _allShops;
-      _addBookersToList(_filteredShops);
+      _filteredBookers = _allBookers;
+      _addBookersToList(_filteredBookers);
 
       // Show last sync time
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? lastSyncTime = prefs.getString('last_NSMshop_sync_time');
+      String? lastSyncTime = prefs.getString('last_sync_time');
       if (lastSyncTime != null) {
         DateTime syncDateTime = DateTime.parse(lastSyncTime);
         String formattedTime = "${syncDateTime.toLocal()}";
@@ -71,23 +67,23 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
   }
 
   Future<bool> _fetchAndSaveData() async {
-    final url = '$nsmShopStatusGetApi$userId';
+    final url = '$nsmBookerStatusGetApi$userId';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body)['items'];
-      List<ShopStatusModel> fetchedShops = data.map<ShopStatusModel>((json) => ShopStatusModel.fromJson(json)).toList();
+      List<BookerStatusModel> fetchedBookers = data.map<BookerStatusModel>((json) => BookerStatusModel.fromJson(json)).toList();
 
       // Compare with existing data to check if new data is fetched
-      bool isNewData = _hasNewData(fetchedShops, _allShops);
+      bool isNewData = _hasNewData(fetchedBookers, _allBookers);
 
       if (isNewData) {
-        _allShops = fetchedShops;
+        _allBookers = fetchedBookers;
         await _saveBookersData();
 
         // Save the last sync timestamp
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('last_NSMshop_sync_time', DateTime.now().toIso8601String());
+        await prefs.setString('last_sync_time', DateTime.now().toIso8601String());
       }
 
       return isNewData;
@@ -96,7 +92,7 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
     }
   }
 
-  bool _hasNewData(List<ShopStatusModel> newData, List<ShopStatusModel> oldData) {
+  bool _hasNewData(List<BookerStatusModel> newData, List<BookerStatusModel> oldData) {
     if (newData.length != oldData.length) return true;
     for (int i = 0; i < newData.length; i++) {
       if (newData[i].toJson() != oldData[i].toJson()) return true;
@@ -106,7 +102,7 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
 
   Future<String?> _getLastSyncTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lastSyncTime = prefs.getString('last_NSMshop_sync_time');
+    String? lastSyncTime = prefs.getString('last_sync_time');
     if (lastSyncTime != null) {
       DateTime syncDateTime = DateTime.parse(lastSyncTime);
       return "${syncDateTime.toLocal()}";
@@ -117,60 +113,53 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
 
   Future<void> _saveBookersData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String bookersJson = jsonEncode(_allShops.map((b) => b.toJson()).toList());
-    prefs.setString('NSMshops_data', bookersJson);
+    String bookersJson = jsonEncode(_allBookers.map((b) => b.toJson()).toList());
+    prefs.setString('bookers_data', bookersJson);
   }
 
   Future<void> _loadBookersData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? bookersJson = prefs.getString('NSMshops_data');
+    String? bookersJson = prefs.getString('bookers_data');
     if (bookersJson != null) {
       List<dynamic> jsonList = jsonDecode(bookersJson);
-      _allShops = jsonList.map((json) => ShopStatusModel.fromJson(json)).toList();
+      _allBookers = jsonList.map((json) => BookerStatusModel.fromJson(json)).toList();
     }
   }
 
-  Future<bool> _checkInternetConnection() async {
-    try {
-      final response = await http.get(Uri.parse('https://www.google.com'));
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
 
-  void _addBookersToList(List<ShopStatusModel> bookers) async {
+
+  void _addBookersToList(List<BookerStatusModel> bookers) async {
     for (int i = 0; i < bookers.length; i++) {
-      if (!_displayedShops.contains(bookers[i])) {
-        _displayedShops.add(bookers[i]);
-        _listKey.currentState?.insertItem(_displayedShops.indexOf(bookers[i]), duration: const Duration(seconds: 1));
+      if (!_displayedBookers.contains(bookers[i])) {
+        _displayedBookers.add(bookers[i]);
+        _listKey.currentState?.insertItem(_displayedBookers.indexOf(bookers[i]), duration: const Duration(seconds: 1));
         await Future.delayed(const Duration(milliseconds: 300));
       }
     }
   }
 
   void _removeBookersFromList() async {
-    for (int i = _displayedShops.length - 1; i >= 0; i--) {
-      final removedShop = _displayedShops.removeAt(i);
+    for (int i = _displayedBookers.length - 1; i >= 0; i--) {
+      final removedBooker = _displayedBookers.removeAt(i);
       _listKey.currentState?.removeItem(
         i,
-            (context, animation) => _buildShopCard(removedShop, animation),
+            (context, animation) => _buildBookerCard(removedBooker, animation),
         duration: const Duration(milliseconds: 300),
       );
       await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 
-  void _filterShops() {
+  void _filterBookers() {
     final nameFilter = _nameController.text.toLowerCase();
-    final cityFilter = _cityController.text.toLowerCase();
-    _filteredShops = _allShops.where((booker) {
+    final attendanceFilter = _attendanceController.text.toLowerCase();
+    _filteredBookers = _allBookers.where((booker) {
       final matchesName = booker.name.toLowerCase().contains(nameFilter);
-      final matchesStatus = booker.city.toLowerCase().contains(cityFilter);
+      final matchesStatus = booker.attendanceStatus.toLowerCase().contains(attendanceFilter);
       return matchesName && matchesStatus;
     }).toList();
     _removeBookersFromList();
-    _addBookersToList(_filteredShops);
+    _addBookersToList(_filteredBookers);
   }
 
 
@@ -216,7 +205,7 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      foregroundColor: backgroundColor,
+                     foregroundColor: backgroundColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -260,9 +249,9 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
 
         // Update the list after data is loaded
         setState(() {
-          _filteredShops = _allShops;
+          _filteredBookers = _allBookers;
           _removeBookersFromList();
-          _addBookersToList(_filteredShops);
+          _addBookersToList(_filteredBookers);
         });
 
         // Notify user of successful refresh
@@ -324,13 +313,91 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
 
 
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Card(
+              elevation: 1.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: Column(
+                  children: [
+                    _buildTextField('Search by Attendance Status', _attendanceController, false, false),
+                    _buildTextField('Search by Booker Name', _nameController, false, false),
+                  ],
+                ),
+              ),
+            ),
+            // Display last sync time
+
+            FutureBuilder<String?>(
+              future: _getLastSyncTime(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasData && snapshot.data != null) {
+                  DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
+                  String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Card(
+                      elevation: 2.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(Icons.access_time, color: Colors.blue),
+                        title: const Text(
+                          'Last Sync',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                        ),
+                        subtitle: Text(
+                          formattedTime,
+                          style: const TextStyle(color: Colors.black54, fontSize: 14.0),
+                        ),
+                      ),
+                    ),
+                  );
+                } else {
+                  return Container(); // No data to display
+                }
+              },
+            ),
+
+            Expanded(
+              child: AnimatedList(
+                key: _listKey,
+                initialItemCount: _displayedBookers.length,
+                itemBuilder: (context, index, animation) {
+                  final booker = _displayedBookers[index];
+                  return _buildBookerCard(booker, animation);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      ));
+  }
+
   Widget _buildTextField(String hint, TextEditingController controller, bool isDate, bool isReadOnly) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Card(
-        elevation: 4.0,
+        elevation: 3.0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
+          borderRadius: BorderRadius.circular(8.0),
         ),
         child: TextField(
           controller: controller,
@@ -340,30 +407,47 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
               color: Colors.green,
             ),
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600]),
+            hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.green, width: 1.5),
-              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(color: Colors.green, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
-              borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(8.0),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
           ),
           keyboardType: isDate ? TextInputType.datetime : TextInputType.text,
           readOnly: isReadOnly,
           onChanged: (value) {
-            _filterShops();
+            _filterBookers();
           },
         ),
       ),
     );
   }
 
+  Widget _buildBookerCard(BookerStatusModel booker, Animation<double> animation) {
+    Color statusColor;
+    String statusText;
 
-  Widget _buildShopCard(ShopStatusModel shop, Animation<double> animation) {
+    // Determine the color and text based on the attendance status
+    switch (booker.attendanceStatus) {
+      case 'clock_in':
+        statusColor = Colors.green;
+        statusText = 'Clocked In';
+        break;
+      case 'clock_out':
+        statusColor = Colors.red;
+        statusText = 'Clocked Out';
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusText = 'Unknown';
+    }
+
     return FadeTransition(
       opacity: animation,
       child: GestureDetector(
@@ -371,60 +455,105 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ShopDetailsPage(shop: shop),
+              builder: (context) => RSMBookerDetailsPage(booker: booker),
             ),
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(8.0),
-          elevation: 5,
+          margin: const EdgeInsets.all(6.0),
+          elevation: 3,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
+            borderRadius: BorderRadius.circular(10.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(10.0),
                   child: SizedBox(
-                    width: 100,
-                    height: 100,
+                    width: 80,
+                    height: 80,
                     child: Image.asset(
-                      'assets/icons/shop-svg-3.png', // Path to your vector image
+                      'assets/icons/avatar3.png', // Path to your image
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16.0),
+                const SizedBox(width: 12.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        shop.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        booker.name,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8.0),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_city, size: 16.0, color: Colors.green),
-                          const SizedBox(width: 4.0),
-                          Expanded(
-                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 16)),
-                          ),
-                        ],
+                      const SizedBox(height: 6.0),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+                        decoration: const BoxDecoration(
+                          color: Colors.transparent, // Transparent background for the ID
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              booker.bookerId,
+                              style: const TextStyle(fontSize: 14, color: Colors.black), // ID color
+                            ),
+                            const SizedBox(width: 10.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(6.0),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
+                                    size: 14.0,
+                                    color: statusColor,
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  Text(
+                                    statusText,
+                                    style: TextStyle(fontSize: 14, color: statusColor), // Status color
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 16.0, color: Colors.green),
+                          const Icon(Icons.work, size: 14.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 16)),
+                            child: Text(
+                              'Designation: ${booker.designation}',
+                              style: const TextStyle(fontSize: 14),
+                            ),
                           ),
                         ],
                       ),
+                      if (booker.designation == 'SO') ...[
+                        const SizedBox(height: 4.0),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, size: 14.0, color: Colors.green),
+                            const SizedBox(width: 4.0),
+                            Expanded(
+                              child: Text(
+                                'City: ${booker.city}',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -435,87 +564,5 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text('SM SHOP DETAIL'),
-          backgroundColor: Colors.green,
-        ),
-        body: RefreshIndicator(
-          onRefresh: _handleRefresh,
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                Card(
-                  elevation: 2.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        _buildTextField('Search by City', _cityController, false, false),
-                        _buildTextField('Search by Shop Name', _nameController, false, false),
-                      ],
-                    ),
-                  ),
-                ),
-                FutureBuilder<String?>(
-                  future: _getLastSyncTime(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasData && snapshot.data != null) {
-                      DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
-                      String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Card(
-                          elevation: 2.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.access_time, color: Colors.blue),
-                            title: const Text(
-                              'Last Sync',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                            ),
-                            subtitle: Text(
-                              formattedTime,
-                              style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                            ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Container(); // No data to display
-                    }
-                  },
-                ),
-                Expanded(
-                  child: AnimatedList(
-                    key: _listKey,
-                    initialItemCount: _displayedShops.length,
-                    itemBuilder: (context, index, animation) {
-                      final shop = _displayedShops[index];
-                      return _buildShopCard(shop, animation);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )
-    );
-  }
-
-
-
 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../NSM/NSM_bookerbookingdetails.dart';
+
 class RSMBookingBookPage extends StatefulWidget {
   @override
   _RSMBookingBookPageState createState() => _RSMBookingBookPageState();
@@ -10,55 +12,13 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
   final List<String> _shopOptions = ["Shop 1", "Shop 2", "Shop 3", "Shop 4", "Shop 5", "Shop 6", "Shop 7"];
   final List<String> _orderOptions = ["Order 1", "Order 2", "Order 3", "Order 4", "Order 5"];
   final List<String> _statusOptions = ["Dispatched", "Rescheduled", "Canceled", "Pending"];
-  final List<String> _designationOptions = ["Booker", "RSM"];
 
   String? _selectedShop;
   String? _selectedOrder;
   String? _selectedStatus;
-  String? _selectedDesignation;
   DateTime? _startDate;
   DateTime? _endDate;
-  bool _showData = false;
-
-  List<Map<String, dynamic>> _allData = []; // List to store all data
-  List<Map<String, dynamic>> _filteredData = []; // List to store filtered data
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchData();
-  }
-
-  void _fetchData() {
-    // Sample data generation
-    _allData = List.generate(
-      10,
-          (index) => {
-        'visitDate': DateTime.now().subtract(Duration(days: index * 2)),
-        'userId': 'User $index',
-        'bookerName': 'Booker $index',
-        'totalShopVisits': '10',
-        'totalOrders': '5',
-        'totalAmount': '15',
-        'designation': _designationOptions[index % _designationOptions.length],
-      },
-    );
-
-    // Filter data based on the selected date range
-    if (_startDate != null && _endDate != null) {
-      _filteredData = _allData.where((data) {
-        DateTime visitDate = data['visitDate'];
-        return visitDate.isAfter(_startDate!.subtract(const Duration(days: 1))) &&
-            visitDate.isBefore(_endDate!.add(const Duration(days: 1)));
-      }).toList();
-    } else {
-      _filteredData = _allData;
-    }
-
-    setState(() {
-      _showData = true; // Show data after filtering
-    });
-  }
+  bool _showData = false;  // Boolean to control data visibility
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
@@ -74,7 +34,6 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
         } else {
           _endDate = picked;
         }
-        _fetchData(); // Refresh data when date changes
       });
     }
   }
@@ -84,63 +43,43 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
       _selectedShop = null;
       _selectedOrder = null;
       _selectedStatus = null;
-      _selectedDesignation = null;
       _startDate = null;
       _endDate = null;
-      _showData = false; // Hide data when filters are cleared
+      _showData = false;
     });
+  }
+
+  void _handleSearch() {
+    setState(() {
+      _showData = true;
+    });
+  }
+
+  void _openDetailsPage(String title) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DetailsPage(title: title)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final lightColorScheme = Theme.of(context).colorScheme;
-    final textStyle = const TextStyle(fontFamily: "avenir", fontSize: 12);
+    final textStyle = const TextStyle(fontFamily: "avenir", fontSize: 14);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Center(child: Text('Booker Order Detail', style: TextStyle(fontFamily: 'avenir next', fontSize: 17 , color: Colors.black))),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.green,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 30),
-            const Center(
-              child: Text(
-                'Booker Order Detail',
-                style: TextStyle(
-                  fontFamily: 'avenir next',
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 24), // Add space above the filters
 
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                labelText: "Select Designation",
-                filled: true,
-                fillColor: Colors.green.withOpacity(0.1),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              value: _selectedDesignation,
-              items: _designationOptions
-                  .map((designation) => DropdownMenuItem(
-                value: designation,
-                child: Text(designation, style: textStyle),
-              ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedDesignation = value;
-                  _fetchData();
-                });
-              },
-            ),
-            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: "Select Shop",
@@ -156,13 +95,12 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
               items: _shopOptions
                   .map((shop) => DropdownMenuItem(
                 value: shop,
-                child: Text(shop, style: textStyle),
+                child: Text(shop),
               ))
                   .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedShop = value;
-                  _fetchData();
                 });
               },
             ),
@@ -182,13 +120,12 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
               items: _orderOptions
                   .map((order) => DropdownMenuItem(
                 value: order,
-                child: Text(order, style: textStyle),
+                child: Text(order),
               ))
                   .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedOrder = value;
-                  _fetchData();
                 });
               },
             ),
@@ -211,7 +148,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                     onTap: () => _selectDate(context, true),
                     controller: TextEditingController(
                       text: _startDate != null
-                          ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                          ? DateFormat('dd-MMM-yyyy').format(_startDate!)
                           : '',
                     ),
                   ),
@@ -233,7 +170,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                     onTap: () => _selectDate(context, false),
                     controller: TextEditingController(
                       text: _endDate != null
-                          ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                          ? DateFormat('dd-MMM-yyyy').format(_endDate!)
                           : '',
                     ),
                   ),
@@ -241,69 +178,104 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
               ],
             ),
             const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: "Status",
+                filled: true,
+                fillColor: Colors.green.withOpacity(0.1),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              value: _selectedStatus,
+              items: _statusOptions
+                  .map((status) => DropdownMenuItem(
+                value: status,
+                child: Text(status),
+              ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedStatus = value;
+                });
+              },
+            ),
+            const SizedBox(height: 24), // Add space above the buttons
             Row(
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: "Status",
-                      filled: true,
-                      fillColor: Colors.green.withOpacity(0.1),
-                      border: OutlineInputBorder(
+                  child: ElevatedButton(
+                    onPressed: _handleSearch,
+                    child: const Text('Search', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    value: _selectedStatus,
-                    items: _statusOptions
-                        .map((status) => DropdownMenuItem(
-                      value: status,
-                      child: Text(status, style: textStyle),
-                    ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedStatus = value;
-                        _fetchData();
-                      });
-                    },
                   ),
                 ),
                 const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: _clearFilters,
-                  child: const Text('Clear', style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _clearFilters,
+                    child: const Text('Clear Filters', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            if (_showData)
-              Expanded(
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: DataTable(
+                  child: _showData
+                      ? DataTable(
                     columns: [
-                      const DataColumn(label: Text('Date')),
-                      const DataColumn(label: Text('Booker')),
-                      const DataColumn(label: Text('Attendance')),
-                      const DataColumn(label: Text('Total')),
+                      DataColumn(label: Text('Visit Date', style: textStyle)),
+                      DataColumn(label: Text('User ID', style: textStyle)),
+                      DataColumn(label: Text('Booker Name', style: textStyle)),
+                      DataColumn(label: Text('Total Shop Visits', style: textStyle)),
+                      DataColumn(label: Text('Total Orders', style: textStyle)),
+                      DataColumn(label: Text('Total Booking', style: textStyle)),
+                      DataColumn(label: Text('Designation', style: textStyle)),
                     ],
-                    rows: _filteredData.map((data) {
-                      return DataRow(cells: [
-                        DataCell(Text(DateFormat('yyyy-MM-dd').format(data['visitDate']))),
-                        DataCell(Text(data['bookerName'])),
-                        DataCell(Text(data['totalShopVisits'])),
-                        DataCell(Text(data['totalOrders'])),
-                      ]);
-                    }).toList(),
-                  ),
+                    rows: List<DataRow>.generate(
+                      10,
+                          (index) => DataRow(
+                        cells: [
+                          DataCell(Text('2024-07-20', style: textStyle)),
+                          DataCell(Text('User ${index + 1}', style: textStyle)),
+                          DataCell(Text('Booker ${index + 1}', style: textStyle)),
+                          DataCell(
+                            Text('${(index + 1) * 2}', style: textStyle),
+                            onTap: () => _openDetailsPage('Total Shop Visits'),
+                          ),
+                          DataCell(
+                            Text('${(index + 1) * 3}', style: textStyle),
+                            onTap: () => _openDetailsPage('Total Orders'),
+                          ),
+                          DataCell(Text('\$${(index + 1) * 10}', style: textStyle)),
+                          DataCell(Text('SO', style: textStyle)),
+                        ],
+                      ),
+                    ),
+                  )
+                      : Container(), // Show empty container if no data to display
                 ),
               ),
+            ),
           ],
         ),
       ),

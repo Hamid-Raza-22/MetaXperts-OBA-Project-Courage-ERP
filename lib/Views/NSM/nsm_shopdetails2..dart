@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:order_booking_shop/Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
 import 'nsm_order_details_page.dart';
 import 'nsm_shopdetails.dart'; // Add this import for date formatting
 
 class NSMShopDetailsPage extends StatelessWidget {
-  final Shop shop;
+  final ShopStatusModel shop;
 
   NSMShopDetailsPage({required this.shop});
 

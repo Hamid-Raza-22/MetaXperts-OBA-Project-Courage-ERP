@@ -562,34 +562,34 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_background_service
-      sha256: "30d1786c7fccba10ba1ca49297bc14343456f24e3dfd4cafc06f35de68d92619"
+      sha256: "8807ed792227be05329478870b92f2df62c7af96f49763f6d62ad39d2eac6ee6"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.6"
+    version: "5.0.7"
   flutter_background_service_android:
     dependency: "direct main"
     description:
       name: flutter_background_service_android
-      sha256: b28215e18ee743eb78105a5869a802ca7a13b01ed21a0401a4b1c4900b63676e
+      sha256: fe06c4bd719b8ce8512d5724a229526155c1f54f734524b8e43f8212e98384a8
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.3"
+    version: "6.2.4"
   flutter_background_service_ios:
     dependency: transitive
     description:
       name: flutter_background_service_ios
-      sha256: "9365d6b8d71ef967e32320417ea9e2444c82b526930cd6b88adb2c459e7dfc9d"
+      sha256: "45c8aca1e8850e5c45822152b06d5806aba9470517dcd2c291fce8ef99a44d60"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.1"
+    version: "5.0.2"
   flutter_background_service_platform_interface:
     dependency: transitive
     description:
       name: flutter_background_service_platform_interface
-      sha256: da16560237e055c0ef65bc93597b71d4442698acee983951474f8882c1928ea7
+      sha256: "91dd3391c213e37094fbc3fb7f34319b99ea9df76036a5c054d6371be843b0ae"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.0"
+    version: "5.1.1"
   flutter_cache_manager:
     dependency: transitive
     description:
@@ -1269,7 +1269,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "664fc3c9861a81c52c1fec3f192b38a6b3805210"
+      resolved-ref: acc47e5f522bba1a3ac3160abb0c94f8c7d90053
       url: "https://github.com/Hamid-Raza-22/metaxperts_dynamic_apis.git"
     source: git
     version: "1.0.0+1"

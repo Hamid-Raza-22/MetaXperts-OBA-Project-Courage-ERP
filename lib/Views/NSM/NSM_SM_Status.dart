@@ -1,28 +1,27 @@
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../Models/Bookers_RSM_SM_NSM_Models/SMStatusModel.dart';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import '../../API/Globals.dart';
-
-import '../../Models/Bookers_RSM_SM_NSM_Models/BookerStatusModel.dart';
+import '../../Models/Bookers_RSM_SM_NSM_Models/SMStatusModel.dart';
 import '../../main.dart';
-import 'booker_details_page.dart';
+import '../SM/sm_booker_details.dart';
+import 'NSM_booker_details_page.dart';
 
-class RSMBookerStatus extends StatefulWidget {
+class NSM_SM_Status extends StatefulWidget {
   @override
-  _RSMBookerStatusState createState() => _RSMBookerStatusState();
+  _NSM_SM_StatusState createState() => _NSM_SM_StatusState();
 }
 
-class _RSMBookerStatusState extends State<RSMBookerStatus> {
-  List<BookerStatusModel> _allBookers = [];
-  List<BookerStatusModel> _filteredBookers = [];
-  final List<BookerStatusModel> _displayedBookers = [];
+class _NSM_SM_StatusState extends State<NSM_SM_Status> {
+  List<SMStatusModel> _allBookers = [];
+  List<SMStatusModel> _filteredBookers = [];
+  final List<SMStatusModel> _displayedBookers = [];
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _attendanceController = TextEditingController();
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
@@ -54,7 +53,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
 
       // Show last sync time
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? lastSyncTime = prefs.getString('last_sync_time');
+      String? lastSyncTime = prefs.getString('last_SM_RSM_sync_time');
       if (lastSyncTime != null) {
         DateTime syncDateTime = DateTime.parse(lastSyncTime);
         String formattedTime = "${syncDateTime.toLocal()}";
@@ -66,12 +65,12 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
   }
 
   Future<bool> _fetchAndSaveData() async {
-    final url = '$bookerStatusGetApi$userId';
+    final url = '$nsmSMStatusGetApi$userId';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body)['items'];
-      List<BookerStatusModel> fetchedBookers = data.map<BookerStatusModel>((json) => BookerStatusModel.fromJson(json)).toList();
+      List<SMStatusModel> fetchedBookers = data.map<SMStatusModel>((json) => SMStatusModel.fromJson(json)).toList();
 
       // Compare with existing data to check if new data is fetched
       bool isNewData = _hasNewData(fetchedBookers, _allBookers);
@@ -82,7 +81,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
 
         // Save the last sync timestamp
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('last_sync_time', DateTime.now().toIso8601String());
+        await prefs.setString('last_NSM_SM_sync_time', DateTime.now().toIso8601String());
       }
 
       return isNewData;
@@ -91,7 +90,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
     }
   }
 
-  bool _hasNewData(List<BookerStatusModel> newData, List<BookerStatusModel> oldData) {
+  bool _hasNewData(List<SMStatusModel> newData, List<SMStatusModel> oldData) {
     if (newData.length != oldData.length) return true;
     for (int i = 0; i < newData.length; i++) {
       if (newData[i].toJson() != oldData[i].toJson()) return true;
@@ -101,7 +100,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
 
   Future<String?> _getLastSyncTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lastSyncTime = prefs.getString('last_sync_time');
+    String? lastSyncTime = prefs.getString('last_NSM_SM_sync_time');
     if (lastSyncTime != null) {
       DateTime syncDateTime = DateTime.parse(lastSyncTime);
       return "${syncDateTime.toLocal()}";
@@ -113,21 +112,21 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
   Future<void> _saveBookersData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String bookersJson = jsonEncode(_allBookers.map((b) => b.toJson()).toList());
-    prefs.setString('bookers_data', bookersJson);
+    prefs.setString('NSM_SM_data', bookersJson);
   }
 
   Future<void> _loadBookersData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? bookersJson = prefs.getString('bookers_data');
+    String? bookersJson = prefs.getString('NSM_SM_data');
     if (bookersJson != null) {
       List<dynamic> jsonList = jsonDecode(bookersJson);
-      _allBookers = jsonList.map((json) => BookerStatusModel.fromJson(json)).toList();
+      _allBookers = jsonList.map((json) => SMStatusModel.fromJson(json)).toList();
     }
   }
 
 
 
-  void _addBookersToList(List<BookerStatusModel> bookers) async {
+  void _addBookersToList(List<SMStatusModel> bookers) async {
     for (int i = 0; i < bookers.length; i++) {
       if (!_displayedBookers.contains(bookers[i])) {
         _displayedBookers.add(bookers[i]);
@@ -204,7 +203,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                     foregroundColor: backgroundColor,
+                      foregroundColor: backgroundColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -315,82 +314,79 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('BOOKER STATUS DETAIL'),
-          backgroundColor: Colors.green,
-        ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Card(
-              elevation: 1.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: Column(
-                  children: [
-                    _buildTextField('Search by Attendance Status', _attendanceController, false, false),
-                    _buildTextField('Search by Booker Name', _nameController, false, false),
-                  ],
-                ),
-              ),
-            ),
-            // Display last sync time
 
-            FutureBuilder<String?>(
-              future: _getLastSyncTime(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasData && snapshot.data != null) {
-                  DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
-                  String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Card(
-                      elevation: 2.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.access_time, color: Colors.blue),
-                        title: const Text(
-                          'Last Sync',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                        ),
-                        subtitle: Text(
-                          formattedTime,
-                          style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                        ),
-                      ),
+        body: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Card(
+                  elevation: 1.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6.0),
+                    child: Column(
+                      children: [
+                        _buildTextField('Search by Attendance Status', _attendanceController, false, false),
+                        _buildTextField('Search by Booker Name', _nameController, false, false),
+                      ],
                     ),
-                  );
-                } else {
-                  return Container(); // No data to display
-                }
-              },
-            ),
+                  ),
+                ),
+                // Display last sync time
 
-            Expanded(
-              child: AnimatedList(
-                key: _listKey,
-                initialItemCount: _displayedBookers.length,
-                itemBuilder: (context, index, animation) {
-                  final booker = _displayedBookers[index];
-                  return _buildBookerCard(booker, animation);
-                },
-              ),
+                FutureBuilder<String?>(
+                  future: _getLastSyncTime(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasData && snapshot.data != null) {
+                      DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
+                      String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Card(
+                          elevation: 2.0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: ListTile(
+                            leading: const Icon(Icons.access_time, color: Colors.blue),
+                            title: const Text(
+                              'Last Sync',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                            ),
+                            subtitle: Text(
+                              formattedTime,
+                              style: const TextStyle(color: Colors.black54, fontSize: 14.0),
+                            ),
+                          ),
+                        ),
+                      );
+                    } else {
+                      return Container(); // No data to display
+                    }
+                  },
+                ),
+
+                Expanded(
+                  child: AnimatedList(
+                    key: _listKey,
+                    initialItemCount: _displayedBookers.length,
+                    itemBuilder: (context, index, animation) {
+                      final booker = _displayedBookers[index];
+                      return _buildBookerCard(booker, animation);
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      ));
+          ),
+        ));
   }
 
   Widget _buildTextField(String hint, TextEditingController controller, bool isDate, bool isReadOnly) {
@@ -431,7 +427,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
     );
   }
 
-  Widget _buildBookerCard(BookerStatusModel booker, Animation<double> animation) {
+  Widget _buildBookerCard(SMStatusModel booker, Animation<double> animation) {
     Color statusColor;
     String statusText;
 
@@ -457,7 +453,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RSMBookerDetailsPage(booker: booker),
+              builder: (context) => NSMBookerDetailPage(booker: booker),
             ),
           );
         },
@@ -567,4 +563,5 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
     );
   }
 }
+
 

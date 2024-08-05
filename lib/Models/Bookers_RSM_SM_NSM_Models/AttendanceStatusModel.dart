@@ -1,9 +1,9 @@
 class AttendanceStatusModel {
-  final String date;
-  final String timeIn;
-  final String timeOut;
-  final String totalTime;
-  final String totalDistance;
+  final dynamic date;
+  final dynamic timeIn;
+  final dynamic timeOut;
+  final dynamic totalTime;
+  final dynamic totalDistance;
 
   AttendanceStatusModel({
     required this.date,
@@ -13,7 +13,7 @@ class AttendanceStatusModel {
     required this.totalDistance,
   });
 
-  factory AttendanceStatusModel.fromJson(Map<String, dynamic> json) {
+  factory AttendanceStatusModel.fromJson(Map<dynamic, dynamic> json) {
     return AttendanceStatusModel(
       date: json['attendance_date'],
       timeIn: json['time_in'],
@@ -23,7 +23,7 @@ class AttendanceStatusModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'attendance_date':date,
       'time_in': timeIn,

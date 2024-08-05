@@ -146,7 +146,7 @@ class _NSMBookingBookPageState extends State<NSMBookingBookPage> {
                     onTap: () => _selectDate(context, true),
                     controller: TextEditingController(
                       text: _startDate != null
-                          ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                          ? DateFormat('dd-MMM-yyyy').format(_startDate!)
                           : '',
                     ),
                   ),
@@ -168,7 +168,7 @@ class _NSMBookingBookPageState extends State<NSMBookingBookPage> {
                     onTap: () => _selectDate(context, false),
                     controller: TextEditingController(
                       text: _endDate != null
-                          ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                          ? DateFormat('dd-MMM-yyyy').format(_endDate!)
                           : '',
                     ),
                   ),

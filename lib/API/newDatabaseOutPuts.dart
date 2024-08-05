@@ -1602,7 +1602,7 @@ class newDatabaseOutputs {
     await updateOrderBookingStatusData();
     await updateRecoveryFormGetData();
     await updateAccountsData();
-    // await updateloginData();
+     await updateloginData();
     await updateCitiesData();
     await updateBalanceData();
   }
