@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:order_booking_shop/Views/NSM/RSM_status.dart';
+
 import '../RSMS_Views/BookerStatus.dart';
 
-import 'nsm_sm_status.dart';
+import 'NSMBookerStatus.dart';
+import 'NSM_RSM_status.dart';
+import 'NSM_SM_Status.dart';
 
 class NSMBookingStatus extends StatefulWidget {
   @override
@@ -114,8 +116,8 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
               controller: _pageController,
               children: [
                 NSM_SM_Status(),
-                RSM_Status(), // Replace with your actual page widget
-                RSMBookerStatus(), // Replace with your actual page widget
+                NSM_RSM_Status(), // Replace with your actual page widget
+                NSMBookerStatus(), // Replace with your actual page widget
               ],
             ),
           ),

@@ -1,10 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../API/Globals.dart';
+import '../../API/newDatabaseOutPuts.dart';
+import '../RSMS_Views/RSM_ShopVisit.dart';
+import 'NSM_ShopVisit.dart';
 import 'NSM_bookerbookingdetails.dart';
 import 'nsm_bookingStatus.dart';
 import 'nsm_location_navigation.dart';
 import 'nsm_shopdetails.dart';
-import 'nsm_shopvisit.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:in_app_update/in_app_update.dart';
+import 'package:intl/intl.dart';
+import 'package:location/location.dart' as loc;
+import 'package:nanoid/nanoid.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:async';
+import 'dart:io' show File, InternetAddress, SocketException;
+import '../../Databases/DBHelper.dart';
+import '../../Models/AttendanceModel.dart';
+import '../../Tracker/trac.dart';
+import '../../location00.dart';
+import '../../main.dart';
+import '../HomePage.dart';
+
 
 class NSMHomepage extends StatefulWidget {
   const NSMHomepage({super.key});
@@ -14,55 +36,441 @@ class NSMHomepage extends StatefulWidget {
 }
 
 class _NSMHomepageState extends State<NSMHomepage> {
-  bool _isClockedIn = false;
-  late Stopwatch _stopwatch;
-  late Ticker _ticker;
+  int? attendanceId;
+  int? attendanceId1;
+  double? globalLatitude1;
+  double? globalLongitude1;
+  DBHelper dbHelper = DBHelper();
+  bool isLoadingReturn= false;
+  final loc.Location location = loc.Location();
+  bool isLoading = false; // Define isLoading variable
+  Timer? _timer;
+
 
   @override
   void initState() {
     super.initState();
-    _stopwatch = Stopwatch();
-    _ticker = Ticker((Duration elapsed) {
-      setState(() {});
-    });
-  }
 
-  @override
-  void dispose() {
-    _ticker.dispose();
-    super.dispose();
-  }
+    // backgroundTask();
+    // WidgetsBinding.instance.addObserver(this);
+    _loadClockStatus();
 
-  void _toggleClockInOut() {
-    setState(() {
-      if (_isClockedIn) {
-        _stopwatch.stop();
-      } else {
-        _stopwatch.start();
+    _retrieveSavedValues();
+    _clockRefresh();
+    if (kDebugMode) {
+      print("B1000 ${name.toString()}");
+    }
+    //_requestPermission();
+    // location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+    // location.enableBackgroundMode(enable: true);
+    _getFormattedDate();
+
+    _checkForUpdate(); // Check for updates when the screen opens
+  }
+  void _checkForUpdate() async {
+    try {
+      final AppUpdateInfo updateInfo = await InAppUpdate.checkForUpdate();
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        await InAppUpdate.performImmediateUpdate();
       }
-      _isClockedIn = !_isClockedIn;
-    });
-    if (_isClockedIn) {
-      _ticker.start();
-    } else {
-      _ticker.stop();
+    } catch (e) {
+      if (e is PlatformException && e.code == 'TASK_FAILURE' && e.message?.contains('Install Error(-10)') == true) {
+        if (kDebugMode) {
+          print("The app is not owned by any user on this device. Update check skipped.");
+        }
+      } else {
+        if (kDebugMode) {
+          print("Failed to check for updates: $e");
+        }
+      }
     }
   }
 
-  String _formattedTime() {
-    final duration = _stopwatch.elapsed;
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$hours:$minutes:$seconds';
+  _saveClockStatus(bool clockedIn) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('isClockedIn', clockedIn);
+    isClockedIn = clockedIn;
   }
+  void _saveCurrentTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    DateTime currentTime = DateTime.now();
+    String formattedTime = _formatDateTime(currentTime);
+    prefs.setString('savedTime', formattedTime);
+    if (kDebugMode) {
+      print("Save Current Time");
+    }
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final formatter = DateFormat('HH:mm:ss');
+    return formatter.format(dateTime);
+  }
+  int newsecondpassed = 0;
+  void _clockRefresh() async {
+    newsecondpassed = 0;
+    timer = Timer.periodic(const Duration(seconds: 0), (timer) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        prefs.reload();
+        newsecondpassed = prefs.getInt('secondsPassed')!;
+      });
+    });
+  }
+
+
+  String _formatDuration(String secondsString) {
+    int seconds = int.parse(secondsString);
+    Duration duration = Duration(seconds: seconds);
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String hours = twoDigits(duration.inHours);
+
+    String minutes = twoDigits(duration.inMinutes.remainder(60));
+    String secondsFormatted = twoDigits(duration.inSeconds.remainder(60));
+    return '$hours:$minutes:$secondsFormatted';
+  }
+  Future<bool> _isLocationEnabled() async {
+    // Add your logic to check if location services are enabled
+    bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
+    return isLocationEnabled;
+  }
+  _loadClockStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isClockedIn = prefs.getBool('isClockedIn') ?? false;
+    if (isClockedIn == true) {
+      startTimerFromSavedTime();
+      // final service = FlutterBackgroundService();
+      // service.startService();
+      // _clockRefresh();
+    }else{
+      prefs.setInt('secondsPassed', 0);
+    }
+  }
+
+  String _getFormattedtime() {
+    final now = DateTime.now();
+    final formatter = DateFormat('HH:mm:ss a');
+    return formatter.format(now);
+  }
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled
+      throw Exception('Location services are disabled.');
+    }
+
+    // Check the location permission status.
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Location permissions are denied
+        throw Exception('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Location permissions are permanently denied
+      throw Exception('Location permissions are permanently denied.');
+    }
+
+    // Get the current position
+    return await Geolocator.getCurrentPosition();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await _determinePosition();
+      // Save the location into the database (you need to implement this part)
+      globalLatitude1 = position.latitude;
+      globalLongitude1 = position.longitude;
+      // Show a toast
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting current location: $e');
+      }
+    }
+  }
+  Future<String> _stopTimer() async {
+    _timer?.cancel();
+    String totalTime = _formatDuration(newsecondpassed.toString());
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt('secondsPassed', 0);
+    setState(() {
+      secondsPassed = 0;
+    });
+    return totalTime;
+  }
+  Future<void> _toggleClockInOut() async {
+    final service = FlutterBackgroundService();
+    Completer<void> completer = Completer<void>();
+
+    bool isLocationEnabled = await _isLocationEnabled();
+
+    if (!isLocationEnabled) {
+      Fluttertoast.showToast(
+        msg: "Please enable GPS or location services before clocking in.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      completer.complete();
+      return completer.future;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent users from dismissing the dialog
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing the dialog
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
+
+    bool isLocationPermissionGranted = await _checkLocationPermission();
+    if (!isLocationPermissionGranted) {
+      await _requestLocationPermission();
+      Navigator.pop(context); // Close the loading indicator dialog if permission is not granted
+      completer.complete();
+      return completer.future;
+    }
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await _getCurrentLocation();
+
+    bool newIsClockedIn = !isClockedIn;
+
+    if (newIsClockedIn) {
+      await initializeServiceLocation();
+      await location.enableBackgroundMode(enable: true);
+      await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+      locationbool = true;
+      // startTimer();
+      service.startService();
+
+      var id = customAlphabet('1234567890', 10);
+      await prefs.setString('clockInId', id);
+      _saveCurrentTime();
+      _saveClockStatus(true);
+      _clockRefresh();
+      isClockedIn = true;
+      await Future.delayed(const Duration(seconds: 5));
+      await attendanceViewModel.addAttendance(AttendanceModel(
+        id: prefs.getString('clockInId'),
+        timeIn: _getFormattedtime(),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latIn: globalLatitude1,
+        lngIn: globalLongitude1,
+        bookerName: userNames,
+        city: userCitys,
+        designation: userDesignation,
+      ));
+      bool isConnected = await isInternetAvailable();
+
+      if (isConnected) {
+        await attendanceViewModel.postAttendance();
+      }
+
+      if (kDebugMode) {
+        print('HomePage:$currentPostId');
+      }
+    } else {
+      service.invoke("stopService");
+
+      final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+      final downloadDirectory = await getDownloadsDirectory();
+      double totalDistance = await calculateTotalDistance(
+          "${downloadDirectory?.path}/track$date.gpx");
+      totalDistance ??= 0;
+      await Future.delayed(const Duration(seconds: 4));
+      await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
+        id: prefs.getString('clockInId'),
+        timeOut: _getFormattedtime(),
+        totalTime: _formatDuration(newsecondpassed.toString()),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latOut: globalLatitude1,
+        lngOut: globalLongitude1,
+        totalDistance: totalDistance,
+      ));
+      isClockedIn = false;
+      _saveClockStatus(false);
+      await Future.delayed(const Duration(seconds: 10));
+
+      await postFile();
+      bool isConnected = await isInternetAvailable();
+
+      if (isConnected) {
+        await attendanceViewModel.postAttendanceOut();
+      }
+
+      _stopTimer();
+      _clockRefresh();
+      await prefs.remove('clockInId');
+      await location.enableBackgroundMode(enable: false);
+    }
+
+    setState(() {
+      isClockedIn = newIsClockedIn;
+    });
+
+    await Future.delayed(const Duration(seconds: 10));
+    Navigator.pop(context); // Close the loading indicator dialog
+    completer.complete();
+    return completer.future;
+  }
+  Future<bool> _checkLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    final formatter = DateFormat('dd-MMM-yyyy');
+    return formatter.format(now);
+  }
+  Future<void> _requestLocationPermission() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+
+    if (permission != LocationPermission.always &&
+        permission != LocationPermission.whileInUse) {
+      // Handle the case when permission is denied
+      Fluttertoast.showToast(
+        msg: "Location permissions are required to clock in.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+  _retrieveSavedValues() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('userId') ?? '';
+      userNames = prefs.getString('userNames') ?? '';
+      userCitys = prefs.getString('userCitys') ?? '';
+      userDesignation = prefs.getString('userDesignation') ?? '';
+      userBrand = prefs.getString('userBrand') ?? '';
+    });
+  }
+
+  void showLoadingIndicator(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false, // Prevent back button press
+          child: const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Please Wait..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleRefresh() async {
+
+
+    bool isPostingData = await isDataBeingPosted();
+    if (isPostingData) {
+      Fluttertoast.showToast(
+        msg: "Data is being posted, please wait.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
+      return;
+    }
+
+    showLoadingIndicator(context);
+
+    bool isConnected = await isInternetAvailable();
+    Navigator.of(context, rootNavigator: true).pop();
+
+    if (isConnected) {
+      newDatabaseOutputs outputs = newDatabaseOutputs();
+      bool tasksCompleted = false;
+
+      // Run both functions in parallel with a timeout
+      showLoadingIndicator(context);
+      await Future.any([
+        Future.wait([
+         // backgroundTask(),
+          outputs.refreshData(),
+        ]).then((_) {
+          tasksCompleted = true;
+        }),
+        Future.delayed(const Duration(minutes: 1)),
+      ]);
+
+      // Hide the loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+
+      if (!tasksCompleted) {
+        Fluttertoast.showToast(
+          msg: "Network Problem!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+
+    } else {
+      Fluttertoast.showToast(
+        msg: "No internet connection.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+
+
+  }
+
+
+//Mock function to check if data is being posted to the server
+  Future<bool> isDataBeingPosted() async {
+    return PostingStatus.isPosting.value;
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+      // Return false to prevent going back
+      return false;
+    },
+    child: Scaffold(
       appBar: AppBar(
-        title: Center(
+        title: const Center(
           child: Text(
             'NSM DASHBOARD',
             style: TextStyle(
@@ -72,11 +480,12 @@ class _NSMHomepageState extends State<NSMHomepage> {
           ),
         ),
         backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.green), // Set back arrow color to green
+         iconTheme: const IconThemeData(color: Colors.green), // Set back arrow color to green
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.green),
             onPressed: () {
+              _handleRefresh();
               // Add reload functionality here
             },
           ),
@@ -122,7 +531,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'TIMER: ${_formattedTime()}',
+                  'Timer: ${_formatDuration(newsecondpassed.toString())}',
                   style: const TextStyle(
                     fontFamily: 'avenir next',
                     fontSize: 14,
@@ -132,9 +541,9 @@ class _NSMHomepageState extends State<NSMHomepage> {
                 const SizedBox(width: 40),
                 ElevatedButton.icon(
                   onPressed: _toggleClockInOut,
-                  icon: Icon(_isClockedIn ? Icons.timer_off : Icons.timer, color: Colors.white),
+                  icon: Icon(isClockedIn ? Icons.timer_off : Icons.timer, color: Colors.white),
                   label: Text(
-                    _isClockedIn ? 'Clock Out' : 'Clock In',
+                    isClockedIn ? 'Clock Out' : 'Clock In',
                     style: const TextStyle(
                       color: Colors.white,
                       fontFamily: 'avenir next',
@@ -152,6 +561,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
           ],
         ),
       ),
+    )
     );
   }
 
@@ -224,7 +634,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
       case 'Shop Visit':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => NSMShopVisitPage()),
+          MaterialPageRoute(builder: (context) => const NSMShopVisitPage()),
         );
         break;
       case 'Booker Status':

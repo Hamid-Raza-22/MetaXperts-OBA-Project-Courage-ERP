@@ -1,10 +1,10 @@
 class SMStatusModel {
 
-  final String bookerId;
-  final String name;
-  final String designation;
-  final String attendanceStatus;
-  final String city;
+  final dynamic bookerId;
+  final dynamic name;
+  final dynamic designation;
+  final dynamic attendanceStatus;
+  final dynamic city;
 
   SMStatusModel({
     required this.bookerId,
@@ -14,7 +14,7 @@ class SMStatusModel {
     required this.city,
   });
 
-  factory SMStatusModel.fromJson(Map<String, dynamic> json) {
+  factory SMStatusModel.fromJson(Map<dynamic, dynamic> json) {
     return SMStatusModel(
       bookerId: json['user_id'],
       name: json['user_name'],
@@ -24,7 +24,7 @@ class SMStatusModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'user_id':bookerId,
       'user_name': name,

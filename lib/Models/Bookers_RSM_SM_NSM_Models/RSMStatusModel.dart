@@ -1,10 +1,10 @@
 class RSMStatusModel {
 
-  final String bookerId;
-  final String name;
-  final String designation;
-  final String attendanceStatus;
-  final String city;
+  final dynamic bookerId;
+  final dynamic name;
+  final dynamic designation;
+  final dynamic attendanceStatus;
+  final dynamic city;
 
   RSMStatusModel({
     required this.bookerId,
@@ -14,7 +14,7 @@ class RSMStatusModel {
     required this.city,
   });
 
-  factory RSMStatusModel.fromJson(Map<String, dynamic> json) {
+  factory RSMStatusModel.fromJson(Map<dynamic, dynamic> json) {
     return RSMStatusModel(
       bookerId: json['user_id'],
       name: json['user_name'],
@@ -24,7 +24,7 @@ class RSMStatusModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'user_id':bookerId,
       'user_name': name,

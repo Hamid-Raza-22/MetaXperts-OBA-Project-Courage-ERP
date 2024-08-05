@@ -1,8 +1,8 @@
 class ShopStatusModel {
-  final String name;
-  final String address;
-  //final String attendanceStatus;
-  final String city;
+  final dynamic name;
+  final dynamic address;
+  //final dynamic attendanceStatus;
+  final dynamic city;
 
   ShopStatusModel({
     required this.name,
@@ -11,7 +11,7 @@ class ShopStatusModel {
     required this.city,
   });
 
-  factory ShopStatusModel.fromJson(Map<String, dynamic> json) {
+  factory ShopStatusModel.fromJson(Map<dynamic, dynamic> json) {
     return ShopStatusModel(
       name: json['shop_name'],
       address: json['shop_address'],
@@ -20,7 +20,7 @@ class ShopStatusModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'shop_name': name,
       'shop_address': address,

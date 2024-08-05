@@ -19,6 +19,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  String? userDesignation="";
+
   @override
   void initState() {
     super.initState();
@@ -27,44 +29,62 @@ class _SplashScreenState extends State<SplashScreen> {
       bool isLoggedIn = await _checkLoginStatus();
 
       if (isLoggedIn) {
-        // Redirect to the home page if the user is already logged in
-        Navigator.of(context).push(
-          MaterialPageRoute(
-              builder: (context) => const RSMHomepage(),
-             // settings: RouteSettings(arguments: dataToPass)
-          ),
-        );
-      }  else if (userDesignation == 'SM') {
-        // Redirect to the HomePage if the user is an SO
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const SMHomepage(),
-          ),
-        );
-      } else if (userDesignation == 'NSM') {
-        // Redirect to the HomePage if the user is an SO
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const NSMHomepage(),
-          ),
-        );
-      }else if (userDesignation == 'SO'||userDesignation == 'SPO'||userDesignation == 'ASM'||userDesignation == 'SOS') {
-        // Redirect to the HomePage if the user is an SO
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const HomePage(),
-          ),
-        );
-      }else {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+       userDesignation = prefs.getString('userDesignation');
+        switch (userDesignation) {
+          case 'RSM':
+          // Redirect to the RSM Homepage
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const RSMHomepage(),
+              ),
+            );
+            break;
+          case 'SM':
+          // Redirect to the SM Homepage
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const SMHomepage(),
+              ),
+            );
+            break;
+          case 'NSM':
+          // Redirect to the NSM Homepage
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const NSMHomepage(),
+              ),
+            );
+            break;
+          // case 'SO':
+          // case 'SPO':
+          // case 'ASM':
+          // case 'SOS':
+          // // Redirect to the HomePage for general designations
+          //   Navigator.of(context).push(
+          //     MaterialPageRoute(
+          //       builder: (context) => const HomePage(),
+          //     ),
+          //   );
+          //   break;
+          default:
+          // Handle cases where designation does not match any of the above
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const HomePage(), // Replace with your default page
+              ),
+            );
+            break;
+        }
+      } else {
         // Redirect to the login page if the user is not logged in
         Navigator.of(context).push(
           MaterialPageRoute(
-            // builder: (context) => const LoginForm(),
             builder: (context) => const PolicyDialog(),
-            // settings: RouteSettings(arguments: dataToPass)
           ),
         );
       }
+
     });
   }
 
