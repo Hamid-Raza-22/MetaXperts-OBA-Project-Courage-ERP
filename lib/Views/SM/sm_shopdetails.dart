@@ -8,10 +8,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../API/Globals.dart';
-
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
 import '../../View_Models/OwnerViewModel.dart';
 import '../../main.dart';
@@ -375,52 +372,57 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(8.0),
-          elevation: 5,
+          margin: const EdgeInsets.symmetric(vertical: 2.0), // Reduced vertical margin
+          elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
+            borderRadius: BorderRadius.circular(7.0), // Slightly smaller radius
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(4.0), // Smaller padding
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(10.0), // Slightly smaller radius
                   child: SizedBox(
-                    width: 100,
-                    height: 100,
+                    width: 60, // Smaller width
+                    height: 60, // Smaller height
                     child: Image.asset(
                       'assets/icons/shop-svg-3.png', // Path to your vector image
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16.0),
+                const SizedBox(width: 8.0), // Smaller space between image and text
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        shop.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_city, size: 16.0, color: Colors.green),
-                          const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 16)),
+                            child: Text(
+                              shop.name,
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), // Shop name bold
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis, // Ensures it doesn't overflow
+                            ),
+                          ),
+
+                          Text(
+                            shop.city,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), // Bold city name
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis, // Ensures it doesn't overflow
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 4.0), // Smaller space
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 16.0, color: Colors.green),
+                          const Icon(Icons.location_on, size: 12.0, color: Colors.green), // Smaller icon size
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 16)),
+                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 12)), // Smaller text size
                           ),
                         ],
                       ),
@@ -438,85 +440,76 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('SM SHOP DETAIL'),
-          backgroundColor: Colors.green,
-        ),
-        body: RefreshIndicator(
-          onRefresh: _handleRefresh,
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                Card(
-                  elevation: 2.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        _buildTextField('Search by City', _cityController, false, false),
-                        _buildTextField('Search by Shop Name', _nameController, false, false),
-                      ],
-                    ),
-                  ),
+      appBar: AppBar(
+        title: const Text('SM SHOP DETAIL'),
+        backgroundColor: Colors.green,
+      ),
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: Padding(
+          padding:  EdgeInsets.all(7.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Column(
+                  children: [
+                    _buildTextField('Search by City', _cityController, false, true),
+                    _buildTextField('Search by Shop Name', _nameController, false, true),
+                  ],
                 ),
-                FutureBuilder<String?>(
-                  future: _getLastSyncTime(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.hasData && snapshot.data != null) {
-                      DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
-                      String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
+              ),
+              FutureBuilder<String?>(
+                future: _getLastSyncTime(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
+                    String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Card(
-                          elevation: 2.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 10.0), // Small margin to separate from fields
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.access_time, color: Colors.blue),
+                          const SizedBox(width: 4.0),
+                          Text(
+                            'Last Sync: $formattedTime',
+                            style: const TextStyle(color: Colors.black54, fontSize: 10.0), // Smaller font size
                           ),
-                          child: ListTile(
-                            leading: const Icon(Icons.access_time, color: Colors.blue),
-                            title: const Text(
-                              'Last Sync',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                            ),
-                            subtitle: Text(
-                              formattedTime,
-                              style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                            ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Container(); // No data to display
-                    }
+                        ],
+                      ),
+                    );
+                  } else {
+                    return SizedBox.shrink(); // No data to display
+                  }
+                },
+              ),
+              Expanded(
+                child: AnimatedList(
+                  key: _listKey,
+                  initialItemCount: _displayedShops.length,
+                  itemBuilder: (context, index, animation) {
+                    final shop = _displayedShops[index];
+                    return _buildShopCard(shop, animation);
                   },
                 ),
-                Expanded(
-                  child: AnimatedList(
-                    key: _listKey,
-                    initialItemCount: _displayedShops.length,
-                    itemBuilder: (context, index, animation) {
-                      final shop = _displayedShops[index];
-                      return _buildShopCard(shop, animation);
-                    },
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        )
+        ),
+      ),
     );
   }
 
 
-
 }
+
+
+
+
 
 // class Shop {
 //   final String name;
