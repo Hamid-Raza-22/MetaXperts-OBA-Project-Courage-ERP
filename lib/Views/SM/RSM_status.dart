@@ -495,7 +495,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                           Text(
                             booker.name,
                             style: const TextStyle(
-                                fontSize: 11, fontWeight: FontWeight.bold),
+                                fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 6.0),
                           Text(

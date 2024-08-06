@@ -381,8 +381,8 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
                   child: SizedBox(
-                    width: 60,
-                    height: 60,
+                    width: 50,
+                    height: 50,
                     child: Image.asset(
                       'assets/icons/shop-svg-3.png',
                       fit: BoxFit.cover,
@@ -399,7 +399,7 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                           Expanded(
                             child: Text(
                               shop.name,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -466,15 +466,24 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                     String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
 
                     return Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(Icons.access_time, color: Colors.blue),
-                          const SizedBox(width: 4.0),
-                          Text(
-                            'Last Sync: $formattedTime',
-                            style: const TextStyle(color: Colors.black54, fontSize: 10.0),
+                          const SizedBox(width: 8.0),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Last Sync: ',
+                                style: TextStyle(fontSize: 10.0),
+                              ),
+                              SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                              Text(
+                                formattedTime,
+                                style: const TextStyle( fontSize: 10.0),
+                              ),
+                            ],
                           ),
                         ],
                       ),

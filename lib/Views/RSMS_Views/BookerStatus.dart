@@ -350,25 +350,27 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                 } else if (snapshot.hasData && snapshot.data != null) {
                   DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
                   String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
-
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Card(
-                      elevation: 2.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.access_time, color: Colors.blue),
-                        title: const Text(
-                          'Last Sync',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.access_time, color: Colors.blue),
+                        const SizedBox(width: 8.0),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Last Sync: ',
+                              style: TextStyle(fontSize: 10.0),
+                            ),
+                            SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                            Text(
+                              formattedTime,
+                              style: const TextStyle( fontSize: 10.0),
+                            ),
+                          ],
                         ),
-                        subtitle: Text(
-                          formattedTime,
-                          style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                        ),
-                      ),
+                      ],
                     ),
                   );
                 } else {
@@ -474,8 +476,8 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
                   child: SizedBox(
-                    width: 80,
-                    height: 80,
+                    width: 50,
+                    height: 50,
                     child: Image.asset(
                       'assets/icons/avatar3.png', // Path to your image
                       fit: BoxFit.cover,
@@ -489,9 +491,8 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 6.0),
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
                         decoration: const BoxDecoration(
@@ -501,9 +502,9 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                           children: [
                             Text(
                               booker.bookerId,
-                              style: const TextStyle(fontSize: 14, color: Colors.black), // ID color
+                              style: const TextStyle(fontSize: 12, color: Colors.black), // ID color
                             ),
-                            const SizedBox(width: 10.0),
+                            const SizedBox(width: 80.0),
                             Container(
                               padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
                               decoration: BoxDecoration(
@@ -520,7 +521,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                                   const SizedBox(width: 4.0),
                                   Text(
                                     statusText,
-                                    style: TextStyle(fontSize: 14, color: statusColor), // Status color
+                                    style: TextStyle(fontSize: 12, color: statusColor), // Status color
                                   ),
                                 ],
                               ),
@@ -536,7 +537,7 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                           Expanded(
                             child: Text(
                               'Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                         ],
@@ -545,12 +546,12 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
                         const SizedBox(height: 4.0),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 14.0, color: Colors.green),
+                            const Icon(Icons.location_on, size: 12.0, color: Colors.green),
                             const SizedBox(width: 4.0),
                             Expanded(
                               child: Text(
                                 'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 12),
                               ),
                             ),
                           ],

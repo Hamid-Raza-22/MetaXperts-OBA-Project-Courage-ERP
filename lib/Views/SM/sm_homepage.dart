@@ -483,12 +483,7 @@ class _SMHomepageState extends State<SMHomepage> {
         ),
         backgroundColor: Colors.white, // White background
         elevation: 1, // Add a subtle shadow
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green), // Green back arrow
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
+
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.green),

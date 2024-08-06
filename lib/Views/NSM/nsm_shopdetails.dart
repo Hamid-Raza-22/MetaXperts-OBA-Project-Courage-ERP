@@ -388,8 +388,8 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(15.0),
                   child: SizedBox(
-                    width: 100,
-                    height: 100,
+                    width: 50,
+                    height: 50,
                     child: Image.asset(
                       'assets/icons/shop-svg-3.png', // Path to your vector image
                       fit: BoxFit.cover,
@@ -403,25 +403,25 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
                     children: [
                       Text(
                         shop.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_city, size: 16.0, color: Colors.green),
+                          const Icon(Icons.location_city, size: 11.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 16)),
+                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 11)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 16.0, color: Colors.green),
+                          const Icon(Icons.location_on, size: 11.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 16)),
+                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 11)),
                           ),
                         ],
                       ),
@@ -440,7 +440,7 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('SM SHOP DETAIL'),
+          title: const Text('NSM SHOP DETAIL'),
           backgroundColor: Colors.green,
         ),
         body: RefreshIndicator(
@@ -474,23 +474,26 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
                       String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
 
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Card(
-                          elevation: 2.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.access_time, color: Colors.blue),
-                            title: const Text(
-                              'Last Sync',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time, color: Colors.blue),
+                            const SizedBox(width: 8.0),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Last Sync: ',
+                                  style: TextStyle(fontSize: 10.0),
+                                ),
+                                SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                                Text(
+                                  formattedTime,
+                                  style: const TextStyle( fontSize: 10.0),
+                                ),
+                              ],
                             ),
-                            subtitle: Text(
-                              formattedTime,
-                              style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                            ),
-                          ),
+                          ],
                         ),
                       );
                     } else {
