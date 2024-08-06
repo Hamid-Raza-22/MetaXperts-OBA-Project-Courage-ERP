@@ -13,6 +13,19 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
   final PageController _pageController = PageController();
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      int newIndex = _pageController.page!.round();
+      if (_selectedIndex != newIndex) {
+        setState(() {
+          _selectedIndex = newIndex;
+        });
+      }
+    });
+  }
+
   void _onButtonPressed(int index) {
     setState(() {
       _selectedIndex = index;
@@ -22,6 +35,12 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -52,7 +71,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'SM',
                         style: TextStyle(
                           color: _selectedIndex == 0 ? Colors.green : Colors.black,
-                          fontSize: 16, // Adjust text size if needed
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -63,7 +82,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                     onTap: () => _onButtonPressed(1),
                     child: Container(
                       alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(vertical: 12), // Adjusted padding
+                      padding: EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
@@ -76,7 +95,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'RSM',
                         style: TextStyle(
                           color: _selectedIndex == 1 ? Colors.green : Colors.black,
-                          fontSize: 16, // Adjust text size if needed
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -87,7 +106,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                     onTap: () => _onButtonPressed(2),
                     child: Container(
                       alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(vertical: 12), // Adjusted padding
+                      padding: EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
@@ -100,7 +119,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'Booker',
                         style: TextStyle(
                           color: _selectedIndex == 2 ? Colors.green : Colors.black,
-                          fontSize: 16, // Adjust text size if needed
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -114,8 +133,8 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
               controller: _pageController,
               children: [
                 NSM_SM_Status(),
-                NSM_RSM_Status(), // Replace with your actual page widget
-                NSMBookerStatus(), // Replace with your actual page widget
+                NSM_RSM_Status(),
+                NSMBookerStatus(),
               ],
             ),
           ),
@@ -124,19 +143,3 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
