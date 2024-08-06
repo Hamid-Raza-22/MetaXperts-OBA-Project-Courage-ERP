@@ -1,8 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -10,12 +8,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:nanoid/nanoid.dart';
-
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Views/SM/sm_shopdetails.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:location/location.dart' as loc;
+import '../../API/newDatabaseOutPuts.dart';
 import '../../Databases/DBHelper.dart';
 import '../../Models/AttendanceModel.dart';
 import '../../Tracker/trac.dart';
@@ -462,6 +460,99 @@ class _SMHomepageState extends State<SMHomepage> {
     });
   }
 
+  void showLoadingIndicator(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false, // Prevent back button press
+          child: const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Please Wait..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleRefresh() async {
+
+
+    bool isPostingData = await isDataBeingPosted();
+    if (isPostingData) {
+      Fluttertoast.showToast(
+        msg: "Data is being posted, please wait.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
+      return;
+    }
+
+    showLoadingIndicator(context);
+
+    bool isConnected = await isInternetAvailable();
+    Navigator.of(context, rootNavigator: true).pop();
+
+    if (isConnected) {
+      newDatabaseOutputs outputs = newDatabaseOutputs();
+      bool tasksCompleted = false;
+
+      // Run both functions in parallel with a timeout
+      showLoadingIndicator(context);
+      await Future.any([
+        Future.wait([
+          // backgroundTask(),
+          outputs.refreshData(),
+        ]).then((_) {
+          tasksCompleted = true;
+        }),
+        Future.delayed(const Duration(minutes: 1)),
+      ]);
+
+      // Hide the loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+
+      if (!tasksCompleted) {
+        Fluttertoast.showToast(
+          msg: "Network Problem!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+
+    } else {
+      Fluttertoast.showToast(
+        msg: "No internet connection.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+
+
+  }
+
+
+//Mock function to check if data is being posted to the server
+  Future<bool> isDataBeingPosted() async {
+    return PostingStatus.isPosting.value;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -488,6 +579,7 @@ class _SMHomepageState extends State<SMHomepage> {
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.green),
             onPressed: () {
+              _handleRefresh();
               // Add reload functionality here
             },
           ),

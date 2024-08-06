@@ -10,15 +10,12 @@ import 'package:hive/hive.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNames;
+import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNSM, userNames, userRSM, userSM;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:order_booking_shop/main.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:workmanager/workmanager.dart';
 import '../API/newDatabaseOutPuts.dart';
-
 import '../Tracker/trac.dart';
 import '../View_Models/AttendanceViewModel.dart';
 import '../View_Models/LocationViewModel.dart';
@@ -267,6 +264,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       userCitys = prefs.getString('userCitys') ?? '';
       userDesignation = prefs.getString('userDesignation') ?? '';
       userBrand = prefs.getString('userBrand') ?? '';
+      userSM = prefs.getString('userSM') ?? '';
+      userNSM = prefs.getString('userNSM') ?? '';
+      userRSM= prefs.getString('userRSM') ?? '';
     });
   }
 

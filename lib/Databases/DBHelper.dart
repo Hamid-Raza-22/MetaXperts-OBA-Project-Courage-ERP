@@ -2073,6 +2073,56 @@ class DBHelper {
       return null;
     }
   }
+Future<String?> getUserNSM(String userId) async {
+    final Database db = await initDatabase();
+    try {
+      var results = await db.rawQuery("select NSM_ID from login where user_id = '$userId'");
+      if (results.isNotEmpty) {
+        // Explicitly cast to String
+        return results.first['NSM_ID'] as String?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching user brand: $e");
+      }
+      return null;
+    }
+  }
+Future<String?> getUserRSM(String userId) async {
+    final Database db = await initDatabase();
+    try {
+      var results = await db.rawQuery("select RSM_ID from login where user_id = '$userId'");
+      if (results.isNotEmpty) {
+        // Explicitly cast to String
+        return results.first['RSM_ID'] as String?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching user brand: $e");
+      }
+      return null;
+    }
+  }Future<String?> getUserSM(String userId) async {
+    final Database db = await initDatabase();
+    try {
+      var results = await db.rawQuery("select SM_ID from login where user_id = '$userId'");
+      if (results.isNotEmpty) {
+        // Explicitly cast to String
+        return results.first['SM_ID'] as String?;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching user brand: $e");
+      }
+      return null;
+    }
+  }
 
 
 }
