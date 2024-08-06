@@ -3,14 +3,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../API/Globals.dart';
 import '../../Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
-import '../../View_Models/OwnerViewModel.dart';
 import '../../main.dart';
 import 'shop_details_page..dart';
 

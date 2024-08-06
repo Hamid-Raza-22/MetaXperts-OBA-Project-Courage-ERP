@@ -632,10 +632,28 @@ class _NSMHomepageState extends State<NSMHomepage> {
     // Navigation logic based on the title
     switch (title) {
       case 'Shop Visit':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const NSMShopVisitPage()),
-        );
+        if (isClockedIn) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NSMShopVisitPage(),
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Clock In Required'),
+              content: const Text('Please clock in before visiting a shop.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
         break;
       case 'Booker Status':
         Navigator.push(

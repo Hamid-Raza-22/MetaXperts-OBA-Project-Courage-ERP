@@ -44,6 +44,8 @@ class _SMHomepageState extends State<SMHomepage> {
   final loc.Location location = loc.Location();
   bool isLoading = false; // Define isLoading variable
   Timer? _timer;
+  bool pressClockIn = false;
+  late StreamSubscription<ServiceStatus> locationServiceStatusStream;
 
 
   @override
@@ -53,7 +55,7 @@ class _SMHomepageState extends State<SMHomepage> {
     // backgroundTask();
     // WidgetsBinding.instance.addObserver(this);
     _loadClockStatus();
-
+    _monitorLocationService();
     _retrieveSavedValues();
     _clockRefresh();
     if (kDebugMode) {
@@ -84,7 +86,18 @@ class _SMHomepageState extends State<SMHomepage> {
       }
     }
   }
-
+  @override
+  void dispose() {
+    locationServiceStatusStream.cancel();
+    super.dispose();
+  }
+  void _monitorLocationService() {
+    locationServiceStatusStream = Geolocator.getServiceStatusStream().listen((ServiceStatus status) async {
+      if (status == ServiceStatus.disabled && isClockedIn) {
+        await _handleClockOut();
+      }
+    });
+  }
   _saveClockStatus(bool clockedIn) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('isClockedIn', clockedIn);
@@ -203,7 +216,91 @@ class _SMHomepageState extends State<SMHomepage> {
     });
     return totalTime;
   }
+  Future<void> _handleClockOut() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent users from dismissing the dialog
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing the dialog
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
+    final service = FlutterBackgroundService();
+    Completer<void> completer = Completer<void>();
+    bool newIsClockedIn = !isClockedIn;
+    // Perform clock-out operations here
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isClockedIn', false);
+
+
+      service.invoke("stopService");
+
+      final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+      final downloadDirectory = await getDownloadsDirectory();
+      double totalDistance = await calculateTotalDistance(
+          "${downloadDirectory?.path}/track$date.gpx");
+      totalDistance ??= 0;
+      await Future.delayed(const Duration(seconds: 4));
+      await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
+        id: prefs.getString('clockInId'),
+        timeOut: _getFormattedtime(),
+        totalTime: _formatDuration(newsecondpassed.toString()),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latOut: globalLatitude1,
+        lngOut: globalLongitude1,
+        totalDistance: totalDistance,
+      ));
+      isClockedIn = false;
+      _saveClockStatus(false);
+      await Future.delayed(const Duration(seconds: 10));
+
+      await postFile();
+      bool isConnected = await isInternetAvailable();
+
+      if (isConnected) {
+        await attendanceViewModel.postAttendanceOut();
+      }
+
+      _stopTimer();
+      _clockRefresh();
+      await prefs.remove('clockInId');
+      await location.enableBackgroundMode(enable: false);
+
+    setState(() {
+      isClockedIn = newIsClockedIn;
+    });
+    // setState(() {
+    //   isClockedIn = false;
+    // });
+
+    // Optionally, show a notification or alert dialog to inform the user
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Clock Out'),
+          content: const Text('You have been clocked out due to location services being disabled.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+    await Future.delayed(const Duration(seconds: 10));
+    Navigator.pop(context); // Close the loading indicator dialog
+    completer.complete();
+    return completer.future;
+  }
   Future<void> _toggleClockInOut() async {
+
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
 
@@ -540,10 +637,32 @@ class _SMHomepageState extends State<SMHomepage> {
     // Navigation logic based on the title
     switch (title) {
       case 'Shop Visit':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ShopVisitPage()),
-        );
+        if (isClockedIn) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ShopVisitPage(),
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Clock In Required'),
+              content: const Text('Please clock in before visiting a shop.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => const ShopVisitPage()),
+        // );
         break;
       case 'Booker Status':
         Navigator.push(
