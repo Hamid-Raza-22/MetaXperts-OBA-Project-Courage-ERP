@@ -21,6 +21,10 @@ class LocationService {
   late var lat, longi;
   //late StreamSubscription<LocationDto> locationSubscription;
   late String userIdForLocation;
+  late String rsmIdForLocation;
+  late String nsmIdForLocation;
+  late String smIdForLocation;
+
   late String userCityForLocatiion;
   late String userDesignationForLocation;
   late final filepath;
@@ -108,6 +112,9 @@ class LocationService {
               'name': userIdForLocation.toString(),
               'city': userCityForLocatiion.toString(),
               'designation': userDesignationForLocation.toString(),
+              'RSM_ID': rsmIdForLocation.toLowerCase(),
+              'NSM_ID':nsmIdForLocation.toString(),
+              'SM_ID':smIdForLocation.toString() ,
               'isActive': true
             }, SetOptions(merge: true));
           }
@@ -115,9 +122,11 @@ class LocationService {
 
     SharedPreferences pref = await SharedPreferences.getInstance();
     userIdForLocation = pref.getString("userNames") ?? "USER";
+    nsmIdForLocation = pref.getString("userNSM") ?? "nsmUSER";
+    rsmIdForLocation = pref.getString("userRSM") ?? "rsmUSER";
+    smIdForLocation = pref.getString("userSM") ?? "smUSER";
     userCityForLocatiion = pref.getString("userCitys") ?? "CITY";
-    userDesignationForLocation =
-        pref.getString("userDesignation") ?? "DESIGNATION";
+    userDesignationForLocation = pref.getString("userDesignation") ?? "DESIGNATION";
     try {
       gpx = Gpx();
       track = Trk();
@@ -156,8 +165,7 @@ class LocationService {
     SharedPreferences pref = await SharedPreferences.getInstance();
     userIdForLocation = pref.getString("userNames") ?? "USER";
     userCityForLocatiion = pref.getString("userCitys") ?? "CITY";
-    userDesignationForLocation =
-        pref.getString("userDesignation") ?? "DESIGNATION";
+    userDesignationForLocation = pref.getString("userDesignation") ?? "DESIGNATION";
   }
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {

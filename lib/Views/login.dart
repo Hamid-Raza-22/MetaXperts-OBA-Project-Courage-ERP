@@ -3,13 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-import 'package:metaxperts_dynamic_apis/ip_addresses/IP_addresses.dart';
+import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:order_booking_shop/Views/SM/sm_homepage.dart';
-import 'package:order_booking_shop/Views/ShopVisit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../API/Globals.dart';
+import '../API/ApiServices.dart';
 import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/LoginModel.dart';
@@ -100,63 +98,54 @@ class LoginFormState extends State<LoginForm> {
   Future<void> _login() async {
     bool isLoggedIn = await _checkLoginStatus();
 
+    // Attempt to log in with the provided credentials
     var response = await dblogin.login(
       LoginModel(user_id: _emailController.text, password: _passwordController.text, user_name: ''),
     );
 
+    // Check if the login was successful
     if (response == true) {
-      setState(() {
-        _loadingProgress = 20; // Start progress
-      });
-
+      // Fetch additional user details
       var userName = await dblogin.getUserName(_emailController.text);
       var userCity = await dblogin.getUserCity(_emailController.text);
       var designation = await dblogin.getUserDesignation(_emailController.text);
       var brand = await dblogin.getUserBrand(_emailController.text);
-
-      setState(() {
-        _loadingProgress = 40; // Update progress
-      });
+      var userRSM = await dblogin.getUserRSM(_emailController.text);
+      var userSM = await dblogin.getUserSM(_emailController.text);
+      var userNSM = await dblogin.getUserNSM(_emailController.text);
 
       if (userName != null && userCity != null && designation != null && brand != null) {
         if (kDebugMode) {
-          print('User Name: $userName, City: $userCity, Designation: $designation, Brand: $brand');
+          print('User Name: $userName, City: $userCity, Designation: $designation, Brand: $brand, RSM: $userRSM, SM: $userSM, NSM: $userNSM');
         }
 
+        // Set default values for null fields
+        userRSM = userRSM ?? 'NULL';
+        userSM = userSM ?? 'NULL';
+        userNSM = userNSM ?? 'NULL';
+
+        // Store user details in shared preferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('userId', _emailController.text);
         prefs.setString('userNames', userName);
         prefs.setString('userCitys', userCity);
         prefs.setString('userDesignation', designation);
         prefs.setString('userBrand', brand);
+        prefs.setString('userRSM', userRSM);
+        prefs.setString('userSM', userSM);
+        prefs.setString('userNSM', userNSM);
 
-        setState(() {
-          _loadingProgress = 75; // Update progress
-        });
-
-        newDatabaseOutputs outputs = newDatabaseOutputs();
-        await outputs.checkFirstRun();
-
-        setState(() {
-          _loadingProgress = 90; // Update progress
-        });
+        // Initialize data and navigate based on designation
+        await initializeData();
 
         if (isLoggedIn) {
           Map<String, dynamic> dataToPass = {
             'userName': userName,
           };
 
-          // Debugging print to check designation
-          if (kDebugMode) {
-            print('Navigating user with designation: $designation');
-          }
-
-          // Navigate based on designation
+          // Navigate to the appropriate homepage based on user designation
           switch (designation) {
             case 'RSM':
-              if (kDebugMode) {
-                print('Navigating to RSMHomepage');
-              }
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => const RSMHomepage(),
@@ -165,9 +154,6 @@ class LoginFormState extends State<LoginForm> {
               break;
 
             case 'SM':
-              if (kDebugMode) {
-                print('Navigating to SMHomepage');
-              }
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => const SMHomepage(),
@@ -176,9 +162,6 @@ class LoginFormState extends State<LoginForm> {
               break;
 
             case 'NSM':
-              if (kDebugMode) {
-                print('Navigating to NSMHomepage');
-              }
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => const NSMHomepage(),
@@ -187,9 +170,6 @@ class LoginFormState extends State<LoginForm> {
               break;
 
             default:
-              if (kDebugMode) {
-                print('Navigating to HomePage');
-              }
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => const HomePage(),
@@ -199,11 +179,6 @@ class LoginFormState extends State<LoginForm> {
               break;
           }
 
-
-          setState(() {
-            _loadingProgress = 100; // Update progress
-          });
-
           return;
         }
       } else {
@@ -211,12 +186,507 @@ class LoginFormState extends State<LoginForm> {
           print('Failed to fetch user name or city');
         }
       }
+
       Fluttertoast.showToast(msg: "Successfully logged in", toastLength: Toast.LENGTH_LONG);
     } else {
-      Fluttertoast.showToast(msg: "Failed login", toastLength: Toast.LENGTH_LONG);
+      // Determine if the failure was due to incorrect password
+      if (response == 'wrong_password') {
+        Fluttertoast.showToast(msg: "Wrong password", toastLength: Toast.LENGTH_LONG);
+      } else {
+        Fluttertoast.showToast(msg: "Failed login", toastLength: Toast.LENGTH_LONG);
+      }
     }
   }
 
+
+  Future<void> initializeData() async {
+    final api = ApiServices();
+    final db = DBHelper();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? id = prefs.getString('userId');
+    String? brand = prefs.getString('userBrand');
+
+    setState(() {
+      _loadingProgress = 10;
+    });
+    await fetchAccountsData(api, db, id);
+
+    setState(() {
+      _loadingProgress = 20;
+    });
+    await fetchNetBalanceData(api, db, id);
+
+    setState(() {
+      _loadingProgress = 30;
+    });
+    await fetchRecoveryFormData(api, db, id);
+
+    setState(() {
+      _loadingProgress = 40;
+    });
+    await fetchProductCategoryData(api, db, id);
+
+    setState(() {
+      _loadingProgress = 50;
+    });
+    await fetchPakCitiesData(api, db);
+
+    setState(() {
+      _loadingProgress = 60;
+    });
+    await fetchOrderDetailsData(api, db, id);
+
+    setState(() {
+      _loadingProgress = 70;
+    });
+    await fetchOrderMasterData(api, db, id);
+
+    setState(() {
+      _loadingProgress = 80;
+    });
+    await fetchProductsData(api, db, brand);
+
+    setState(() {
+      _loadingProgress = 90;
+    });
+    await fetchOwnerData(api, db);
+
+    setState(() {
+      _loadingProgress = 100;
+    });
+    await fetchOrderBookingStatusData(api, db, id);
+  }
+
+
+  Future<void> fetchAccountsData(ApiServices api, DBHelper db, String? id) async {
+    var accountsdata = await db.getAccoutsDB();
+    if (accountsdata == null || accountsdata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$accountApi$id");
+        inserted = await db.insertAccountsData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Accounts Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/accounts/get/$id");
+          inserted = await db.insertAccountsData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Accounts Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Accounts data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Accounts data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchNetBalanceData(ApiServices api, DBHelper db, String? id) async {
+    var netBalancedata = await db.getNetBalanceDB();
+    if (netBalancedata == null || netBalancedata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$balance$id");
+        inserted = await db.insertNetBalanceData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Net Balance Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/allbalance/get/$id");
+          inserted = await db.insertNetBalanceData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Net Balance Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Net Balance data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Net Balance data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchRecoveryFormData(ApiServices api, DBHelper db, String? id) async {
+    var recoveryFormGetData = await db.getAllRecoveryFormGetData();
+    if (recoveryFormGetData == null || recoveryFormGetData.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$recoveryForm$id");
+        inserted = await db.insertRecoveryFormGetData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("RecoveryFormGet Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/recovery1/get/$id");
+          inserted = await db.insertRecoveryFormGetData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("RecoveryFormGet Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert RecoveryFormGet data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("RecoveryFormGet data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchProductCategoryData(ApiServices api, DBHelper db, String? id) async {
+    var pCdata = await db.getAllProductCategoryData();
+    if (pCdata == null || pCdata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$brandsApi$id");
+        inserted = await db.insertProductCategoryData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Product Category Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/brand1/get/$id");
+          inserted = await db.insertProductCategoryData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Product Category Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Product Category data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Product Category data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchPakCitiesData(ApiServices api, DBHelper db) async {
+    var pakCities = await db.getPakCitiesDB();
+    if (pakCities == null || pakCities.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi(city);
+        inserted = await db.insertPakCitiesData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Pak Cities Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/city/get/");
+          inserted = await db.insertPakCitiesData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Pak Cities Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Pak Cities data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Pak Cities data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchOrderDetailsData(ApiServices api, DBHelper db, String? id) async {
+    var orderDetailsdata = await db.getAllOrderDetailsData();
+    if (orderDetailsdata == null || orderDetailsdata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$orderDetails$id");
+        inserted = await db.insertOrderDetailsData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Order Details Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/detailsget/get/$id");
+          inserted = await db.insertOrderDetailsData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Order Details Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Order Details data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Order Details data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchOrderMasterData(ApiServices api, DBHelper db, String? id) async {
+    var orderMasterdata = await db.getAllOrderMasterData();
+    if (orderMasterdata == null || orderMasterdata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$orderMaster$id");
+        inserted = await db.insertOrderMasterData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Order Master Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/masterget1/get/$id");
+          inserted = await db.insertOrderMasterData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Order Master Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Order Master data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Order Master data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchProductsData(ApiServices api, DBHelper db, String? brand) async {
+    var productsdata = await db.getAllProductsData();
+    if (productsdata == null || productsdata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$productsApi$brand");
+        inserted = await db.insertProductsData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Products Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/product1/get/$brand");
+          inserted = await db.insertProductsData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Products Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Products data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Products data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchOwnerData(ApiServices api, DBHelper db) async {
+    var ownersdata = await db.getAllownerData();
+    if (ownersdata == null || ownersdata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi(shopDetails);
+        inserted = await db.insertownerData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Owner Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/shopp1/get/");
+          inserted = await db.insertownerData(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Owner Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Owner data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Owner data is available.");
+      }
+    }
+  }
+
+  Future<void> fetchOrderBookingStatusData(ApiServices api, DBHelper db, String? id) async {
+    var orderBookingStatusdata = await db.getallOrderBookingStatusDB();
+    if (orderBookingStatusdata == null || orderBookingStatusdata.isEmpty) {
+      bool inserted = false;
+      try {
+        var response = await api.getApi("$orderBookingStatus$id");
+        inserted = await db.insertOrderBookingStatusData1(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Order Booking Status Data inserted successfully.");
+          }
+        } else {
+          throw Exception('Insertion failed with first API');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with first API. Trying second API.");
+        }
+        try {
+          var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/statusget1/get/$id");
+          inserted = await db.insertOrderBookingStatusData1(response);
+          if (inserted) {
+            if (kDebugMode) {
+              print("Order Booking Status Data inserted successfully using second API.");
+            }
+          } else {
+            if (kDebugMode) {
+              print("Error inserting data using second API.");
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print("Error with second API as well. Unable to fetch or insert Order Booking Status data.");
+          }
+        }
+      }
+    } else {
+      if (kDebugMode) {
+        print("Order Booking Status data is available.");
+      }
+    }
+  }
 
   Future<bool> _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -225,7 +695,18 @@ class LoginFormState extends State<LoginForm> {
     String? userCitys = prefs.getString('userCitys');
     String? userDesignation = prefs.getString('userDesignation');
     String? userBrand = prefs.getString('userBrand');
-    return userBrand != null && userBrand.isNotEmpty && userDesignation != null && userId != null && userId.isNotEmpty && userCitys != null && userCitys.isNotEmpty && userNames != null && userNames.isNotEmpty;
+    String? userRSM = prefs.getString('userRSM');
+    String? userSM = prefs.getString('userSM');
+    String? userNSM = prefs.getString('userNSM');
+
+    return userId != null && userId.isNotEmpty &&
+        userNames != null && userNames.isNotEmpty &&
+        userCitys != null && userCitys.isNotEmpty &&
+        userDesignation != null && userDesignation.isNotEmpty &&
+        userBrand != null && userBrand.isNotEmpty &&
+        userSM != null && userSM.isNotEmpty &&
+        userRSM != null && userRSM.isNotEmpty &&
+        userNSM != null && userNSM.isNotEmpty;
   }
   // Future<void> checkUserIdAndFetchShopNames() async {
   //   SharedPreferences prefs = await SharedPreferences.getInstance();
