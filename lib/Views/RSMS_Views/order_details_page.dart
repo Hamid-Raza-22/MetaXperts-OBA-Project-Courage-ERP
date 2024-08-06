@@ -23,7 +23,7 @@ class OrderDetailsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Order #${order.id} Details'),
         backgroundColor: Colors.green[800],
-        elevation: 4.0,
+        elevation: 2.0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -32,17 +32,18 @@ class OrderDetailsPage extends StatelessWidget {
           children: [
             // Fixed width card for Order ID
             SizedBox(
-              width: 350, // Set the desired width here
+              width: 350,
+              height: 90,// Set the desired width here
               child: Container(
-                margin: EdgeInsets.only(bottom: 16.0),
-                padding: EdgeInsets.all(16.0),
+                margin: EdgeInsets.only(bottom: 10.0),
+                padding: EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.green[700]!, Colors.green[500]!],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(12.0),
+                  borderRadius: BorderRadius.circular(10.0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.4),
@@ -55,24 +56,28 @@ class OrderDetailsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Order ID: ${order.id}',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Date: ${DateFormat.yMMMd().format(order.date)}',
-                      style: TextStyle(fontSize: 16, color: Colors.white70),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Order ID: ${order.id}',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Date: ${DateFormat.yMMMd().format(order.date)}',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
+                      ],
                     ),
                     SizedBox(height: 8),
                     Text(
                       'Amount: ${order.amount.toStringAsFixed(2)} PKR',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -83,40 +88,47 @@ class OrderDetailsPage extends StatelessWidget {
             ),
             Text(
               'Products:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 4),
             Expanded(
               child: ListView.builder(
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   final product = products[index];
                   return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                    elevation: 4.0,
+                    margin: EdgeInsets.symmetric(vertical: 1.0),
+                    elevation: 1.0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
                     child: ListTile(
-                      contentPadding: EdgeInsets.all(16.0),
+                      contentPadding: EdgeInsets.all(8.0),
                       title: Text(
                         product.name,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 16,
                           color: Colors.green[800],
                         ),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Quantity: ${product.quantity}'),
+                          Text(
+                            'Quantity: ${product.quantity}',
+                            style: TextStyle(fontSize: 12),
+                          ),
                           SizedBox(height: 4),
-                          Text('Description: ${product.description}'),
+                          Text(
+                            'Description: ${product.description}',
+                            style: TextStyle(fontSize: 12),
+                          ),
                           SizedBox(height: 4),
                           Text(
                             'Price: ${product.price.toStringAsFixed(2)} PKR',
                             style: TextStyle(
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: Colors.green[700],
                             ),
@@ -128,7 +140,7 @@ class OrderDetailsPage extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 14),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -145,7 +157,7 @@ class OrderDetailsPage extends StatelessWidget {
                 child: Text(
                   'Back to Orders',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

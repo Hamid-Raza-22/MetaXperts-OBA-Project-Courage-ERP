@@ -518,7 +518,7 @@ class _SMHomepageState extends State<SMHomepage> {
                     {'title': 'Booker Status', 'icon': Icons.person},
                     {'title': 'Shop Details', 'icon': Icons.info},
                     {'title': 'Booker Order Details', 'icon': Icons.book},
-                    {'title': 'Location', 'icon': Icons.location_on}, // New card
+                    {'title': 'Location', 'icon': Icons.location_on},
                   ][index];
 
                   return _buildCard(

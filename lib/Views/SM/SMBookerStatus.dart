@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,13 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import '../../API/Globals.dart';
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/BookerStatusModel.dart';
 import '../../main.dart';
 import '../RSMS_Views/booker_details_page.dart';
-
 
 class SMBookerStatus extends StatefulWidget {
   @override
@@ -349,23 +345,26 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                     String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0), // Reduced vertical padding
-                      child: Card(
-                        elevation: 10.0, // Reduced elevation
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0), // Slightly reduced border radius
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.access_time, color: Colors.blue),
-                          title: const Text(
-                            'Last Sync',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0),
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time, color: Colors.blue),
+                          const SizedBox(width: 8.0),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Last Sync: ',
+                                style: TextStyle(fontSize: 10.0),
+                              ),
+                            SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                              Text(
+                                formattedTime,
+                                style: const TextStyle( fontSize: 10.0),
+                              ),
+                            ],
                           ),
-                          subtitle: Text(
-                            formattedTime,
-                            style: const TextStyle(color: Colors.black54, fontSize: 10.0),
-                          ),
-                        ),
+                        ],
                       ),
                     );
                   } else {
@@ -471,8 +470,8 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
                   child: SizedBox(
-                    width: 60,
-                    height: 60,
+                    width: 50,
+                    height: 50,
                     child: Image.asset(
                       'assets/icons/avatar3.png',
                       fit: BoxFit.cover,
@@ -486,14 +485,14 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4.0),
                       Text(
                         'ID: ${booker.bookerId}',
-                        style: const TextStyle(fontSize: 12, color: Colors.black),
+                        style: const TextStyle(fontSize: 10, color: Colors.black),
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 1.0),
                       Row(
                         children: [
                           const Icon(Icons.work, size: 12.0, color: Colors.green),
@@ -501,7 +500,7 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                           Expanded(
                             child: Text(
                               'Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: 10),
                             ),
                           ),
                         ],
@@ -510,12 +509,12 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                         const SizedBox(height: 4.0),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 12.0, color: Colors.green),
+                            const Icon(Icons.location_on, size: 10.0, color: Colors.green),
                             const SizedBox(width: 4.0),
                             Expanded(
                               child: Text(
                                 'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 12),
+                                style: const TextStyle(fontSize: 10),
                               ),
                             ),
                           ],
@@ -557,7 +556,5 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
       ),
     );
   }
-
-
 }
 

@@ -37,14 +37,14 @@ class ShopDetailsPage extends StatelessWidget {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildShopInfo(),
-            const SizedBox(height: 20),
+            const SizedBox(height:5),
             Expanded(child: _buildOrdersList(orders)),
-            const SizedBox(height: 20),
+            const SizedBox(height:5 ),
             _buildSummary(totalOrders, totalBalance),
           ],
         ),
@@ -54,9 +54,9 @@ class ShopDetailsPage extends StatelessWidget {
 
   Widget _buildShopInfo() {
     return Card(
-      elevation: 5.0, // Increase elevation for better shadow
+      elevation: 1.0, // Increase elevation for better shadow
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
+        borderRadius: BorderRadius.circular(7.0),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -65,17 +65,17 @@ class ShopDetailsPage extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(7.0),
         ),
         child: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(7.0),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12.0),
+                borderRadius: BorderRadius.circular(7.0),
                 child: SizedBox(
-                  width: 100,
-                  height: 100,
+                  width: 60,
+                  height: 60,
                   child: Image.asset(
                     'assets/icons/shop-svg-3.png',
                     fit: BoxFit.cover,
@@ -85,7 +85,7 @@ class ShopDetailsPage extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -102,7 +102,7 @@ class ShopDetailsPage extends StatelessWidget {
                       shop.city,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -111,7 +111,7 @@ class ShopDetailsPage extends StatelessWidget {
                       shop.address,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -153,7 +153,7 @@ class ShopDetailsPage extends StatelessWidget {
                 Text(
                   'Order #${order.id}',
                   style: TextStyle(
-                    fontSize: 18, // Increased font size
+                    fontSize: 17, // Increased font size
                     fontWeight: FontWeight.bold,
                     color: Colors.green[800],
                   ),
@@ -161,14 +161,14 @@ class ShopDetailsPage extends StatelessWidget {
                 const SizedBox(height: 4), // Increased spacing
                 Text(
                   DateFormat.yMMMd().format(order.date),
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 10, color: Colors.grey[700]),
                 ),
               ],
             ),
             subtitle: Text(
               'Amount: ${order.amount.toStringAsFixed(2)} PKR',
               style: const TextStyle(
-                fontSize: 16, // Increased font size
+                fontSize: 10, // Increased font size
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
@@ -195,7 +195,7 @@ class ShopDetailsPage extends StatelessWidget {
 
   Widget _buildSummary(int totalOrders, double totalBalance) {
     return Card(
-      elevation: 2.0, // Minimal shadow for a subtle lift
+      elevation: 2.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6.0), // Smaller border radius
       ),
@@ -230,14 +230,14 @@ class ShopDetailsPage extends StatelessWidget {
                       color: Colors.green[700],
                       size: 24,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Total Orders',
                           style: TextStyle(
-                            fontSize: 14, // Font size for title
+                            fontSize: 12, // Font size for title
                             fontWeight: FontWeight.bold,
                             color: Colors.black, // Black color for text
                           ),
@@ -246,7 +246,7 @@ class ShopDetailsPage extends StatelessWidget {
                         Text(
                           '$totalOrders',
                           style: const TextStyle(
-                            fontSize: 18, // Font size for value
+                            fontSize: 10, // Font size for value
                             fontWeight: FontWeight.bold,
                             color: Colors.black, // Black color for text
                           ),
@@ -256,7 +256,7 @@ class ShopDetailsPage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 16), // Spacing between columns
+              const SizedBox(width: 10), // Spacing between columns
               Expanded(
                 child: Row(
                   children: [
@@ -272,7 +272,7 @@ class ShopDetailsPage extends StatelessWidget {
                         const Text(
                           'Total Balance',
                           style: TextStyle(
-                            fontSize: 14, // Font size for title
+                            fontSize: 12, // Font size for title
                             fontWeight: FontWeight.bold,
                             color: Colors.black, // Black color for text
                           ),
@@ -281,7 +281,7 @@ class ShopDetailsPage extends StatelessWidget {
                         Text(
                           '${totalBalance.toStringAsFixed(2)} PKR',
                           style: const TextStyle(
-                            fontSize: 18, // Font size for value
+                            fontSize: 10, // Font size for value
                             fontWeight: FontWeight.bold,
                             color: Colors.black, // Black color for text
                           ),
