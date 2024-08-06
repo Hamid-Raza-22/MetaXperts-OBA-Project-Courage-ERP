@@ -8,7 +8,6 @@ import 'package:order_booking_shop/Views/SM/sm_homepage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/ApiServices.dart';
-import '../API/newDatabaseOutPuts.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/LoginModel.dart';
 import '../View_Models/OwnerViewModel.dart';
