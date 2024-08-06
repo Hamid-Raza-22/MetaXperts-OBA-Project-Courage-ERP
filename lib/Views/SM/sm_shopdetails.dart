@@ -369,27 +369,27 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.symmetric(vertical: 2.0), // Reduced vertical margin
+          margin: const EdgeInsets.symmetric(vertical: 2.0),
           elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(7.0), // Slightly smaller radius
+            borderRadius: BorderRadius.circular(7.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(4.0), // Smaller padding
+            padding: const EdgeInsets.all(4.0),
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0), // Slightly smaller radius
+                  borderRadius: BorderRadius.circular(10.0),
                   child: SizedBox(
-                    width: 60, // Smaller width
-                    height: 60, // Smaller height
+                    width: 60,
+                    height: 60,
                     child: Image.asset(
-                      'assets/icons/shop-svg-3.png', // Path to your vector image
+                      'assets/icons/shop-svg-3.png',
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8.0), // Smaller space between image and text
+                const SizedBox(width: 8.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,27 +399,27 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                           Expanded(
                             child: Text(
                               shop.name,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), // Shop name bold
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                               maxLines: 1,
-                              overflow: TextOverflow.ellipsis, // Ensures it doesn't overflow
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
 
                           Text(
                             shop.city,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), // Bold city name
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis, // Ensures it doesn't overflow
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4.0), // Smaller space
+                      const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 12.0, color: Colors.green), // Smaller icon size
+                          const Icon(Icons.location_on, size: 12.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 12)), // Smaller text size
+                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
@@ -466,7 +466,7 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                     String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
 
                     return Padding(
-                      padding: const EdgeInsets.only(top: 10.0), // Small margin to separate from fields
+                      padding: const EdgeInsets.only(top: 10.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -474,7 +474,7 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                           const SizedBox(width: 4.0),
                           Text(
                             'Last Sync: $formattedTime',
-                            style: const TextStyle(color: Colors.black54, fontSize: 10.0), // Smaller font size
+                            style: const TextStyle(color: Colors.black54, fontSize: 10.0),
                           ),
                         ],
                       ),

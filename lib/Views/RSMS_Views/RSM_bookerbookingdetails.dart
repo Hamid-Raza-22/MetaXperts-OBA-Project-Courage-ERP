@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../NSM/NSM_bookerbookingdetails.dart';
 
 class RSMBookingBookPage extends StatefulWidget {
@@ -18,7 +17,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
   String? _selectedStatus;
   DateTime? _startDate;
   DateTime? _endDate;
-  bool _showData = false;  // Boolean to control data visibility
+  bool _showData = false;
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
@@ -78,18 +77,16 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 24), // Add space above the filters
-
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: "Select Shop",
                 filled: true,
                 fillColor: Colors.green.withOpacity(0.1),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
               ),
               value: _selectedShop,
               items: _shopOptions
@@ -104,17 +101,17 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 7),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: "Select Order",
                 filled: true,
                 fillColor: Colors.green.withOpacity(0.1),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
               ),
               value: _selectedOrder,
               items: _orderOptions
@@ -129,7 +126,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 7),
             Row(
               children: [
                 Expanded(
@@ -143,7 +140,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                     ),
                     onTap: () => _selectDate(context, true),
                     controller: TextEditingController(
@@ -153,7 +150,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 7),
                 Expanded(
                   child: TextFormField(
                     readOnly: true,
@@ -165,7 +162,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
                     onTap: () => _selectDate(context, false),
                     controller: TextEditingController(
@@ -177,7 +174,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 7),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: "Status",
@@ -187,7 +184,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
               ),
               value: _selectedStatus,
               items: _statusOptions
@@ -202,7 +199,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                 });
               },
             ),
-            const SizedBox(height: 24), // Add space above the buttons
+            const SizedBox(height: 7),
             Row(
               children: [
                 Expanded(
@@ -218,7 +215,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 7),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _clearFilters,
@@ -234,7 +231,7 @@ class _RSMBookingBookPageState extends State<RSMBookingBookPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 7),
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.vertical,

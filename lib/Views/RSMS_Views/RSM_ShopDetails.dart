@@ -8,9 +8,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../API/Globals.dart';
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
 import '../../View_Models/OwnerViewModel.dart';
 import '../../main.dart';
@@ -373,52 +371,52 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(8.0),
-          elevation: 5,
+          margin: const EdgeInsets.all(1.0),
+          elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
+            borderRadius: BorderRadius.circular(7.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(10.0),
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(8.0),
                   child: SizedBox(
-                    width: 100,
-                    height: 100,
+                    width: 50,
+                    height: 50,
                     child: Image.asset(
                       'assets/icons/shop-svg-3.png', // Path to your vector image
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16.0),
+                const SizedBox(width: 8.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         shop.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8.0),
+                      const SizedBox(height: 6.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_city, size: 16.0, color: Colors.green),
-                          const SizedBox(width: 4.0),
+                          const Icon(Icons.location_city, size: 10.0, color: Colors.green),
+                          const SizedBox(width: 1.0),
                           Expanded(
-                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 16)),
+                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 16.0, color: Colors.green),
-                          const SizedBox(width: 4.0),
+                          const Icon(Icons.location_on, size: 12.0, color: Colors.green),
+                          const SizedBox(width: 2.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 16)),
+                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
@@ -449,10 +447,10 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
             Card(
               elevation: 2.0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
+                borderRadius: BorderRadius.circular(7.0),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(4.0),
                 child: Column(
                   children: [
                     _buildTextField('Search by City', _cityController, false, false),
@@ -471,23 +469,26 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
                   String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Card(
-                      elevation: 2.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.access_time, color: Colors.blue),
-                        title: const Text(
-                          'Last Sync',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.access_time, color: Colors.blue),
+                        const SizedBox(width: 8.0),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Last Sync: ',
+                              style: TextStyle(fontSize: 10.0),
+                            ),
+                            SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                            Text(
+                              formattedTime,
+                              style: const TextStyle( fontSize: 10.0),
+                            ),
+                          ],
                         ),
-                        subtitle: Text(
-                          formattedTime,
-                          style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                        ),
-                      ),
+                      ],
                     ),
                   );
                 } else {

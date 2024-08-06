@@ -5,11 +5,8 @@ import 'package:order_booking_shop/Models/Bookers_RSM_SM_NSM_Models/BookerStatus
 import 'package:http/http.dart' as http;
 import 'package:order_booking_shop/Models/Bookers_RSM_SM_NSM_Models/RSMStatusModel.dart';
 import 'dart:convert';
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/AttendanceStatusModel.dart';
 import '../../Models/Bookers_RSM_SM_NSM_Models/SMStatusModel.dart';
-
-
 
 class NSMBookerDetailPage extends StatefulWidget {
   final SMStatusModel booker;

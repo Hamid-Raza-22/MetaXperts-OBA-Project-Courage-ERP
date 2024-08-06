@@ -242,7 +242,7 @@ class _RSMBookerDetailsPageState extends State<RSMBookerDetailsPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _clearFilters,
@@ -258,7 +258,7 @@ class _RSMBookerDetailsPageState extends State<RSMBookerDetailsPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())

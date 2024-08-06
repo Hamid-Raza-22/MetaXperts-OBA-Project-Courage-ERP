@@ -12,7 +12,7 @@ Future<Map<String, LatLng>> fetchRSMMarkers() async {
 
   for (var doc in snapshot.docs) {
     final data = doc.data() as Map<String, dynamic>;
-    markers[data['name']] = LatLng(data['latitude'], data['longitude']); // Ensure that your document has 'name', 'lat', 'long' fields
+    markers[data['name']] = LatLng(data['latitude'], data['longitude']);
   }
 
   return markers;

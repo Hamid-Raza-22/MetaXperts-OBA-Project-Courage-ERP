@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,13 +7,10 @@ import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:order_booking_shop/Views/SM/sm_booker_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import '../../API/Globals.dart';
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/RSMStatusModel.dart';
 import '../../main.dart';
 import '../RSMS_Views/booker_details_page.dart';
-
 
 class SM_RSMStatus extends StatefulWidget {
   @override
@@ -73,7 +69,8 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body)['items'];
-      List<RSMStatusModel> fetchedBookers = data.map<RSMStatusModel>((json) => RSMStatusModel.fromJson(json)).toList();
+      List<RSMStatusModel> fetchedBookers = data.map<RSMStatusModel>((json) =>
+          RSMStatusModel.fromJson(json)).toList();
 
       // Compare with existing data to check if new data is fetched
       bool isNewData = _hasNewData(fetchedBookers, _allBookers);
@@ -84,7 +81,8 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
 
         // Save the last sync timestamp
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('last_SM_RSM_sync_time', DateTime.now().toIso8601String());
+        await prefs.setString(
+            'last_SM_RSM_sync_time', DateTime.now().toIso8601String());
       }
 
       return isNewData;
@@ -114,7 +112,8 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
 
   Future<void> _saveBookersData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String bookersJson = jsonEncode(_allBookers.map((b) => b.toJson()).toList());
+    String bookersJson = jsonEncode(
+        _allBookers.map((b) => b.toJson()).toList());
     prefs.setString('SM_RSM_data', bookersJson);
   }
 
@@ -123,17 +122,18 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
     String? bookersJson = prefs.getString('SM_RSM_data');
     if (bookersJson != null) {
       List<dynamic> jsonList = jsonDecode(bookersJson);
-      _allBookers = jsonList.map((json) => RSMStatusModel.fromJson(json)).toList();
+      _allBookers =
+          jsonList.map((json) => RSMStatusModel.fromJson(json)).toList();
     }
   }
-
 
 
   void _addBookersToList(List<RSMStatusModel> bookers) async {
     for (int i = 0; i < bookers.length; i++) {
       if (!_displayedBookers.contains(bookers[i])) {
         _displayedBookers.add(bookers[i]);
-        _listKey.currentState?.insertItem(_displayedBookers.indexOf(bookers[i]), duration: const Duration(seconds: 1));
+        _listKey.currentState?.insertItem(_displayedBookers.indexOf(bookers[i]),
+            duration: const Duration(seconds: 1));
         await Future.delayed(const Duration(milliseconds: 300));
       }
     }
@@ -156,7 +156,8 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
     final attendanceFilter = _attendanceController.text.toLowerCase();
     _filteredBookers = _allBookers.where((booker) {
       final matchesName = booker.name.toLowerCase().contains(nameFilter);
-      final matchesStatus = booker.attendanceStatus.toLowerCase().contains(attendanceFilter);
+      final matchesStatus = booker.attendanceStatus.toLowerCase().contains(
+          attendanceFilter);
       return matchesName && matchesStatus;
     }).toList();
     _removeBookersFromList();
@@ -164,10 +165,9 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
   }
 
 
-
-
-
-  void showProfessionalDialog(BuildContext context, String message, IconData icon, Color backgroundColor, {String? actionText, VoidCallback? onActionPressed}) {
+  void showProfessionalDialog(BuildContext context, String message,
+      IconData icon, Color backgroundColor,
+      {String? actionText, VoidCallback? onActionPressed}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -210,7 +210,8 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 24),
                       elevation: 5,
                     ),
                     onPressed: onActionPressed,
@@ -312,12 +313,9 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
   }
 
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
         body: RefreshIndicator(
           onRefresh: _handleRefresh,
           child: Padding(
@@ -333,13 +331,15 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                     padding: const EdgeInsets.all(6.0),
                     child: Column(
                       children: [
-                        _buildTextField('Search by Attendance Status', _attendanceController, false, false),
-                        _buildTextField('Search by Booker Name', _nameController, false, false),
+                        _buildTextField('Search by Attendance Status',
+                            _attendanceController, false, false),
+                        _buildTextField(
+                            'Search by Booker Name', _nameController, false,
+                            false),
                       ],
                     ),
                   ),
                 ),
-                // Display last sync time
 
                 FutureBuilder<String?>(
                   future: _getLastSyncTime(),
@@ -347,27 +347,31 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
                     } else if (snapshot.hasData && snapshot.data != null) {
-                      DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
-                      String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
-
+                      DateTime lastSyncDateTime = DateTime.parse(
+                          snapshot.data!);
+                      String formattedTime = DateFormat('dd MMM yyyy, hh:mm a')
+                          .format(lastSyncDateTime);
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Card(
-                          elevation: 2.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.access_time, color: Colors.blue),
-                            title: const Text(
-                              'Last Sync',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time, color: Colors.blue),
+                            const SizedBox(width: 8.0),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Last Sync: ',
+                                  style: TextStyle(fontSize: 10.0),
+                                ),
+                                SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                                Text(
+                                  formattedTime,
+                                  style: const TextStyle( fontSize: 10.0),
+                                ),
+                              ],
                             ),
-                            subtitle: Text(
-                              formattedTime,
-                              style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                            ),
-                          ),
+                          ],
                         ),
                       );
                     } else {
@@ -392,9 +396,10 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
         ));
   }
 
-  Widget _buildTextField(String hint, TextEditingController controller, bool isDate, bool isReadOnly) {
+  Widget _buildTextField(String hint, TextEditingController controller,
+      bool isDate, bool isReadOnly) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.symmetric(vertical: 1.0),
       child: Card(
         elevation: 3.0,
         shape: RoundedRectangleBorder(
@@ -412,13 +417,14 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.green, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: BorderRadius.circular(2.0),
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: BorderRadius.circular(2.0),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 2.0, vertical: 1.0),
           ),
           keyboardType: isDate ? TextInputType.datetime : TextInputType.text,
           readOnly: isReadOnly,
@@ -433,8 +439,6 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
   Widget _buildBookerCard(RSMStatusModel booker, Animation<double> animation) {
     Color statusColor;
     String statusText;
-
-    // Determine the color and text based on the attendance status
     switch (booker.attendanceStatus) {
       case 'clock_in':
         statusColor = Colors.green;
@@ -461,101 +465,100 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(6.0),
-          elevation: 3,
+          margin: EdgeInsets.all(1.0),
+          elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(7.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
+            padding: const EdgeInsets.all(10.0),
+            child: Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
-                  child: SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: Image.asset(
-                      'assets/icons/avatar3.png', // Path to your image
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        booker.name,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6.0),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
-                        decoration: const BoxDecoration(
-                          color: Colors.transparent, // Transparent background for the ID
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Image.asset(
+                          'assets/icons/avatar3.png',
+                          fit: BoxFit.cover,
                         ),
-                        child: Row(
-                          children: [
-                            Text(
-                              booker.bookerId,
-                              style: const TextStyle(fontSize: 14, color: Colors.black), // ID color
-                            ),
-                            const SizedBox(width: 10.0),
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(6.0),
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            booker.name,
+                            style: const TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 6.0),
+                          Text(
+                            booker.bookerId,
+                            style: const TextStyle(
+                                fontSize: 10, color: Colors.black),
+                          ),
+                          const SizedBox(height: 1.0),
+                          Row(
+                            children: [
+                              const Icon(Icons.work, size: 12.0, color: Colors.green),
+                              const SizedBox(width: 4.0),
+                              Expanded(
+                                child: Text(
+                                  'Designation: ${booker.designation}',
+                                  style: const TextStyle(fontSize: 10),
+                                ),
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 14.0,
-                                    color: statusColor,
+                            ],
+                          ),
+                          if (booker.designation == 'SO') ...[
+                            const SizedBox(height: 4.0),
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on, size: 10.0, color: Colors.green),
+                                const SizedBox(width: 4.0),
+                                Expanded(
+                                  child: Text(
+                                    'City: ${booker.city}',
+                                    style: const TextStyle(fontSize: 10),
                                   ),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    statusText,
-                                    style: TextStyle(fontSize: 14, color: statusColor), // Status color
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(height: 4.0),
-                      Row(
-                        children: [
-                          const Icon(Icons.work, size: 14.0, color: Colors.green),
-                          const SizedBox(width: 4.0),
-                          Expanded(
-                            child: Text(
-                              'Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
                         ],
                       ),
-                      if (booker.designation == 'SO') ...[
-                        const SizedBox(height: 4.0),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on, size: 14.0, color: Colors.green),
-                            const SizedBox(width: 4.0),
-                            Expanded(
-                              child: Text(
-                                'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                          ],
+                    ),
+                  ],
+                ),
+                Positioned(
+                  top: 13,
+                  right: 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(6.0),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
+                          size: 12.0,
+                          color: statusColor,
+                        ),
+                        const SizedBox(width: 4.0),
+                        Text(
+                          statusText,
+                          style: TextStyle(fontSize: 12, color: statusColor),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -565,5 +568,5 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
       ),
     );
   }
-}
 
+}
