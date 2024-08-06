@@ -387,6 +387,7 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
+
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(15.0),
