@@ -502,7 +502,7 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                               booker.bookerId,
                               style: const TextStyle(fontSize: 12, color: Colors.black), // ID color
                             ),
-                            const SizedBox(width: 10.0),
+                            const SizedBox(width: 88.0),
                             Container(
                               padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
                               decoration: BoxDecoration(
