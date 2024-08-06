@@ -348,23 +348,26 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                       String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
 
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Card(
-                          elevation: 2.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.access_time, color: Colors.blue),
-                            title: const Text(
-                              'Last Sync',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time, color: Colors.blue),
+                            const SizedBox(width: 8.0),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Last Sync: ',
+                                  style: TextStyle(fontSize: 10.0),
+                                ),
+                                SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                                Text(
+                                  formattedTime,
+                                  style: const TextStyle( fontSize: 10.0),
+                                ),
+                              ],
                             ),
-                            subtitle: Text(
-                              formattedTime,
-                              style: const TextStyle(color: Colors.black54, fontSize: 14.0),
-                            ),
-                          ),
+                          ],
                         ),
                       );
                     } else {
@@ -470,8 +473,8 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
                   child: SizedBox(
-                    width: 80,
-                    height: 80,
+                    width: 50,
+                    height: 50,
                     child: Image.asset(
                       'assets/icons/avatar3.png', // Path to your image
                       fit: BoxFit.cover,
@@ -485,7 +488,7 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 6.0),
                       Container(
@@ -497,7 +500,7 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                           children: [
                             Text(
                               booker.bookerId,
-                              style: const TextStyle(fontSize: 14, color: Colors.black), // ID color
+                              style: const TextStyle(fontSize: 12, color: Colors.black), // ID color
                             ),
                             const SizedBox(width: 10.0),
                             Container(
@@ -510,13 +513,13 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                                 children: [
                                   Icon(
                                     booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 14.0,
+                                    size: 12.0,
                                     color: statusColor,
                                   ),
                                   const SizedBox(width: 4.0),
                                   Text(
                                     statusText,
-                                    style: TextStyle(fontSize: 14, color: statusColor), // Status color
+                                    style: TextStyle(fontSize: 12, color: statusColor), // Status color
                                   ),
                                 ],
                               ),
@@ -527,12 +530,12 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                       const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.work, size: 14.0, color: Colors.green),
+                          const Icon(Icons.work, size: 12.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
                             child: Text(
                               'Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                         ],
@@ -541,12 +544,12 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                         const SizedBox(height: 4.0),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 14.0, color: Colors.green),
+                            const Icon(Icons.location_on, size: 12.0, color: Colors.green),
                             const SizedBox(width: 4.0),
                             Expanded(
                               child: Text(
                                 'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 12),
                               ),
                             ),
                           ],
