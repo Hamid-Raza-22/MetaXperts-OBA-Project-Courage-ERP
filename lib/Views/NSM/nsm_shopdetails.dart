@@ -23,6 +23,7 @@ class NSMShopDetailPage extends StatefulWidget {
   _NSMShopDetailPageState createState() => _NSMShopDetailPageState();
 }
 
+
 class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
 
   List<ShopStatusModel> _allShops = [];
