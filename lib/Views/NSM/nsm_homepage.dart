@@ -460,6 +460,9 @@ class _NSMHomepageState extends State<NSMHomepage> {
       userCitys = prefs.getString('userCitys') ?? '';
       userDesignation = prefs.getString('userDesignation') ?? '';
       userBrand = prefs.getString('userBrand') ?? '';
+      userNSM= prefs.getString('userNSM') ?? 'NULL';
+      userSM= prefs.getString('userSM') ?? 'NULL';
+      userRSM= prefs.getString('userRSM') ?? 'NULL';
     });
   }
 

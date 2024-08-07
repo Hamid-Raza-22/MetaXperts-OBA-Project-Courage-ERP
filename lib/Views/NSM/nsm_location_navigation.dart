@@ -49,6 +49,8 @@ Future<Map<String, LatLng>> fetchSMMarkers(List<String> designations) async {
 }
 
 class NsmLocationNavigation extends StatefulWidget {
+  const NsmLocationNavigation({super.key});
+
   @override
   _NsmLocationNavigationState createState() => _NsmLocationNavigationState();
 }
@@ -62,10 +64,10 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
     });
   }
 
-  List<Widget> _widgetOptions = <Widget>[
-    BookerLocationnsm(),
-    SMLocationnsm(),
-    RSMLocationnsm(),
+  final List<Widget> _widgetOptions = <Widget>[
+    const BookerLocationnsm(),
+    const SMLocationnsm(),
+    const RSMLocationnsm(),
   ];
 
   @override
@@ -82,7 +84,7 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
                   child: TextButton(
                     onPressed: () => _onButtonTapped(0),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         border: Border(
@@ -92,7 +94,7 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
                           ),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'BOOKER',
                         style: TextStyle(
                           color: Colors.black,
@@ -106,7 +108,7 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
                   child: TextButton(
                     onPressed: () => _onButtonTapped(1),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 17),
+                      padding: const EdgeInsets.symmetric(vertical: 17),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         border: Border(
@@ -116,7 +118,7 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
                           ),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'SM',
                         style: TextStyle(
                           color: Colors.black,
@@ -130,7 +132,7 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
                   child: TextButton(
                     onPressed: () => _onButtonTapped(2),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         border: Border(
@@ -140,7 +142,7 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
                           ),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'RSM',
                         style: TextStyle(
                           color: Colors.black,
@@ -163,6 +165,8 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
 }
 
 class BookerLocationnsm extends StatefulWidget {
+  const BookerLocationnsm({super.key});
+
   @override
   _BookerLocationnsmState createState() => _BookerLocationnsmState();
 }
@@ -170,7 +174,7 @@ class BookerLocationnsm extends StatefulWidget {
 class _BookerLocationnsmState extends State<BookerLocationnsm> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
-  LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
+  final LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
   final List<String> designations = ['ASM', 'SO', 'SOS', 'SPO']; // List of designations to fetch
 
   @override
@@ -277,7 +281,7 @@ class _BookerLocationnsmState extends State<BookerLocationnsm> {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 5,
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 height: 400, // Adjust height here
                 child: ClipRRect(
@@ -314,6 +318,8 @@ class _BookerLocationnsmState extends State<BookerLocationnsm> {
 }
 
 class SMLocationnsm extends StatefulWidget {
+  const SMLocationnsm({super.key});
+
   @override
   _SMLocationnsmState createState() => _SMLocationnsmState();
 }
@@ -321,7 +327,7 @@ class SMLocationnsm extends StatefulWidget {
 class _SMLocationnsmState extends State<SMLocationnsm> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
-  LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
+  final LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
   final List<String> designations = ['SM']; // Changed to only include 'SM'
 
   @override
@@ -428,7 +434,7 @@ class _SMLocationnsmState extends State<SMLocationnsm> {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 5,
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 height: 400, // Adjust height here
                 child: ClipRRect(
@@ -466,6 +472,8 @@ class _SMLocationnsmState extends State<SMLocationnsm> {
 
 
 class RSMLocationnsm extends StatefulWidget {
+  const RSMLocationnsm({super.key});
+
   @override
   _RSMLocationnsmState createState() => _RSMLocationnsmState();
 }
@@ -473,7 +481,7 @@ class RSMLocationnsm extends StatefulWidget {
 class _RSMLocationnsmState extends State<RSMLocationnsm> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
-  LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
+  final LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
 
   @override
   void initState() {
@@ -579,7 +587,7 @@ class _RSMLocationnsmState extends State<RSMLocationnsm> {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 5,
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 height: 400, // Adjust height here
                 child: ClipRRect(

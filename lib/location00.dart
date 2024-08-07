@@ -21,6 +21,7 @@ class LocationService {
   late var lat, longi;
   //late StreamSubscription<LocationDto> locationSubscription;
   late String userIdForLocation;
+  late String userNameForLocation;
   late String rsmIdForLocation;
   late String nsmIdForLocation;
   late String smIdForLocation;
@@ -109,10 +110,11 @@ class LocationService {
                 .set({
               'latitude': position.latitude,
               'longitude': position.longitude,
-              'name': userIdForLocation.toString(),
+              'name': userNameForLocation.toString(),
+              'userId': userIdForLocation.toString(),
               'city': userCityForLocatiion.toString(),
               'designation': userDesignationForLocation.toString(),
-              'RSM_ID': rsmIdForLocation.toLowerCase(),
+              'RSM_ID': rsmIdForLocation.toString(),
               'NSM_ID':nsmIdForLocation.toString(),
               'SM_ID':smIdForLocation.toString() ,
               'isActive': true
@@ -121,7 +123,8 @@ class LocationService {
         });
 
     SharedPreferences pref = await SharedPreferences.getInstance();
-    userIdForLocation = pref.getString("userNames") ?? "USER";
+    userNameForLocation = pref.getString("userNames") ?? "USERName";
+    userIdForLocation = pref.getString("userId") ?? "USERId";
     nsmIdForLocation = pref.getString("userNSM") ?? "nsmUSER";
     rsmIdForLocation = pref.getString("userRSM") ?? "rsmUSER";
     smIdForLocation = pref.getString("userSM") ?? "smUSER";
