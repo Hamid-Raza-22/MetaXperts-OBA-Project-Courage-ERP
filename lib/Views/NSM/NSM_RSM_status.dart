@@ -171,7 +171,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
-          elevation: 8,
+          elevation: 1,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
             decoration: BoxDecoration(
@@ -207,7 +207,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      elevation: 5,
+                      elevation: 1,
                     ),
                     onPressed: onActionPressed,
                     child: Text(
@@ -307,36 +307,18 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
     }
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
         body: RefreshIndicator(
           onRefresh: _handleRefresh,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
+          child:  Column(
               children: [
-                Card(
-                  elevation: 1.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Column(
+                    Column(
                       children: [
-                        _buildTextField('Search by Attendance Status', _attendanceController, false, false),
                         _buildTextField('Search by Booker Name', _nameController, false, false),
                       ],
                     ),
-                  ),
-                ),
-                // Display last sync time
-
                 FutureBuilder<String?>(
                   future: _getLastSyncTime(),
                   builder: (context, snapshot) {
@@ -388,14 +370,14 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
               ],
             ),
           ),
-        ));
+        );
   }
 
   Widget _buildTextField(String hint, TextEditingController controller, bool isDate, bool isReadOnly) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Card(
-        elevation: 3.0,
+        elevation: 1.0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
@@ -407,15 +389,15 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
               color: Colors.green,
             ),
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
+            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4), fontSize: 13),
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.green, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: BorderRadius.circular(2.0),
             ),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(color: Colors.green, width: 0.1),
+              borderRadius: BorderRadius.circular(1.0),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
           ),
@@ -460,22 +442,22 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(6.0),
-          elevation: 3,
+          margin: const EdgeInsets.all(1.0),
+          elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(2.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(5.0),
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(2.0),
                   child: SizedBox(
-                    width: 50,
-                    height: 50,
+                    width: 45,
+                    height: 45,
                     child: Image.asset(
-                      'assets/icons/avatar3.png', // Path to your image
+                      'assets/icons/avatar3.png',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -486,7 +468,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
@@ -497,9 +479,9 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                           children: [
                             Text(
                               booker.bookerId,
-                              style: const TextStyle(fontSize: 11, color: Colors.black),
+                              style: const TextStyle(fontSize: 10, color: Colors.black),
                             ),
-                            const SizedBox(width: 104.0),
+                            const SizedBox(width: 130.0),
                             Container(
                               padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                               decoration: BoxDecoration(
@@ -510,13 +492,13 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                                 children: [
                                   Icon(
                                     booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 12.0,
+                                    size: 10.0,
                                     color: statusColor,
                                   ),
                                   const SizedBox(width: 4.0),
                                   Text(
                                     statusText,
-                                    style: TextStyle(fontSize: 12, color: statusColor), // Status color
+                                    style: TextStyle(fontSize: 10, color: statusColor), // Status color
                                   ),
                                 ],
                               ),
@@ -529,8 +511,8 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                     //      const Icon(Icons.work, size: 10.0, color: Colors.green),
                           Expanded(
                             child: Text(
-                              ' Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 11),
+                              ' ${booker.designation}',
+                              style: const TextStyle(fontSize: 10),
                             ),
                           ),
                         ],
@@ -539,7 +521,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                         const SizedBox(height: 4.0),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 14.0, color: Colors.green),
+                      //      const Icon(Icons.location_on, size: 14.0, color: Colors.green),
                             const SizedBox(width: 4.0),
                             Expanded(
                               child: Text(

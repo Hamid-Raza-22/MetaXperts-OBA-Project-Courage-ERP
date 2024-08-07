@@ -462,8 +462,8 @@ class ShopVisitPageState extends State<ShopVisitPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0),
-          elevation: 8,
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+          elevation: 1,
         ),
         child: const Text('Submit'),
       ),

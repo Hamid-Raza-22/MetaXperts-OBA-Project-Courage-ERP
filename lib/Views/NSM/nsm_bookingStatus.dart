@@ -51,7 +51,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
           SizedBox(height: 35),
           Container(
             color: Colors.white,
-            height: 60,
+            height: 55,
             child: Row(
               children: [
                 Expanded(
@@ -72,7 +72,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'SM',
                         style: TextStyle(
                           color: _selectedIndex == 0 ? Colors.green : Colors.black,
-                          fontSize: 16,
+                          fontSize: 13,
                         ),
                       ),
                     ),
@@ -96,7 +96,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'RSM',
                         style: TextStyle(
                           color: _selectedIndex == 1 ? Colors.green : Colors.black,
-                          fontSize: 16,
+                          fontSize: 13,
                         ),
                       ),
                     ),
@@ -120,7 +120,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'Booker',
                         style: TextStyle(
                           color: _selectedIndex == 2 ? Colors.green : Colors.black,
-                          fontSize: 16,
+                          fontSize: 13,
                         ),
                       ),
                     ),

@@ -3,20 +3,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../API/Globals.dart';
-
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
-import '../../View_Models/OwnerViewModel.dart';
 import '../../main.dart';
 import '../SM/shop_details_page..dart';
-
 
 class NSMShopDetailPage extends StatefulWidget {
   @override
@@ -53,12 +46,9 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
         _addBookersToList(_filteredShops);
       }
     } else {
-      // Load cached data
       await _loadBookersData();
       _filteredShops = _allShops;
       _addBookersToList(_filteredShops);
-
-      // Show last sync time
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? lastSyncTime = prefs.getString('last_NSMshop_sync_time');
       if (lastSyncTime != null) {
@@ -329,7 +319,7 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Card(
-        elevation: 4.0,
+        elevation: 1.0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
@@ -341,10 +331,10 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
               color: Colors.green,
             ),
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600]),
+            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4), fontSize: 13),
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.green, width: 1.5),
+              borderSide: BorderSide(color: Colors.green, width: 0.1),
               borderRadius: BorderRadius.circular(10.0),
             ),
             enabledBorder: OutlineInputBorder(
@@ -377,53 +367,52 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(8.0),
+          margin: const EdgeInsets.all(1.0),
           elevation: 5,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
+            borderRadius: BorderRadius.circular(2.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(5.0),
             child: Row(
 
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(15.0),
+                  borderRadius: BorderRadius.circular(2.0),
                   child: SizedBox(
-                    width: 50,
-                    height: 50,
+                    width: 45,
+                    height: 45,
                     child: Image.asset(
                       'assets/icons/shop-svg-3.png', // Path to your vector image
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         shop.name,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_city, size: 11.0, color: Colors.green),
+                          const Icon(Icons.location_city, size: 10.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 11)),
+                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 10)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 11.0, color: Colors.green),
+                          const Icon(Icons.location_on, size: 10.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 11)),
+                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 10)),
                           ),
                         ],
                       ),
@@ -447,25 +436,13 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
         ),
         body: RefreshIndicator(
           onRefresh: _handleRefresh,
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                Card(
-                  elevation: 2.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        _buildTextField('Search by City', _cityController, false, false),
-                        _buildTextField('Search by Shop Name', _nameController, false, false),
-                      ],
-                    ),
-                  ),
-                ),
+          child:  Column(
+            children: [
+              Column(
+                children: [
+                  _buildTextField('Search by Booker Name', _nameController, false, false),
+                ],
+              ),
                 FutureBuilder<String?>(
                   future: _getLastSyncTime(),
                   builder: (context, snapshot) {
@@ -499,7 +476,7 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
                         ),
                       );
                     } else {
-                      return Container(); // No data to display
+                      return Container();
                     }
                   },
                 ),
@@ -516,7 +493,6 @@ class _NSMShopDetailPageState extends State<NSMShopDetailPage> {
               ],
             ),
           ),
-        )
     );
   }
 

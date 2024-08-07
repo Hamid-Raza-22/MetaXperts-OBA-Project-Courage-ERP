@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,9 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import '../../API/Globals.dart';
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/BookerStatusModel.dart';
 import '../../main.dart';
 import '../RSMS_Views/booker_details_page.dart';
@@ -174,7 +171,7 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
-          elevation: 8,
+          elevation: 1,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
             decoration: BoxDecoration(
@@ -210,7 +207,7 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      elevation: 5,
+                      elevation: 1,
                     ),
                     onPressed: onActionPressed,
                     child: Text(
@@ -319,27 +316,13 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
 
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
+        child:  Column(
           children: [
-            Card(
-              elevation: 1.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: Column(
-                  children: [
-                    _buildTextField('Search by Attendance Status', _attendanceController, false, false),
-                    _buildTextField('Search by Booker Name', _nameController, false, false),
-                  ],
-                ),
-              ),
+            Column(
+              children: [
+                _buildTextField('Search by Booker Name', _nameController, false, false),
+              ],
             ),
-            // Display last sync time
-
             FutureBuilder<String?>(
               future: _getLastSyncTime(),
               builder: (context, snapshot) {
@@ -391,14 +374,14 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
           ],
         ),
       ),
-      ));
+      );
   }
 
   Widget _buildTextField(String hint, TextEditingController controller, bool isDate, bool isReadOnly) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Card(
-        elevation: 3.0,
+        elevation: 1.0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
@@ -410,17 +393,17 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
               color: Colors.green,
             ),
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
+            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4), fontSize: 13),
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.green, width: 1.0),
               borderRadius: BorderRadius.circular(8.0),
             ),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
+              borderSide: BorderSide(color: Colors.green, width: 0.1),
               borderRadius: BorderRadius.circular(8.0),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 2.0),
           ),
           keyboardType: isDate ? TextInputType.datetime : TextInputType.text,
           readOnly: isReadOnly,
@@ -463,38 +446,38 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(6.0),
-          elevation: 3,
+          margin: const EdgeInsets.all(1.0),
+          elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(2.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(5.0),
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(2.0),
                   child: SizedBox(
-                    width: 50,
-                    height: 50,
+                    width: 45,
+                    height: 45,
                     child: Image.asset(
                       'assets/icons/avatar3.png', // Path to your image
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8.0),
+                const SizedBox(width: 4.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 6.0),
+                      const SizedBox(height: 1.0),
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+                        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                         decoration: const BoxDecoration(
                           color: Colors.transparent, // Transparent background for the ID
                         ),
@@ -502,11 +485,11 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
                           children: [
                             Text(
                               booker.bookerId,
-                              style: const TextStyle(fontSize: 12, color: Colors.black), // ID color
+                              style: const TextStyle(fontSize: 10, color: Colors.black), // ID color
                             ),
                             const SizedBox(width: 88.0),
                             Container(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6.0),
+                              padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(6.0),
@@ -515,13 +498,13 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
                                 children: [
                                   Icon(
                                     booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 12.0,
+                                    size: 10.0,
                                     color: statusColor,
                                   ),
                                   const SizedBox(width: 4.0),
                                   Text(
                                     statusText,
-                                    style: TextStyle(fontSize: 12, color: statusColor), // Status color
+                                    style: TextStyle(fontSize: 10, color: statusColor), // Status color
                                   ),
                                 ],
                               ),
@@ -532,26 +515,26 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
                       const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.work, size: 12.0, color: Colors.green),
+                          const Icon(Icons.work, size: 10.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
                             child: Text(
-                              'Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 11),
+                              ' ${booker.designation}',
+                              style: const TextStyle(fontSize: 10),
                             ),
                           ),
                         ],
                       ),
                       if (booker.designation == 'SO') ...[
-                        const SizedBox(height: 4.0),
+                        const SizedBox(height: 1.0),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 11.0, color: Colors.green),
+                            const Icon(Icons.location_on, size: 10.0, color: Colors.green),
                             const SizedBox(width: 4.0),
                             Expanded(
                               child: Text(
-                                'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 12),
+                                ' ${booker.city}',
+                                style: const TextStyle(fontSize: 10),
                               ),
                             ),
                           ],

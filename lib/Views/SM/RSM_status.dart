@@ -10,7 +10,6 @@ import 'dart:convert';
 import '../../API/Globals.dart';
 import '../../Models/Bookers_RSM_SM_NSM_Models/RSMStatusModel.dart';
 import '../../main.dart';
-import '../RSMS_Views/booker_details_page.dart';
 
 class SM_RSMStatus extends StatefulWidget {
   @override
@@ -175,7 +174,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
-          elevation: 8,
+          elevation: 1,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
             decoration: BoxDecoration(
@@ -318,29 +317,13 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
     return Scaffold(
         body: RefreshIndicator(
           onRefresh: _handleRefresh,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Card(
-                  elevation: 1.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Column(
-                      children: [
-                        _buildTextField('Search by Attendance Status',
-                            _attendanceController, false, false),
-                        _buildTextField(
-                            'Search by Booker Name', _nameController, false,
-                            false),
-                      ],
-                    ),
-                  ),
-                ),
-
+          child: Column(
+            children: [
+              Column(
+                children: [
+                  _buildTextField('Search by Booker Name', _nameController, false, false),
+                ],
+              ),
                 FutureBuilder<String?>(
                   future: _getLastSyncTime(),
                   builder: (context, snapshot) {
@@ -364,7 +347,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                                   'Last Sync: ',
                                   style: TextStyle(fontSize: 10.0),
                                 ),
-                                SizedBox(height: 4.0), // Add gap between Last Sync and the date
+                                const SizedBox(height: 4.0), // Add gap between Last Sync and the date
                                 Text(
                                   formattedTime,
                                   style: const TextStyle( fontSize: 10.0),
@@ -393,7 +376,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
               ],
             ),
           ),
-        ));
+        );
   }
 
   Widget _buildTextField(String hint, TextEditingController controller,
@@ -401,7 +384,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1.0),
       child: Card(
-        elevation: 3.0,
+        elevation: 1.0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
@@ -413,10 +396,10 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
               color: Colors.green,
             ),
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
+            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4), fontSize: 13),
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.green, width: 1.0),
+              borderSide: const BorderSide(color: Colors.green, width: 0.1),
               borderRadius: BorderRadius.circular(2.0),
             ),
             enabledBorder: OutlineInputBorder(
@@ -465,29 +448,28 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
           );
         },
         child: Card(
-          margin: EdgeInsets.all(1.0),
+          margin: const EdgeInsets.all(1.0),
           elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(7.0),
+            borderRadius: BorderRadius.circular(2.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(5.0),
             child: Stack(
               children: [
                 Row(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(2.0),
                       child: SizedBox(
-                        width: 50,
-                        height: 50,
+                        width: 45,
+                        height: 45,
                         child: Image.asset(
                           'assets/icons/avatar3.png',
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8.0),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,7 +477,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                           Text(
                             booker.name,
                             style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.bold),
+                                fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 6.0),
                           Text(
@@ -510,7 +492,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                               const SizedBox(width: 4.0),
                               Expanded(
                                 child: Text(
-                                  'Designation: ${booker.designation}',
+                                  ' ${booker.designation}',
                                   style: const TextStyle(fontSize: 10),
                                 ),
                               ),
@@ -524,7 +506,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                                 const SizedBox(width: 4.0),
                                 Expanded(
                                   child: Text(
-                                    'City: ${booker.city}',
+                                    '${booker.city}',
                                     style: const TextStyle(fontSize: 10),
                                   ),
                                 ),
@@ -555,7 +537,7 @@ class _SM_RSMStatusState extends State<SM_RSMStatus> {
                         const SizedBox(width: 4.0),
                         Text(
                           statusText,
-                          style: TextStyle(fontSize: 12, color: statusColor),
+                          style: TextStyle(fontSize: 10, color: statusColor),
                         ),
                       ],
                     ),
