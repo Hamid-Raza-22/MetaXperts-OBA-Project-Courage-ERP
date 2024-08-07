@@ -322,10 +322,10 @@ class _NSMHomepageState extends State<NSMHomepage> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent users from dismissing the dialog
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return WillPopScope(
-          onWillPop: () async => false, // Prevent back button from closing the dialog
+          onWillPop: () async => false,
           child: const Center(
             child: CircularProgressIndicator(),
           ),
@@ -422,7 +422,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
     });
 
     await Future.delayed(const Duration(seconds: 10));
-    Navigator.pop(context); // Close the loading indicator dialog
+    Navigator.pop(context);
     completer.complete();
     return completer.future;
   }
@@ -469,7 +469,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return WillPopScope(
-          onWillPop: () async => false, // Prevent back button press
+          onWillPop: () async => false,
           child: const AlertDialog(
             content: Row(
               children: [
@@ -510,7 +510,6 @@ class _NSMHomepageState extends State<NSMHomepage> {
       newDatabaseOutputs outputs = newDatabaseOutputs();
       bool tasksCompleted = false;
 
-      // Run both functions in parallel with a timeout
       showLoadingIndicator(context);
       await Future.any([
         Future.wait([
@@ -550,8 +549,6 @@ class _NSMHomepageState extends State<NSMHomepage> {
 
   }
 
-
-//Mock function to check if data is being posted to the server
   Future<bool> isDataBeingPosted() async {
     return PostingStatus.isPosting.value;
   }
@@ -561,33 +558,33 @@ class _NSMHomepageState extends State<NSMHomepage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () async {
-      // Return false to prevent going back
-      return false;
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'NSM DASHBOARD',
-            style: TextStyle(
-              fontFamily: 'avenir next',
-              fontSize: 17 // Reduced font size for AppBar title
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Center(
+            child: Text(
+              'NSM DASHBOARD',
+              style: TextStyle(
+                  fontFamily: 'avenir next',
+                  fontSize: 17
+              ),
             ),
           ),
+          backgroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.green),
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.green),
+              onPressed: () {
+                _handleRefresh();
+
+              },
+            ),
+          ],
         ),
-        backgroundColor: Colors.white,
-         iconTheme: const IconThemeData(color: Colors.green), // Set back arrow color to green
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.green),
-            onPressed: () {
-              _handleRefresh();
-              // Add reload functionality here
-            },
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
