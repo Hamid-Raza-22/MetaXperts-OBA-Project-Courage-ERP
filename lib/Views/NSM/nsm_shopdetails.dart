@@ -10,7 +10,6 @@ import '../../API/Globals.dart';
 import '../../Models/Bookers_RSM_SM_NSM_Models/ShopStatusModel.dart';
 import '../../main.dart';
 import '../SM/shop_details_page..dart';
-
 class NSMShopDetailPage extends StatefulWidget {
   @override
   _NSMShopDetailPageState createState() => _NSMShopDetailPageState();
