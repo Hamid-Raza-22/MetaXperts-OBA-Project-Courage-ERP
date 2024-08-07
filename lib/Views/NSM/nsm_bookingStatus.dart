@@ -72,7 +72,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'SM',
                         style: TextStyle(
                           color: _selectedIndex == 0 ? Colors.green : Colors.black,
-                          fontSize: 13,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -96,7 +96,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'RSM',
                         style: TextStyle(
                           color: _selectedIndex == 1 ? Colors.green : Colors.black,
-                          fontSize: 13,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -120,7 +120,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         'Booker',
                         style: TextStyle(
                           color: _selectedIndex == 2 ? Colors.green : Colors.black,
-                          fontSize: 13,
+                          fontSize: 14,
                         ),
                       ),
                     ),

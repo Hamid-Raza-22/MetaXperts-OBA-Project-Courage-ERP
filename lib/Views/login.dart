@@ -30,6 +30,8 @@ class LoginFormState extends State<LoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _obscureText = true;
+
   bool _isLoading = false;
   int _loadingProgress = 0;
   final  ownerViewModel = Get.put(OwnerViewModel());
@@ -854,54 +856,93 @@ class LoginFormState extends State<LoginForm> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      Card(
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                          side: const BorderSide(color: Colors.white, width: 1),
-                        ),
-                        child: SizedBox(
-                          width: 300,
-                          child: TextFormField(
-                            controller: _passwordController,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              floatingLabelBehavior: FloatingLabelBehavior.never,
-                              border: InputBorder.none,
-                              filled: true,
-                              fillColor: Colors.white,
-                              prefixIcon: Container(
-                                margin: const EdgeInsets.all(1.0),
-                                padding: const EdgeInsets.all(10.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                child: const Icon(
-                                  Icons.lock,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.all(12.0),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(color: Colors.white, width: 1),
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(color: Colors.white, width: 1),
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                            ),
-                            obscureText: true,
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Please enter your password';
-                              }
-                              return null;
-                            },
+
+
+
+
+
+                Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    side: const BorderSide(color: Colors.white, width: 1),
+                  ),
+                  child: SizedBox(
+                    width: 300,
+                    child: TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                        border: InputBorder.none,
+                        filled: true,
+                        fillColor: Colors.white,
+                        prefixIcon: Container(
+                          margin: const EdgeInsets.all(1.0),
+                          padding: const EdgeInsets.all(10.0),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: const Icon(
+                            Icons.lock,
+                            color: Colors.black,
                           ),
                         ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureText ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.green,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureText = !_obscureText;
+                            });
+                          },
+                        ),
+                        contentPadding: const EdgeInsets.all(12.0),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white, width: 1),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white, width: 1),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
                       ),
+                      obscureText: _obscureText,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                       const SizedBox(height: 20.0),
                       SizedBox(
                         height: 40,
