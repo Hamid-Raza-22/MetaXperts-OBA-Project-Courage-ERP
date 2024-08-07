@@ -11,18 +11,43 @@ class NsmLocationNavigation extends StatefulWidget {
 }
 
 class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
+  final PageController _pageController = PageController();
   int _selectedIndex = 0;
 
-  void _onButtonTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      int newIndex = _pageController.page!.round();
+      if (_selectedIndex != newIndex) {
+        setState(() {
+          _selectedIndex = newIndex;
+        });
+      }
     });
   }
 
+  void _onButtonPressed(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   final List<Widget> _widgetOptions = <Widget>[
-    const BookerLocationnsm(),
     const SMLocationnsm(),
     const RSMLocationnsm(),
+    const BookerLocationnsm(),
   ];
 
   @override
@@ -30,78 +55,79 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
     return Scaffold(
       body: Column(
         children: [
+          SizedBox(height: 37),
           Container(
             color: Colors.white,
+            height: 55,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: TextButton(
-                    onPressed: () => _onButtonTapped(0),
+                  child: GestureDetector(
+                    onTap: () => _onButtonPressed(0),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
                       alignment: Alignment.center,
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
                             color: _selectedIndex == 0 ? Colors.green : Colors.transparent,
-                            width: 3,
+                            width: 3.0,
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'BOOKER',
+                      child: Text(
+                        'SM',
                         style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
+                          color: _selectedIndex == 0 ? Colors.green : Colors.black,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ),
                 ),
                 Expanded(
-                  child: TextButton(
-                    onPressed: () => _onButtonTapped(1),
+                  child: GestureDetector(
+                    onTap: () => _onButtonPressed(1),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 17),
                       alignment: Alignment.center,
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
                             color: _selectedIndex == 1 ? Colors.green : Colors.transparent,
-                            width: 2,
+                            width: 3.0,
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'SM',
+                      child: Text(
+                        'RSM',
                         style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
+                          color: _selectedIndex == 1 ? Colors.green : Colors.black,
+                          fontSize: 14,
                         ),
                       ),
                     ),
                   ),
                 ),
                 Expanded(
-                  child: TextButton(
-                    onPressed: () => _onButtonTapped(2),
+                  child: GestureDetector(
+                    onTap: () => _onButtonPressed(2),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
                       alignment: Alignment.center,
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
                             color: _selectedIndex == 2 ? Colors.green : Colors.transparent,
-                            width: 2,
+                            width: 3.0,
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'RSM',
+                      child: Text(
+                        'BOOKERS',
                         style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
+                          color: _selectedIndex == 2 ? Colors.green : Colors.black,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -111,20 +137,13 @@ class _NsmLocationNavigationState extends State<NsmLocationNavigation> {
             ),
           ),
           Expanded(
-            child: _widgetOptions.elementAt(_selectedIndex),
+            child: PageView(
+              controller: _pageController,
+              children: _widgetOptions,
+            ),
           ),
         ],
       ),
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
