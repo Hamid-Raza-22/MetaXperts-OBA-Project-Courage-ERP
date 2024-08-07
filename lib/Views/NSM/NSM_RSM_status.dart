@@ -327,7 +327,6 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                     } else if (snapshot.hasData && snapshot.data != null) {
                       DateTime lastSyncDateTime = DateTime.parse(snapshot.data!);
                       String formattedTime = DateFormat('dd MMM yyyy, hh:mm a').format(lastSyncDateTime);
-
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2.0),
                         child: Row(
@@ -468,7 +467,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
@@ -479,7 +478,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                           children: [
                             Text(
                               booker.bookerId,
-                              style: const TextStyle(fontSize: 10, color: Colors.black),
+                              style: const TextStyle(fontSize: 11, color: Colors.black),
                             ),
                             const SizedBox(width: 130.0),
                             Container(
@@ -492,13 +491,13 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                                 children: [
                                   Icon(
                                     booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 10.0,
+                                    size: 11.0,
                                     color: statusColor,
                                   ),
                                   const SizedBox(width: 4.0),
                                   Text(
                                     statusText,
-                                    style: TextStyle(fontSize: 10, color: statusColor), // Status color
+                                    style: TextStyle(fontSize: 11, color: statusColor), // Status color
                                   ),
                                 ],
                               ),
@@ -512,7 +511,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                           Expanded(
                             child: Text(
                               ' ${booker.designation}',
-                              style: const TextStyle(fontSize: 10),
+                              style: const TextStyle(fontSize: 11),
                             ),
                           ),
                         ],
@@ -526,7 +525,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                             Expanded(
                               child: Text(
                                 'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 10),
+                                style: const TextStyle(fontSize: 11),
                               ),
                             ),
                           ],
