@@ -117,7 +117,7 @@ class _NSMBookingStatusState extends State<NSMBookingStatus> {
                         ),
                       ),
                       child: Text(
-                        'Booker',
+                        'BOOKER',
                         style: TextStyle(
                           color: _selectedIndex == 2 ? Colors.green : Colors.black,
                           fontSize: 14,

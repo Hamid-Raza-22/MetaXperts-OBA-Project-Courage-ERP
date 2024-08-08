@@ -556,8 +556,6 @@ class _NSMHomepageState extends State<NSMHomepage> {
     return PostingStatus.isPosting.value;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -565,7 +563,9 @@ class _NSMHomepageState extends State<NSMHomepage> {
         return false;
       },
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
+          backgroundColor: Colors.white,
           title: const Center(
             child: Text(
               'NSM DASHBOARD',
@@ -575,7 +575,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
               ),
             ),
           ),
-          backgroundColor: Colors.white,
+
           iconTheme: const IconThemeData(color: Colors.green),
           automaticallyImplyLeading: false,
           actions: [
@@ -635,7 +635,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 40),
+                const SizedBox(width: 55),
                 ElevatedButton.icon(
                   onPressed: _toggleClockInOut,
                   icon: Icon(isClockedIn ? Icons.timer_off : Icons.timer, color: Colors.white),
@@ -644,7 +644,7 @@ class _NSMHomepageState extends State<NSMHomepage> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontFamily: 'avenir next',
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -726,7 +726,6 @@ class _NSMHomepageState extends State<NSMHomepage> {
   }
 
   void _navigateToPage(BuildContext context, String title) {
-    // Navigation logic based on the title
     switch (title) {
       case 'Shop Visit':
         if (isClockedIn) {

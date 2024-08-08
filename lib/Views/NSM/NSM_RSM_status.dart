@@ -461,6 +461,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 7.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,24 +481,18 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                               booker.bookerId,
                               style: const TextStyle(fontSize: 11, color: Colors.black),
                             ),
-                            const SizedBox(width: 130.0),
+                            const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(6.0),
+                                borderRadius: BorderRadius.circular(3.0),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 11.0,
-                                    color: statusColor,
-                                  ),
-                                  const SizedBox(width: 4.0),
                                   Text(
                                     statusText,
-                                    style: TextStyle(fontSize: 11, color: statusColor), // Status color
+                                    style: TextStyle(fontSize: 9, color: statusColor), // Status color
                                   ),
                                 ],
                               ),
@@ -507,7 +502,8 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                       ),
                       Row(
                         children: [
-                    //      const Icon(Icons.work, size: 10.0, color: Colors.green),
+                          const Icon(Icons.work, size: 11.0, color: Colors.green),
+                          const SizedBox(width: 1.0),
                           Expanded(
                             child: Text(
                               ' ${booker.designation}',
@@ -517,7 +513,7 @@ class NSM_RSM_StatusState extends State<NSM_RSM_Status> {
                         ],
                       ),
                       if (booker.designation == 'SO') ...[
-                        const SizedBox(height: 4.0),
+                        const SizedBox(height: 1.0),
                         Row(
                           children: [
                       //      const Icon(Icons.location_on, size: 14.0, color: Colors.green),

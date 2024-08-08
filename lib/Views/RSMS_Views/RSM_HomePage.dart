@@ -657,7 +657,9 @@ class _RSMHomepageState extends State<RSMHomepage> {
       return false;
     },
     child: Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Center(
           child: Text(
             'RSM DASHBOARD',
@@ -667,7 +669,6 @@ class _RSMHomepageState extends State<RSMHomepage> {
             ),
           ),
         ),
-        backgroundColor: Colors.white, // White background
         elevation: 1, // Add a subtle shadow
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.green), // Green back arrow

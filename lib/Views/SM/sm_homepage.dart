@@ -562,7 +562,9 @@ class _SMHomepageState extends State<SMHomepage> {
       return false;
     },
     child: Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Center(
           child: Text(
             'SM DASHBOARD',
@@ -572,9 +574,7 @@ class _SMHomepageState extends State<SMHomepage> {
             ),
           ),
         ),
-        backgroundColor: Colors.white, // White background
         elevation: 1, // Add a subtle shadow
-
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.green),

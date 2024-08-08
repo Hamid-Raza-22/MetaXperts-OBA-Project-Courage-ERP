@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:order_booking_shop/Views/SM/RSM_status.dart';
-
-
 import 'SMBookerStatus.dart';
-
-
 
 class BookingStatus extends StatefulWidget {
   @override
@@ -14,6 +10,19 @@ class BookingStatus extends StatefulWidget {
 class _BookingStatusState extends State<BookingStatus> {
   final PageController _pageController = PageController();
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      int pageIndex = _pageController.page!.round();
+      if (_selectedIndex != pageIndex) {
+        setState(() {
+          _selectedIndex = pageIndex;
+        });
+      }
+    });
+  }
 
   void _onButtonPressed(int index) {
     setState(() {
@@ -27,13 +36,20 @@ class _BookingStatusState extends State<BookingStatus> {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
+          SizedBox(height: 35),
           Container(
             color: Colors.white,
-            height: 90,
+            height: 55,
             child: Row(
               children: [
                 Expanded(
@@ -54,7 +70,7 @@ class _BookingStatusState extends State<BookingStatus> {
                         'RSM',
                         style: TextStyle(
                           color: _selectedIndex == 0 ? Colors.green : Colors.black,
-                          fontSize: 16, // Adjust text size if needed
+                          fontSize: 14, // Adjust text size if needed
                         ),
                       ),
                     ),
@@ -78,7 +94,7 @@ class _BookingStatusState extends State<BookingStatus> {
                         'BOOKER',
                         style: TextStyle(
                           color: _selectedIndex == 1 ? Colors.green : Colors.black,
-                          fontSize: 16, // Adjust text size if needed
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -91,8 +107,8 @@ class _BookingStatusState extends State<BookingStatus> {
             child: PageView(
               controller: _pageController,
               children: [
-                SM_RSMStatus(), // Replace with your actual page widget
-                SMBookerStatus(), // Replace with your actual page widget
+                SM_RSMStatus(),
+                SMBookerStatus(),
               ],
             ),
           ),

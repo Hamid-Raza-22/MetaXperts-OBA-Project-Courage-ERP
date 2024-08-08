@@ -466,18 +466,33 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 4.0),
+                const SizedBox(width: 7.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        booker.name,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              booker.name,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          if (booker.designation == 'SO') ...[
+                            const SizedBox(width: 10.0),
+                            const Icon(Icons.location_city, size: 11.0, color: Colors.green),
+                            const SizedBox(width: 2.0),
+                            Text(
+                              booker.city,
+                              style: const TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 1.0),
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                        padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 4.0),
                         decoration: const BoxDecoration(
                           color: Colors.transparent, // Transparent background for the ID
                         ),
@@ -485,61 +500,36 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
                           children: [
                             Text(
                               booker.bookerId,
-                              style: const TextStyle(fontSize: 10, color: Colors.black), // ID color
+                              style: const TextStyle(fontSize: 11, color: Colors.black), // ID color
                             ),
-                            const SizedBox(width: 88.0),
+                            const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(6.0),
+                                borderRadius: BorderRadius.circular(3.0),
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 10.0,
-                                    color: statusColor,
-                                  ),
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    statusText,
-                                    style: TextStyle(fontSize: 10, color: statusColor), // Status color
-                                  ),
-                                ],
+                              child: Text(
+                                statusText,
+                                style: TextStyle(fontSize: 9, color: statusColor), // Status color
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 1.0),
                       Row(
                         children: [
-                          const Icon(Icons.work, size: 10.0, color: Colors.green),
-                          const SizedBox(width: 4.0),
+                          const Icon(Icons.work, size: 11.0, color: Colors.green),
+                          const SizedBox(width: 1.0),
                           Expanded(
                             child: Text(
                               ' ${booker.designation}',
-                              style: const TextStyle(fontSize: 10),
+                              style: const TextStyle(fontSize: 11),
                             ),
                           ),
                         ],
                       ),
-                      if (booker.designation == 'SO') ...[
-                        const SizedBox(height: 1.0),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on, size: 10.0, color: Colors.green),
-                            const SizedBox(width: 4.0),
-                            Expanded(
-                              child: Text(
-                                ' ${booker.city}',
-                                style: const TextStyle(fontSize: 10),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -547,6 +537,8 @@ class _NSMBookerStatusState extends State<NSMBookerStatus> {
             ),
           ),
         ),
+
+
       ),
     );
   }

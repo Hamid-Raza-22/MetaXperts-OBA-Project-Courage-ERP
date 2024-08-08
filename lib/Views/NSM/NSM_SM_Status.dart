@@ -459,44 +459,38 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12.0),
+                const SizedBox(width: 8.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                         decoration: const BoxDecoration(
-                          color: Colors.transparent, // Transparent background for the ID
+                          color: Colors.transparent,
                         ),
                         child: Row(
                           children: [
                             Text(
                               booker.bookerId,
-                              style: const TextStyle(fontSize: 10, color: Colors.black), // ID color
+                              style: const TextStyle(fontSize: 11, color: Colors.black),
                             ),
-                            const SizedBox(width: 88.0),
+                            const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(6.0),
+                                borderRadius: BorderRadius.circular(3.0),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                                    size: 10.0,
-                                    color: statusColor,
-                                  ),
-                                  const SizedBox(width: 4.0),
                                   Text(
                                     statusText,
-                                    style: TextStyle(fontSize: 10, color: statusColor), // Status color
+                                    style: TextStyle(fontSize: 9, color: statusColor), // Status color
                                   ),
                                 ],
                               ),
@@ -504,29 +498,28 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 4.0),
                       Row(
                         children: [
-                          const Icon(Icons.work, size: 10.0, color: Colors.green),
-                          const SizedBox(width: 4.0),
+                          const Icon(Icons.work, size: 11.0, color: Colors.green),
+                          const SizedBox(width: 1.0),
                           Expanded(
                             child: Text(
-                              'Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 10),
+                              ' ${booker.designation}',
+                              style: const TextStyle(fontSize: 11),
                             ),
                           ),
                         ],
                       ),
                       if (booker.designation == 'SO') ...[
-                        const SizedBox(height: 4.0),
+                        const SizedBox(height: 1.0),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 10.0, color: Colors.green),
+                            const Icon(Icons.location_city, size: 11.0, color: Colors.green),
                             const SizedBox(width: 4.0),
                             Expanded(
                               child: Text(
                                 'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 10),
+                                style: const TextStyle(fontSize: 11),
                               ),
                             ),
                           ],
