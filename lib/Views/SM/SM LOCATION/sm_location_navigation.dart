@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'SM LOCATION/Booker_Location.dart';
-import 'SM LOCATION/RSM_Location.dart';
+import 'Booker_Location.dart';
+import 'RSM_Location.dart';
 
 class smnavigation extends StatefulWidget {
   @override
@@ -8,26 +8,48 @@ class smnavigation extends StatefulWidget {
 }
 
 class _smnavigationState extends State<smnavigation> {
+  final PageController _pageController = PageController();
   int _selectedIndex = 0;
 
   void _onButtonTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
-  List<Widget> _widgetOptions = <Widget>[
-    BookerLocation(),
-    RSMLocation(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      int pageIndex = _pageController.page!.round();
+      if (_selectedIndex != pageIndex) {
+        setState(() {
+          _selectedIndex = pageIndex;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
+          SizedBox(height: 30),
           Container(
             color: Colors.white,
-            height: 65,
+            height: 55,
             child: Row(
               children: [
                 Expanded(
@@ -48,7 +70,7 @@ class _smnavigationState extends State<smnavigation> {
                         'BOOKER',
                         style: TextStyle(
                           color: _selectedIndex == 0 ? Colors.green : Colors.black,
-                          fontSize: 16, // Adjust text size if needed
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -72,7 +94,7 @@ class _smnavigationState extends State<smnavigation> {
                         'RSM',
                         style: TextStyle(
                           color: _selectedIndex == 1 ? Colors.green : Colors.black,
-                          fontSize: 16, // Adjust text size if needed
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -82,13 +104,16 @@ class _smnavigationState extends State<smnavigation> {
             ),
           ),
           Expanded(
-            child: _widgetOptions.elementAt(_selectedIndex),
+            child: PageView(
+              controller: _pageController,
+              children: [
+                BookerLocation(),
+                RSMLocation(),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 }
-
-
-

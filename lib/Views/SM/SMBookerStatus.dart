@@ -170,7 +170,7 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
-          elevation: 8,
+          elevation: 1,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
             decoration: BoxDecoration(
@@ -206,7 +206,7 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      elevation: 5,
+                      elevation: 1,
                     ),
                     onPressed: onActionPressed,
                     child: Text(
@@ -306,35 +306,18 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
     }
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Column(
-            children: [
-              Card(
-                elevation: 1,
-                //color: Colors.green,// Reduced elevation
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(2.0), // Reduced padding
-                  child: Column(
-                    children: [
-                      _buildTextField('Search by Attendance Status', _attendanceController, false, false),
-                      _buildTextField('Search by Booker Name', _nameController, false, false),
-                    ],
-                  ),
-                ),
-              ),
-              // Display last sync time
+        child:  Column(
+          children: [
+            Column(
+              children: [
+                _buildTextField('Search here', _nameController, false, false),
+              ],
+            ),
               FutureBuilder<String?>(
                 future: _getLastSyncTime(),
                 builder: (context, snapshot) {
@@ -384,8 +367,7 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
               ),
             ],
           ),
-        ),
-      ),
+      )
     );
   }
 
@@ -393,9 +375,9 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1.0), // Reduced vertical padding
       child: Card(
-        elevation: 8.0, // Reduced elevation
+        elevation: 1.0, // Reduced elevation
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(2.0),
+          borderRadius: BorderRadius.circular(8.0),
         ),
         child: TextField(
           controller: controller,
@@ -405,7 +387,7 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
               color: Colors.green,
             ),
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
+            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4), fontSize: 13),
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.green, width: 1.0),
@@ -458,49 +440,49 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.all(4.0),
-          elevation: 5,
+          margin: const EdgeInsets.all(1.0),
+          elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
+            borderRadius: BorderRadius.circular(2.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(5.0),
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(2.0),
                   child: SizedBox(
-                    width: 50,
-                    height: 50,
+                    width: 45,
+                    height: 45,
                     child: Image.asset(
                       'assets/icons/avatar3.png',
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8.0),
+                const SizedBox(width: 7.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         booker.name,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4.0),
                       Text(
                         'ID: ${booker.bookerId}',
-                        style: const TextStyle(fontSize: 10, color: Colors.black),
+                        style: const TextStyle(fontSize: 11, color: Colors.black),
                       ),
                       const SizedBox(height: 1.0),
                       Row(
                         children: [
-                          const Icon(Icons.work, size: 12.0, color: Colors.green),
+                          const Icon(Icons.work, size: 11.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
                             child: Text(
-                              'Designation: ${booker.designation}',
-                              style: const TextStyle(fontSize: 10),
+                              ' ${booker.designation}',
+                              style: const TextStyle(fontSize: 11),
                             ),
                           ),
                         ],
@@ -509,12 +491,12 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                         const SizedBox(height: 4.0),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 10.0, color: Colors.green),
+                            const Icon(Icons.location_city, size: 11.0, color: Colors.green),
                             const SizedBox(width: 4.0),
                             Expanded(
                               child: Text(
                                 'City: ${booker.city}',
-                                style: const TextStyle(fontSize: 10),
+                                style: const TextStyle(fontSize: 11),
                               ),
                             ),
                           ],
@@ -536,7 +518,7 @@ class _SMBookerStatusState extends State<SMBookerStatus> {
                         children: [
                           Icon(
                             booker.attendanceStatus == 'clock_in' ? Icons.check : Icons.close,
-                            size: 12.0,
+                            size: 11.0,
                             color: statusColor,
                           ),
                           const SizedBox(width: 2.0),

@@ -178,7 +178,7 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
-          elevation: 8,
+          elevation: 1,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
             decoration: BoxDecoration(
@@ -214,7 +214,7 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      elevation: 5,
+                      elevation: 1,
                     ),
                     onPressed: onActionPressed,
                     child: Text(
@@ -233,8 +233,6 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
       },
     );
   }
-
-
   Future<void> _handleRefresh() async {
     try {
       bool isConnected = await isInternetAvailable();
@@ -313,17 +311,13 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
       }
     }
   }
-
-
-
-
   Widget _buildTextField(String hint, TextEditingController controller, bool isDate, bool isReadOnly) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Card(
-        elevation: 4.0,
+        elevation: 1.0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
+          borderRadius: BorderRadius.circular(8.0),
         ),
         child: TextField(
           controller: controller,
@@ -333,7 +327,7 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
               color: Colors.green,
             ),
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[600]),
+            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4), fontSize: 13),
             border: InputBorder.none,
             focusedBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.green, width: 1.5),
@@ -369,20 +363,20 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
           );
         },
         child: Card(
-          margin: const EdgeInsets.symmetric(vertical: 2.0),
+          margin: const EdgeInsets.symmetric(vertical: 1.0),
           elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(7.0),
+            borderRadius: BorderRadius.circular(2.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(4.0),
+            padding: const EdgeInsets.all(5.0),
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(2.0),
                   child: SizedBox(
-                    width: 50,
-                    height: 50,
+                    width: 45,
+                    height: 45,
                     child: Image.asset(
                       'assets/icons/shop-svg-3.png',
                       fit: BoxFit.cover,
@@ -419,7 +413,7 @@ class _SMShopDetailPageState extends State<SMShopDetailPage> {
                           const Icon(Icons.location_on, size: 12.0, color: Colors.green),
                           const SizedBox(width: 4.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 12)),
+                            child: Text('${shop.address}', style: const TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),

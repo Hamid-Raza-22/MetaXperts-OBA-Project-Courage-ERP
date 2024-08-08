@@ -305,7 +305,6 @@ class _NSM_SM_StatusState extends State<NSM_SM_Status> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
         body: RefreshIndicator(
           onRefresh: _handleRefresh,
           child:  Column(

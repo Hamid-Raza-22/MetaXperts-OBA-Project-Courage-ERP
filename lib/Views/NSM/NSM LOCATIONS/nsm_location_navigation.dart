@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'NSM LOCATIONS/Booker_location_NSM.dart';
-import 'NSM LOCATIONS/RSM_Location_SM.dart';
-import 'NSM LOCATIONS/SM_Location_NSM.dart';
+import 'Booker_location_NSM.dart';
+import 'RSM_Location_SM.dart';
+import 'SM_Location_NSM.dart';
 
 class NsmLocationNavigation extends StatefulWidget {
   const NsmLocationNavigation({super.key});

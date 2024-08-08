@@ -8,7 +8,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:nanoid/nanoid.dart';
-import 'package:order_booking_shop/Views/SM/sm_location_navigation.dart';
+import 'package:order_booking_shop/Views/SM/SM%20LOCATION/sm_location_navigation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
