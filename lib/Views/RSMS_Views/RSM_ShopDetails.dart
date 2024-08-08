@@ -406,7 +406,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
                           const Icon(Icons.location_city, size: 10.0, color: Colors.green),
                           const SizedBox(width: 1.0),
                           Expanded(
-                            child: Text('City: ${shop.city}', style: const TextStyle(fontSize: 12)),
+                            child: Text(' ${shop.city}', style: const TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
@@ -416,7 +416,7 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
                           const Icon(Icons.location_on, size: 12.0, color: Colors.green),
                           const SizedBox(width: 2.0),
                           Expanded(
-                            child: Text('Address: ${shop.address}', style: const TextStyle(fontSize: 12)),
+                            child: Text('${shop.address}', style: const TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
@@ -440,25 +440,13 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
       ),
     body: RefreshIndicator(
     onRefresh: _handleRefresh,
-    child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            Card(
-              elevation: 2.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(7.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Column(
-                  children: [
-                    _buildTextField('Search by City', _cityController, false, false),
-                    _buildTextField('Search by Shop Name', _nameController, false, false),
-                  ],
-                ),
-              ),
-            ),
+      child:  Column(
+        children: [
+          Column(
+            children: [
+              _buildTextField('Search here', _nameController, false, false),
+            ],
+          ),
             FutureBuilder<String?>(
               future: _getLastSyncTime(),
               builder: (context, snapshot) {
@@ -509,7 +497,6 @@ class _ShopDetailPageState extends State<ShopDetailPage> {
           ],
         ),
       ),
-    )
     );
   }
 
