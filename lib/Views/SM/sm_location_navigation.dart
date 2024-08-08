@@ -20,7 +20,6 @@ class _smnavigationState extends State<smnavigation> {
     BookerLocation(),
     RSMLocation(),
   ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
