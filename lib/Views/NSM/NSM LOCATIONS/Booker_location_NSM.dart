@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:order_booking_shop/API/Globals.dart';
 
-Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designations) async {
+Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designation) async {
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location') // Adjust this collection path as needed
-      .where('designation', whereIn: designations) // Fetch markers for specified designations
+      .where('designation', whereIn:  [designation]) // Fetch RSM markers with designation RSM
+      .where('NSM_ID', whereIn: [userId])  // Additional condition for userId
       .get();
-
   for (var doc in snapshot.docs) {
     final data = doc.data() as Map<String, dynamic>;
     markers[data['name']] = LatLng(data['latitude'], data['longitude']); // Ensure that your document has 'name', 'latitude', 'longitude' fields

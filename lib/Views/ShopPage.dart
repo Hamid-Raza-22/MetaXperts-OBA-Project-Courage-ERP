@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:nanoid/async.dart' show customAlphabet;
 import 'package:order_booking_shop/API/Globals.dart' show shopAddress, userCitys, userDesignation, userId;
 import 'package:order_booking_shop/View_Models/ShopViewModel.dart' show ShopViewModel;
@@ -102,6 +103,8 @@ class _ShopPageState extends State<ShopPage> {
   final FocusNode alternativePhoneNoFocusNode = FocusNode();
   static double? globalLatitude;
   static double? globalLongitude;
+  bool isLocationFetched = false;
+  bool isLocationChecked = false; // Checkbox state
   bool isButtonPressed2 = false;
   bool showLoading = false;
   int? shopId;
@@ -189,11 +192,15 @@ bool isOrderConfirmedback = false;
   void initState() {
 
     super.initState();
-    saveCurrentLocation();
+   // saveCurrentLocation(context);
     _checkUserIdAndFetchShopNames();
   }
 
-  Future<void> saveCurrentLocation() async {
+  Future<void> saveCurrentLocation(BuildContext context) async {
+    setState(() {
+      isLoadingLocation = true; // Start loading
+    });
+
     PermissionStatus permission = await Permission.location.request();
 
     if (permission.isGranted) {
@@ -213,6 +220,9 @@ bool isOrderConfirmedback = false;
 
         String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
         shopAddress = address1;
+        isLocationFetched = true; // Set location fetched to true
+        isGpsEnabled = true; // GPS is enabled
+
 
         if (kDebugMode) {
           print('Address is: $address1');
@@ -223,12 +233,23 @@ bool isOrderConfirmedback = false;
         if (kDebugMode) {
           print('Error getting location:$e');
         }
+        isGpsEnabled = false; // GPS is not enabled
       }
-    } else {
+    }  else {
       if (kDebugMode) {
         print('Location permission is not granted');
       }
+      // Ensure GPS remains disabled
+      isGpsEnabled = false;
+      // Navigate to SMHomePage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
     }
+    setState(() {
+      isLoadingLocation = false; // Stop loading
+    }); // Update UI after location fetch
   }
 
   @override
@@ -286,6 +307,7 @@ bool isOrderConfirmedback = false;
       if (isCityValid) {
       if (
       // _imageFile == null ||
+          isLocationFetched = false ||
           shopNameController.text.isEmpty ||
           cityController.text.isEmpty ||
           shopAddressController.text.isEmpty ||
@@ -295,7 +317,7 @@ bool isOrderConfirmedback = false;
           alternativePhoneNoController.text.isEmpty) {
         // Show toast message for invalid input
         Fluttertoast.showToast(
-          msg: 'Please fill all fields properly.',
+          msg: 'Please fill all fields properly and Enable GPS.',
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.red,
@@ -428,7 +450,37 @@ bool isOrderConfirmedback = false;
     });
   }
 
-
+  bool isGpsEnabled = false;
+  bool isLoadingLocation = false;
+  Widget _buildGpsStatusWidget() {
+    return Row(
+      children: [
+        isLoadingLocation
+            ? LoadingAnimationWidget.staggeredDotsWave(
+          color: Colors.green,
+          size: 50.0,
+        ) // Show loading indicator while fetching location
+            : Checkbox(
+          value: isGpsEnabled,
+          onChanged: (bool? value) async {
+            if (value == true) {
+              // If checkbox is checked, call the function to save current location
+              await saveCurrentLocation(context);
+            } else {
+              // If checkbox is unchecked, simply update the state
+              setState(() {
+                isGpsEnabled = false;
+              });
+            }
+          },
+        ),
+        const Text(
+          'GPS Enabled',
+          style: TextStyle(fontSize: 18),
+        ),
+      ],
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -815,6 +867,35 @@ bool isOrderConfirmedback = false;
                             ),
 
                              const SizedBox(height: 20),
+                            // _buildGpsStatusWidget(),
+                        Row(
+                          children: [
+                            isLoadingLocation
+                                ? LoadingAnimationWidget.staggeredDotsWave(
+                              color: Colors.green,
+                              size: 50.0,
+                            ) // Show loading indicator while fetching location
+                                : Checkbox(
+                              value: isGpsEnabled,
+                              onChanged: (bool? value) async {
+                                if (value == true) {
+                                  // If checkbox is checked, call the function to save current location
+                                  await saveCurrentLocation(context);
+                                } else {
+                                  // If checkbox is unchecked, simply update the state
+                                  setState(() {
+                                    isGpsEnabled = false;
+                                  });
+                                }
+                              },
+                            ),
+                            const Text(
+                              'GPS Enabled',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ],
+                        ),
+
                             // ElevatedButton(
                             //   onPressed: () async {
                             //     try {

@@ -3,20 +3,25 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../API/Globals.dart';
+
 Future<Map<String, LatLng>> fetchRSMMarkers() async {
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location') // Adjust this collection path as needed
-      .where('designation', isEqualTo: 'RSM') // Fetch RSM markers
+      .where('designation', whereIn:  ['RSM']) // Fetch RSM markers with designation RSM
+      .where('NSM_ID', whereIn: [userId])  // Additional condition for userId
       .get();
 
   for (var doc in snapshot.docs) {
     final data = doc.data() as Map<String, dynamic>;
-    markers[data['name']] = LatLng(data['latitude'], data['longitude']); // Ensure that your document has 'name', 'lat', 'long' fields
+    markers[data['name']] = LatLng(data['latitude'], data['longitude']); // Ensure that your document has 'name', 'latitude', 'longitude' fields
   }
 
   return markers;
 }
+
+
 class RSMLocationnsm extends StatefulWidget {
   const RSMLocationnsm({super.key});
 

@@ -3,11 +3,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../API/Globals.dart';
+
 Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designations) async {
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location') // Adjust this collection path as needed
-      .where('designation', whereIn: designations) // Fetch markers for specified designations
+      .where('designation', whereIn: designations)
+      .where('SM_ID', whereIn: [userId]) // Fetch markers for specified designations
       .get();
 
   for (var doc in snapshot.docs) {

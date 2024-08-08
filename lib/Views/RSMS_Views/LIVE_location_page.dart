@@ -3,11 +3,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
+import '../../API/Globals.dart';
+
 Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designations) async {
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location')
       .where('designation', whereIn: designations)
+      .where('RSM_ID', whereIn: [userId])
       .get();
 
   for (var doc in snapshot.docs) {
@@ -25,7 +28,7 @@ class LiveLocationPage extends StatefulWidget {
 class _LiveLocationPageState extends State<LiveLocationPage> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
-  LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
+  final LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
   final List<String> designations = ['ASM', 'SO', 'SOS', 'SPO'];
 
   @override

@@ -106,7 +106,7 @@ class LocationService {
           if (isConnected) {
             await FirebaseFirestore.instance
                 .collection('location')
-                .doc(userIdForLocation.toString())
+                .doc(userNameForLocation.toString())
                 .set({
               'latitude': position.latitude,
               'longitude': position.longitude,
@@ -166,7 +166,11 @@ class LocationService {
 
   Future<void> init() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
-    userIdForLocation = pref.getString("userNames") ?? "USER";
+    userNameForLocation = pref.getString("userNames") ?? "USERName";
+    userIdForLocation = pref.getString("userId") ?? "USERId";
+    nsmIdForLocation = pref.getString("userNSM") ?? "nsmUSER";
+    rsmIdForLocation = pref.getString("userRSM") ?? "rsmUSER";
+    smIdForLocation = pref.getString("userSM") ?? "smUSER";
     userCityForLocatiion = pref.getString("userCitys") ?? "CITY";
     userDesignationForLocation = pref.getString("userDesignation") ?? "DESIGNATION";
   }

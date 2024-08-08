@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "298934362650",
-    "project_id": "courage-erp",
-    "storage_bucket": "courage-erp.appspot.com"
+    "project_number": "322395320128",
+    "project_id": "metaxpertserp",
+    "storage_bucket": "metaxpertserp.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:298934362650:android:c1bb7261cdf1a17424a7a3",
+        "mobilesdk_app_id": "1:322395320128:android:ed3539b89dbbc2da7114a5",
         "android_client_info": {
           "package_name": "com.aafdev1.my_loc"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDAUQBD6huI4CtOaPx8RnlDW2Ep8BEIuZw"
+          "current_key": "AIzaSyDG11b1WW3tjXDKfdHiXF2_QX4XezB2xiY"
         }
       ],
       "services": {

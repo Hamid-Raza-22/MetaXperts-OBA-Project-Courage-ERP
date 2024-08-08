@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../API/Globals.dart';
 import '../../API/newDatabaseOutPuts.dart';
-import '../RSMS_Views/RSM_ShopVisit.dart';
 import 'NSM_ShopVisit.dart';
 import 'NSM_bookerbookingdetails.dart';
 import 'nsm_bookingStatus.dart';
@@ -32,10 +31,10 @@ class NSMHomepage extends StatefulWidget {
   const NSMHomepage({super.key});
 
   @override
-  _NSMHomepageState createState() => _NSMHomepageState();
+  NSMHomepageState createState() => NSMHomepageState();
 }
 
-class _NSMHomepageState extends State<NSMHomepage> {
+class NSMHomepageState extends State<NSMHomepage> {
   int? attendanceId;
   int? attendanceId1;
   double? globalLatitude1;

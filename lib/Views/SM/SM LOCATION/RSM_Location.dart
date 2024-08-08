@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:order_booking_shop/API/Globals.dart';
 
 Future<Map<String, LatLng>> fetchRSMMarkers() async {
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location') // Adjust this collection path as needed
-      .where('designation', isEqualTo: 'RSM') // Fetch RSM markers
+      .where('designation', whereIn:  ['RSM']) // Fetch RSM markers
+      .where('SM_ID', whereIn:  [userId]) // Fetch RSM markers
       .get();
 
   for (var doc in snapshot.docs) {

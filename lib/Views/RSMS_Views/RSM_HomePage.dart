@@ -461,6 +461,9 @@ class _RSMHomepageState extends State<RSMHomepage> {
       userCitys = prefs.getString('userCitys') ?? '';
       userDesignation = prefs.getString('userDesignation') ?? '';
       userBrand = prefs.getString('userBrand') ?? '';
+      userSM = prefs.getString('userSM') ?? '';
+      userNSM = prefs.getString('userNSM') ?? '';
+      userRSM= prefs.getString('userRSM') ?? '';
     });
   }
   void showLoadingIndicator(BuildContext context) {
