@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier, ValueNotifier, kDebugMode;
-import 'package:flutter/material.dart' show AbsorbPointer, AlertDialog, Align, Alignment, AppBar, Axis, Border, BorderRadius, BorderSide, BoxDecoration, BuildContext, Card, ChangeNotifier, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, Expanded, FocusNode, Icon, IconButton, Icons, InkWell, InputDecoration, ListTile, MainAxisSize, MaterialPageRoute, MediaQuery, ModalRoute, Navigator, OutlineInputBorder, Padding, PopScope, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, Size, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextButton, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, showDatePicker, showDialog;
+import 'package:flutter/material.dart' show AbsorbPointer, AlertDialog, Align, Alignment, AppBar, Axis, Border, BorderRadius, BorderSide, BoxDecoration, BoxShadow, BuildContext, Card, ChangeNotifier, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, DropdownButtonFormField, DropdownMenuItem, EdgeInsets, ElevatedButton, Expanded, FocusNode, Icon, IconButton, Icons, InkWell, InputBorder, InputDecoration, ListTile, MainAxisSize, MaterialPageRoute, MediaQuery, ModalRoute, Navigator, Offset, OutlineInputBorder, Padding, PopScope, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, Size, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextButton, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, showDatePicker, showDialog;
 import 'package:flutter/services.dart' show FilteringTextInputFormatter, Size, TextInputFormatter, TextInputType;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
 
@@ -386,7 +386,7 @@ class FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
                   ),
                   const SizedBox(height: 10),
                   // Replace the Credit Limit text field with a Dropdown
-                  buildDropdown('Credit Limit', _creditLimitController, creditLimitOptions, selectedCreditLimit),
+                  _buildDropdown('Credit Limit', _creditLimitController, ['On Cash','7 Days','15 Days', '30 Days', ], selectedCreditLimit),
 
                   const SizedBox(height: 10),
                   // buildTextFormField('Discount', _discountController),
@@ -546,87 +546,84 @@ class FinalOrderBookingPageState extends State<FinalOrderBookingPage> {
 
   String selectedShopOwner = ''; // Add this line to define selectedShopOwner
 
-// Helper method to build a DropdownButton
-  Widget buildDropdown(String labelText, TextEditingController controller, List<String> options, String selectedValue) {
+
+
+  Widget _buildDropdown(String labelText, TextEditingController controller, List<String> options, String selectedValue,) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           labelText,
-          style: const TextStyle(fontSize: 16, color: Colors.black),
+          style: const TextStyle(fontSize: 16, color: Colors.black87),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 8),
         Container(
-          height: 50,
-          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             border: Border.all(
-              color: Colors.black, // Set border color
+              color: Colors.grey.shade400, // Lighter border color
             ),
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          child: TypeAheadFormField(
-            textFieldConfiguration: TextFieldConfiguration(
-              controller: controller,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.all(8.0), // Adjust padding as needed
+            borderRadius: BorderRadius.circular(8.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 4,
+                offset: const Offset(0, 2), // Shadow direction
               ),
+            ],
+          ),
+          child: DropdownButtonFormField<String>(
+            value: selectedValue.isNotEmpty ? selectedValue : null,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 12),
             ),
-            suggestionsCallback: (pattern) {
-              return dropdownItems
-                  .where((status) => status.toLowerCase().contains(pattern.toLowerCase()))
-                  .toList();
-            },
-            itemBuilder: (context, suggestion) {
-              return ListTile(
-                title: Text(suggestion),
+            items: options.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value, style: const TextStyle(fontSize: 16)),
               );
-            },
-            onSuggestionSelected: (suggestion) {
-              // Validate that the selected item is from the list
-              if (dropdownItems.contains(suggestion)) {
-                setState(() {
-                  controller.text = suggestion;
-                });
-
-                // Additional logic based on the selected suggestion
-                // For example, setting other state variables based on the selected suggestion
-                for (var owner in shopOwners) {
-                  if (owner['shop_name'] == suggestion) {
-                    setState(() {
-                      selectedShopOwner = owner['owner_name'];
-                      // Additional state variable, if needed
-                      // selectedOwnerContact = owner['owner_contact'];
-                    });
-                  }
-                }
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue != null && options.contains(newValue)) {
+                controller.text = newValue;
               } else {
-                // If the selected item is not from the list, show an error message or handle it accordingly
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Invalid Selection'),
-                      content: const Text('Please select a valid item from the list.'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                _showErrorDialog(context);
               }
+            },
+            validator: (value) {
+              if (value == null || !options.contains(value)) {
+                return 'Please select a valid item from the list.';
+              }
+              return null;
             },
           ),
         ),
       ],
     );
   }
+
+  void _showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Invalid Selection'),
+          content: const Text('Please select a valid item from the list.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Widget buildTextFormField(String labelText, TextEditingController controller, {bool readOnly = false}) {
     return Column(

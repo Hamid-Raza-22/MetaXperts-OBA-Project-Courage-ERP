@@ -1,7 +1,7 @@
 import 'dart:convert' show base64Decode;
 import 'package:flutter/animation.dart' show AlwaysStoppedAnimation, Color;
 import 'package:flutter/foundation.dart' show Key, Uint8List, kDebugMode;
-import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, CircularProgressIndicator, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, FocusNode, FocusScope, Form, FormState, GestureDetector, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, imageCache;
+import 'package:flutter/material.dart' show Align, Alignment, AppBar, Axis, BorderRadius, BorderSide, BoxDecoration, BoxFit, BuildContext, Card, Center, Checkbox, CircularProgressIndicator, Colors, Column, Container, CrossAxisAlignment, DataCell, DataColumn, DataRow, DataTable, EdgeInsets, ElevatedButton, FocusNode, FocusScope, Form, FormState, GestureDetector, GlobalKey, Icon, Icons, Image, InputBorder, InputDecoration, Key, ListTile, MainAxisAlignment, MaterialPageRoute, MediaQuery, Navigator, OutlineInputBorder, Padding, RoundedRectangleBorder, RouteSettings, Row, Scaffold, ScaffoldMessenger, SingleChildScrollView, SizedBox, SnackBar, Stack, State, StatefulWidget, Switch, Text, TextEditingController, TextField, TextFormField, TextInputType, TextStyle, ValueListenableBuilder, ValueNotifier, Widget, imageCache;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
@@ -14,6 +14,7 @@ import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:nanoid/async.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/View_Models/StockCheckItems.dart';
@@ -140,7 +141,11 @@ class ShopVisitState extends State<ShopVisit> {
   bool checkboxValue2 = false;
   bool checkboxValue3 = false;
   bool checkboxValue4 = false;
- // String feedbackController = '';
+  bool isGpsEnabled = false;
+  bool isLoadingLocation = false; // Loading state variable
+  bool isLocationFetched = false;
+  bool isLocationChecked = false; // Checkbox state
+  // String feedbackController = '';
   final TextEditingController feedbackController = TextEditingController();
   final FocusNode feedbackFocusNode = FocusNode();
   bool isButtonPressed3 = false;
@@ -149,6 +154,7 @@ class ShopVisitState extends State<ShopVisit> {
   bool isButtonPressed = false;
   bool isButtonPressed2 = false;
   bool showLoading = false;
+
   List<DataRow> rows = [];
   final FocusNode _shopNameFocusNode = FocusNode();
   // Uint8List? _imageBytes;
@@ -198,7 +204,7 @@ class ShopVisitState extends State<ShopVisit> {
     _loadCounter();
     //  _saveCounter();
     fetchProductsNamesByBrand();
-    saveCurrentLocation();
+    // saveCurrentLocation();
 
     shopNameNotifier.addListener(() {
       updateShopImage();
@@ -345,7 +351,11 @@ class ShopVisitState extends State<ShopVisit> {
   //   });
   // }
 
-  Future<void> saveCurrentLocation() async {
+  Future<void> saveCurrentLocation(BuildContext context) async {
+    setState(() {
+      isLoadingLocation = true; // Start loading
+    });
+
     PermissionStatus permission = await Permission.location.request();
 
     if (permission.isGranted) {
@@ -353,34 +363,45 @@ class ShopVisitState extends State<ShopVisit> {
         Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
-        latitude  = position.latitude ;
-        longitude = position.longitude ;
-
+        double latitude = position.latitude;
+        double longitude = position.longitude;
 
         if (kDebugMode) {
           print('Latitude: $latitude, Longitude: $longitude');
         }
 
-        // Using geocoding to convert latitude and longitude to an address
         List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
         Placemark currentPlace = placemarks[0];
 
         String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
         address = address1;
+        isLocationFetched = true; // Set location fetched to true
+        isGpsEnabled = true; // GPS is enabled
 
         if (kDebugMode) {
           print('Address is: $address1');
         }
       } catch (e) {
         if (kDebugMode) {
-          print('Error getting location:$e');
+          print('Error getting location: $e');
         }
+        isGpsEnabled = false; // GPS is not enabled
       }
     } else {
       if (kDebugMode) {
         print('Location permission is not granted');
       }
+      // Ensure GPS remains disabled
+      isGpsEnabled = false;
+      // Navigate to NSMHomePage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
     }
+    setState(() {
+      isLoadingLocation = false; // Stop loading
+    }); // Update UI after location fetch
   }
 
   _loadCounter() async {
@@ -563,6 +584,29 @@ class ShopVisitState extends State<ShopVisit> {
     feedbackFocusNode.dispose();
     super.dispose();
   }
+  Widget _buildGpsStatusWidget() {
+    return Row(
+      children: [
+        Switch(
+          value: isGpsEnabled,
+          onChanged: (bool value) async {
+            if (value) {
+              await saveCurrentLocation(context);
+            } else {
+              setState(() {
+                isGpsEnabled = false;
+              });
+            }
+          },
+          activeColor: Colors.green,
+        ),
+        const Text(
+          'GPS Enabled',
+          style: TextStyle(fontSize: 18),
+        ),
+      ],
+    );
+  }
   @override
 
     Widget build(BuildContext context) {
@@ -743,69 +787,7 @@ class ShopVisitState extends State<ShopVisit> {
                     ),
 
                     const SizedBox(height: 10),
-                    // const Align(
-                    //   alignment: Alignment.centerLeft,
-                    //   child: Text(
-                    //     'Brand',
-                    //     style: TextStyle(fontSize: 16, color: Colors.black),
-                    //   ),
-                    // ),
-                    // Row(
-                    //   children: [
-                    //     Expanded(
-                    //       child: SizedBox(
-                    //         height: 30,
-                    //         child: TypeAheadFormField<String>(
-                    //           textFieldConfiguration: TextFieldConfiguration(
-                    //             decoration: InputDecoration(
-                    //               contentPadding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                    //               enabled: false, // Set enabled to false to make it read-only
-                    //               border: OutlineInputBorder(
-                    //                 borderRadius: BorderRadius.circular(5.0),
-                    //               ),
-                    //             ),
-                    //             controller: _brandDropDownController,
-                    //           ),
-                    //           suggestionsCallback: (pattern) {
-                    //             return brandDropdownItems
-                    //                 .where((item) => item.toLowerCase().contains(pattern.toLowerCase()))
-                    //                 .toList();
-                    //           },
-                    //           itemBuilder: (context, itemData) {
-                    //             return ListTile(
-                    //               title: Text(itemData),
-                    //             );
-                    //           },
-                    //           onSuggestionSelected: (itemData) async {
-                    //             // Validate that the selected item is from the list
-                    //             if (brandDropdownItems.contains(itemData)) {
-                    //               setState(() {
-                    //                 _brandDropDownController.text = itemData;
-                    //                 globalselectedbrand = itemData;
-                    //               });
-                    //               // Call the callback to pass the selected brand to FinalOrderBookingPage
-                    //               // widget.onBrandItemsSelected(itemData);
-                    //               // if (kDebugMode) {
-                    //               //   print('Selected Brand: $itemData');
-                    //               //   print(globalselectedbrand);
-                    //               // }
-                    //
-                    //               productsController.fetchProducts();
-                    //               for (int i = 0; i < productsController.rows.length; i++) {
-                    //                 removeSavedValues(i);
-                    //               }
-                    //               productsController.controllers.clear();
-                    //             }
-                    //           },
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                    //
-                    //
-                    //
-                    //
+
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -832,13 +814,7 @@ class ShopVisitState extends State<ShopVisit> {
                         },
                       ),
                     ),
-                    // const Align(
-                    //   alignment: Alignment.center,
-                    //   child: Text(
-                    //     'Checklist',
-                    //     style: TextStyle(fontSize: 16, color: Colors.black),
-                    //   ),
-                    // ),
+
                     const SizedBox(height: 20),
                     const Align(
                       alignment: Alignment.centerLeft,
@@ -1048,7 +1024,9 @@ class ShopVisitState extends State<ShopVisit> {
                             },
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
+                        _buildGpsStatusWidget(),
+                        const SizedBox(height: 5),
 
                         ElevatedButton(
                           onPressed: isButtonPressed
@@ -1064,7 +1042,9 @@ class ShopVisitState extends State<ShopVisit> {
                               isButtonPressed = true;
                             });
 
-                            if (!checkboxValue1 ||
+                            if (
+                            isLocationFetched == false ||
+                                !checkboxValue1 ||
                                 !checkboxValue2 ||
                                 !checkboxValue3 ||
                                 !checkboxValue4) {
@@ -1075,18 +1055,16 @@ class ShopVisitState extends State<ShopVisit> {
                                 backgroundColor: Colors.red,
                                 textColor: Colors.white,
                               );
-
                               setState(() {
-                                checkboxValue1 = false;
-                                checkboxValue2 = false;
-                                checkboxValue3 = false;
-                                checkboxValue4 = false;
                                 isButtonPressed = false;
                               });
+
                               return;
                             }
 
-                            if (_imageFile == null || ShopNameController.text.isEmpty) {
+                            if ( isLocationFetched == false ||
+                                _imageFile == null ||
+                                ShopNameController.text.isEmpty) {
                               Fluttertoast.showToast(
                                 msg: 'Please fulfill all requirements before proceeding.',
                                 toastLength: Toast.LENGTH_SHORT,
@@ -1230,7 +1208,9 @@ class ShopVisitState extends State<ShopVisit> {
                               return;
                             }
 
-                            if (!checkboxValue1 ||
+                            if (
+                            isLocationFetched == false ||
+                                !checkboxValue1 ||
                                 !checkboxValue2 ||
                                 !checkboxValue3 ||
                                 !checkboxValue4) {
@@ -1242,12 +1222,7 @@ class ShopVisitState extends State<ShopVisit> {
                                 textColor: Colors.white,
                               );
 
-                              setState(() {
-                                checkboxValue1 = false;
-                                checkboxValue2 = false;
-                                checkboxValue3 = false;
-                                checkboxValue4 = false;
-                              });
+
 
                               setState(() {
                                 isButtonPressed2 = false;
@@ -1255,7 +1230,7 @@ class ShopVisitState extends State<ShopVisit> {
                               return;
                             }
 
-                            if (_imageFile == null || ShopNameController.text.isEmpty) {
+                            if ( isLocationFetched == false ||_imageFile == null || ShopNameController.text.isEmpty) {
                               Fluttertoast.showToast(
                                 msg: 'Please fulfill all requirements before proceeding.',
                                 toastLength: Toast.LENGTH_SHORT,

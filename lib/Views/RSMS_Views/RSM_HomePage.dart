@@ -282,17 +282,30 @@ class _RSMHomepageState extends State<RSMHomepage> {
 
     // Optionally, show a notification or alert dialog to inform the user
     if (mounted) {
-      showDialog(
+      await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Clock Out'),
-          content: const Text('You have been clocked out due to location services being disabled.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
+        barrierDismissible: false, // Prevent the user from dismissing the dialog
+        builder: (context) => WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing the dialog
+          child: AlertDialog(
+            title: const Text('Clock Out'),
+            content: const Text('You have been clocked out due to location services being disabled.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  // Close the dialog
+                  // WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RSMHomepage()),
+                  );
+                  // });
+                },
+
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -663,10 +676,10 @@ class _RSMHomepageState extends State<RSMHomepage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Center(
+        title:  Center(
           child: Text(
-            'RSM DASHBOARD',
-            style: TextStyle(
+            '$userId  $userNames',
+            style: const TextStyle(
               fontFamily: 'avenir next',
               fontSize: 17,
             ),
@@ -735,29 +748,42 @@ class _RSMHomepageState extends State<RSMHomepage> {
                 ),
                 const SizedBox(width: 50),
                 ElevatedButton.icon(
-                  onPressed: () async {
-                    await _toggleClockInOut();
-                  },
-                  icon: Icon(
-                    isClockedIn ? Icons.timer_off : Icons.timer,
-                    color: Colors.white,
-                  ),
+                  onPressed: _toggleClockInOut,
+                  icon: Icon(isClockedIn ? Icons.timer_off : Icons.timer,color: isClockedIn ? Colors.red : Colors.white),
                   label: Text(
                     isClockedIn ? 'Clock Out' : 'Clock In',
                     style: const TextStyle(
-                      color: Colors.white,
+                      // color: Colors.white,
                       fontFamily: 'avenir next',
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    foregroundColor: isClockedIn ? Colors.red : Colors.white,
+                    backgroundColor: Colors.green, // Background color
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 0),
+
+            // Timer display and Clock In/Clock Out button in a horizontal layout
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text(
+                    version,
+                    style: const TextStyle(
+                      fontFamily: 'avenir next',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ]
+            ),
+
           ],
         ),
       ),

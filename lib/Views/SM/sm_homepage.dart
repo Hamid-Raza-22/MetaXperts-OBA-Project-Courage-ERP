@@ -278,17 +278,28 @@ class _SMHomepageState extends State<SMHomepage> {
 
     // Optionally, show a notification or alert dialog to inform the user
     if (mounted) {
-      showDialog(
+      await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Clock Out'),
-          content: const Text('You have been clocked out due to location services being disabled.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
+        barrierDismissible: false, // Prevent the user from dismissing the dialog
+        builder: (context) => WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing the dialog
+          child: AlertDialog(
+            title: const Text('Clock Out'),
+            content: const Text('You have been clocked out due to location services being disabled.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  // Close the dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SMHomepage()),
+                  );
+                },
+
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -568,10 +579,10 @@ class _SMHomepageState extends State<SMHomepage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Center(
+        title:  Center(
           child: Text(
-            'SM DASHBOARD',
-            style: TextStyle(
+            '$userId  $userNames',
+            style: const TextStyle(
               fontFamily: 'avenir next',
               fontSize: 17,
             ),
@@ -716,7 +727,25 @@ class _SMHomepageState extends State<SMHomepage> {
                   ),
                 ],
               ),
+
             ),
+            const SizedBox(height: 0),
+
+            // Timer display and Clock In/Clock Out button in a horizontal layout
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text(
+                    version,
+                    style: const TextStyle(
+                      fontFamily: 'avenir next',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ]
+            ),
+
           ],
         ),
       ),

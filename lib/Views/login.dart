@@ -8,6 +8,7 @@ import 'package:order_booking_shop/Views/SM/sm_homepage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../API/ApiServices.dart';
+import '../API/Globals.dart';
 import '../Databases/DBHelper.dart';
 import '../Models/LoginModel.dart';
 import '../View_Models/OwnerViewModel.dart';
@@ -99,14 +100,11 @@ class LoginFormState extends State<LoginForm> {
   Future<void> _login() async {
     bool isLoggedIn = await _checkLoginStatus();
 
-    // Attempt to log in with the provided credentials
     var response = await dblogin.login(
       LoginModel(user_id: _emailController.text, password: _passwordController.text, user_name: ''),
     );
 
-    // Check if the login was successful
-    if (response == true) {
-      // Fetch additional user details
+    if (response) {
       var userName = await dblogin.getUserName(_emailController.text);
       var userCity = await dblogin.getUserCity(_emailController.text);
       var designation = await dblogin.getUserDesignation(_emailController.text);
@@ -120,12 +118,10 @@ class LoginFormState extends State<LoginForm> {
           print('User Name: $userName, City: $userCity, Designation: $designation, Brand: $brand, RSM: $userRSM, SM: $userSM, NSM: $userNSM');
         }
 
-        // Set default values for null fields
         userRSM = userRSM ?? 'NULL';
         userSM = userSM ?? 'NULL';
         userNSM = userNSM ?? 'NULL';
 
-        // Store user details in shared preferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('userId', _emailController.text);
         prefs.setString('userNames', userName);
@@ -136,7 +132,6 @@ class LoginFormState extends State<LoginForm> {
         prefs.setString('userSM', userSM);
         prefs.setString('userNSM', userNSM);
 
-        // Initialize data and navigate based on designation
         await initializeData();
 
         if (isLoggedIn) {
@@ -144,7 +139,10 @@ class LoginFormState extends State<LoginForm> {
             'userName': userName,
           };
 
-          // Navigate to the appropriate homepage based on user designation
+          if (kDebugMode) {
+            print('Navigating to homepage for designation: $designation');
+          }
+
           switch (designation) {
             case 'RSM':
               Navigator.of(context).pushReplacement(
@@ -180,7 +178,7 @@ class LoginFormState extends State<LoginForm> {
               break;
           }
 
-          return;
+          // return;
         }
       } else {
         if (kDebugMode) {
@@ -190,7 +188,6 @@ class LoginFormState extends State<LoginForm> {
 
       Fluttertoast.showToast(msg: "Successfully logged in", toastLength: Toast.LENGTH_LONG);
     } else {
-      // Determine if the failure was due to incorrect password
       if (response == 'wrong_password') {
         Fluttertoast.showToast(msg: "Wrong password", toastLength: Toast.LENGTH_LONG);
       } else {
@@ -198,6 +195,7 @@ class LoginFormState extends State<LoginForm> {
       }
     }
   }
+
 
 
   Future<void> initializeData() async {
@@ -210,7 +208,8 @@ class LoginFormState extends State<LoginForm> {
     setState(() {
       _loadingProgress = 10;
     });
-    await fetchAccountsData(api, db, id);
+    await fetchOwnerData(api, db);
+
 
     setState(() {
       _loadingProgress = 20;
@@ -250,7 +249,7 @@ class LoginFormState extends State<LoginForm> {
     setState(() {
       _loadingProgress = 90;
     });
-    await fetchOwnerData(api, db);
+    await fetchAccountsData(api, db, id);
 
     setState(() {
       _loadingProgress = 100;
@@ -920,29 +919,6 @@ class LoginFormState extends State<LoginForm> {
                     ),
                   ),
                 ),
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                       const SizedBox(height: 20.0),
                       SizedBox(
                         height: 40,
@@ -976,8 +952,7 @@ class LoginFormState extends State<LoginForm> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14.0),
                                 ),
-                              ),
-                              child: Padding(
+                              ),child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -996,15 +971,15 @@ class LoginFormState extends State<LoginForm> {
                         ),
                       ),
                       const SizedBox(height: 6.0),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(
-                                'v: 0.9.2',
-                                style: TextStyle(
+                                version,
+                                style: const TextStyle(
                                   color: Colors.black,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,

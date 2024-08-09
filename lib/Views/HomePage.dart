@@ -1,16 +1,16 @@
-import 'dart:async' show Completer, Future, Timer;
+import 'dart:async' show Completer, Future, StreamSubscription, Timer;
 import 'package:flutter/foundation.dart' show Key, kDebugMode;
 import 'package:flutter/material.dart' show AlertDialog, Align, Alignment, AppBar, Border, BorderRadius, BoxDecoration, BoxShape, BuildContext, Center, CircleBorder, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, Icon, IconButton, IconData, Icons, Key, MainAxisAlignment, MainAxisSize, Material, MaterialApp, MaterialPageRoute, Navigator, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, StatelessWidget, Text, TextButton, TextStyle, Widget, WidgetsBinding, WidgetsBindingObserver, WidgetsFlutterBinding, WillPopScope, runApp, showDialog;
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' show FlutterBackgroundService;
-import 'package:geolocator/geolocator.dart' show Geolocator, LocationPermission, Position;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNSM, userNames, userRSM, userSM;
+import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNSM, userNames, userRSM, userSM, version;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:order_booking_shop/main.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,7 +38,7 @@ import 'package:order_booking_shop/Databases/DBHelper.dart';
 import 'dart:io' show File, InternetAddress, SocketException;
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, User;
 import 'package:location/location.dart' as loc;
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' show Permission, PermissionActions, PermissionStatus, PermissionStatusGetters, openAppSettings;
 
 
 
@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   bool isLoadingReturn= false;
   final loc.Location location = loc.Location();
   bool isLoading = false; // Define isLoading variable
-
+  late StreamSubscription<ServiceStatus> locationServiceStatusStream;
   // }
 
   // Future<void> _logOut() async {
@@ -126,6 +126,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     // backgroundTask();
     WidgetsBinding.instance.addObserver(this);
     _loadClockStatus();
+    _monitorLocationService();
     fetchShopList();
     _retrieveSavedValues();
     _clockRefresh();
@@ -138,6 +139,13 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     _getFormattedDate();
     data();
     _checkForUpdate(); // Check for updates when the screen opens
+  }
+  void _monitorLocationService() {
+    locationServiceStatusStream = Geolocator.getServiceStatusStream().listen((ServiceStatus status) async {
+      if (status == ServiceStatus.disabled && isClockedIn) {
+        await _handleClockOut();
+      }
+    });
   }
   // Function to check for updates
   Future<void> checkUserIdAndFetchShopNames() async {
@@ -271,6 +279,97 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   }
 
 
+
+  Future<void> _handleClockOut() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent users from dismissing the dialog
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing the dialog
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
+
+    final service = FlutterBackgroundService();
+    Completer<void> completer = Completer<void>();
+    bool newIsClockedIn = !isClockedIn;
+
+    // Perform clock-out operations here
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    service.invoke("stopService");
+
+    final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    final downloadDirectory = await getDownloadsDirectory();
+    double totalDistance = await calculateTotalDistance("${downloadDirectory?.path}/track$date.gpx");
+    totalDistance ??= 0;
+    await Future.delayed(const Duration(seconds: 4));
+    await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
+      id: prefs.getString('clockInId'),
+      timeOut: _getFormattedtime(),
+      totalTime: _formatDuration(newsecondpassed.toString()),
+      date: _getFormattedDate(),
+      userId: userId.toString(),
+      latOut: globalLatitude1,
+      lngOut: globalLongitude1,
+      totalDistance: totalDistance,
+    ));
+    isClockedIn = false;
+    _saveClockStatus(false);
+    await Future.delayed(const Duration(seconds: 10));
+
+    await postFile();
+    bool isConnected = await isInternetAvailable();
+
+    if (isConnected) {
+      await attendanceViewModel.postAttendanceOut();
+    }
+
+    _stopTimer();
+    _clockRefresh();
+    await prefs.remove('clockInId');
+    await location.enableBackgroundMode(enable: false);
+
+    setState(() {
+      isClockedIn = newIsClockedIn;
+    });
+
+    // Show the confirmation dialog
+    if (mounted) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent the user from dismissing the dialog
+        builder: (context) => WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing the dialog
+          child: AlertDialog(
+            title: const Text('Clock Out'),
+            content: const Text('You have been clocked out due to location services being disabled.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const HomePage()),
+                    );
+                  });
+                },
+
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Navigator.pop(context); // Close the loading indicator dialog
+    completer.complete();
+    return completer.future;
+  }
 
 
   Future<void> _toggleClockInOut() async {
@@ -489,8 +588,10 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    locationServiceStatusStream.cancel();
     timer.cancel();
     WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
   }
 
@@ -666,11 +767,12 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                     children: [
                       Text(
                         'Timer: ${_formatDuration(newsecondpassed.toString())}',
-                        style: const TextStyle(
+                        style:  const TextStyle(
                           color: Colors.white,
                           fontSize: 16.0,
                         ),
                       ),
+
                     ],
                   ),
                   Row(
@@ -1179,9 +1281,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(height: 2.0), // Adds some space between the button and the text
-                const Text(
-                  'v: 0.9.2',
-                  style: TextStyle(
+                 Text(
+                  version,
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black,
                     fontWeight: FontWeight.bold,

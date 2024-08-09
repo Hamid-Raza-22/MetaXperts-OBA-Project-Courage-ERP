@@ -50,7 +50,7 @@ class NSMShopVisitPageState extends State<NSMShopVisitPage> {
   List<String> bookersDropdownItems = [];
   List<String> citiesDropdownItems = [];
   final TextEditingController NSMNameController = TextEditingController(text: userNames);
-  final String currentDate = DateFormat('dd-MMMM-yyyy hh:mm a').format(DateTime.now());
+  final String currentDate = DateFormat('dd-MMM-yyyy').format(DateTime.now());
 
   @override
   void initState() {
@@ -243,24 +243,18 @@ class NSMShopVisitPageState extends State<NSMShopVisitPage> {
   Widget _buildGpsStatusWidget() {
     return Row(
       children: [
-        isLoadingLocation
-            ? LoadingAnimationWidget.staggeredDotsWave(
-          color: Colors.green,
-          size: 50.0,
-        ) // Show loading indicator while fetching location
-            : Checkbox(
+        Switch(
           value: isGpsEnabled,
-          onChanged: (bool? value) async {
-            if (value == true) {
-              // If checkbox is checked, call the function to save current location
+          onChanged: (bool value) async {
+            if (value) {
               await saveCurrentLocation(context);
             } else {
-              // If checkbox is unchecked, simply update the state
               setState(() {
                 isGpsEnabled = false;
               });
             }
           },
+          activeColor: Colors.green,
         ),
         const Text(
           'GPS Enabled',
@@ -269,7 +263,6 @@ class NSMShopVisitPageState extends State<NSMShopVisitPage> {
       ],
     );
   }
-
   Widget _buildAnimatedTextField(String label, TextEditingController controller, IconData icon, {bool readOnly = false}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
