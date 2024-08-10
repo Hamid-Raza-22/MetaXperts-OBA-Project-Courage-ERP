@@ -95,7 +95,6 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
   Widget build(BuildContext context) {
     final lightColorScheme = Theme.of(context).colorScheme;
     const textStyle = TextStyle(fontFamily: "avenir", fontSize: 12);
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),

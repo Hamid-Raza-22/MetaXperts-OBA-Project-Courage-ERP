@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,7 +7,6 @@ import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../API/Globals.dart';
-
 import '../../Models/Bookers_RSM_SM_NSM_Models/BookerStatusModel.dart';
 import '../../main.dart';
 import 'booker_details_page.dart';
@@ -25,6 +23,8 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _attendanceController = TextEditingController();
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+
+
 
   @override
   void initState() {
@@ -159,6 +159,8 @@ class _RSMBookerStatusState extends State<RSMBookerStatus> {
     _removeBookersFromList();
     _addBookersToList(_filteredBookers);
   }
+
+
 
 
 
