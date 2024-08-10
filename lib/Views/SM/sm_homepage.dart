@@ -662,23 +662,24 @@ class _SMHomepageState extends State<SMHomepage> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                 ),
-                const SizedBox(height: 0),
 
-                // Timer display and Clock In/Clock Out button in a horizontal layout
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text(
-                        version,
-                        style: const TextStyle(
-                          fontFamily: 'avenir next',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ]
-                ),
               ],
+            ),
+            const SizedBox(height: 0),
+
+            // Timer display and Clock In/Clock Out button in a horizontal layout
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text(
+                    version,
+                    style: const TextStyle(
+                      fontFamily: 'avenir next',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ]
             ),
           ],
         ),
