@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import '../../API/Globals.dart';
 
 import '../../Models/Bookers_RSM_SM_NSM_Models/BookerStatusModel.dart';
