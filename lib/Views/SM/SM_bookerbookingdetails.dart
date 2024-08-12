@@ -94,78 +94,88 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
   @override
   Widget build(BuildContext context) {
     final lightColorScheme = Theme.of(context).colorScheme;
-    const textStyle = TextStyle(fontFamily: "avenir", fontSize: 12);
+    final textStyle = TextStyle(fontFamily: "avenir", fontSize: 10); // Reduced text size
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0), // Reduced padding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 30),
+            const SizedBox(height: 20), // Reduced spacing
             const Center(
-              child: const Text(
+              child: Text(
                 'Booker Order Detail',
                 style: TextStyle(
                   fontFamily: 'avenir next',
-                  fontSize: 16,
+                  fontSize: 14, // Reduced text size
                   color: Colors.black,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16), // Reduced spacing
 
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                labelText: "Select Designation",
-                filled: true,
-                fillColor: Colors.green.withOpacity(0.1),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: "Designation",
+                      filled: true,
+                      fillColor: Colors.green.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12), // Reduced padding
+                    ),
+                    value: _selectedDesignation,
+                    items: _designationOptions
+                        .map((designation) => DropdownMenuItem(
+                      value: designation,
+                      child: Text(designation, style: textStyle),
+                    ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedDesignation = value;
+                        _fetchData();
+                      });
+                    },
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              value: _selectedDesignation,
-              items: _designationOptions
-                  .map((designation) => DropdownMenuItem(
-                value: designation,
-                child: Text(designation, style: textStyle),
-              ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedDesignation = value;
-                  _fetchData();
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                labelText: "Select Shop",
-                filled: true,
-                fillColor: Colors.green.withOpacity(0.1),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                const SizedBox(width: 8), // Reduced spacing
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: "Select Shop",
+                      filled: true,
+                      fillColor: Colors.green.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12), // Reduced padding
+                    ),
+                    value: _selectedShop,
+                    items: _shopOptions
+                        .map((shop) => DropdownMenuItem(
+                      value: shop,
+                      child: Text(shop, style: textStyle),
+                    ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedShop = value;
+                        _fetchData();
+                      });
+                    },
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-              value: _selectedShop,
-              items: _shopOptions
-                  .map((shop) => DropdownMenuItem(
-                value: shop,
-                child: Text(shop, style: textStyle),
-              ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedShop = value;
-                  _fetchData();
-                });
-              },
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced spacing
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: "Select Order",
@@ -175,7 +185,7 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12), // Reduced padding
               ),
               value: _selectedOrder,
               items: _orderOptions
@@ -191,7 +201,7 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced spacing
             Row(
               children: [
                 Expanded(
@@ -205,7 +215,7 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12), // Reduced padding
                     ),
                     onTap: () => _selectDate(context, true),
                     controller: TextEditingController(
@@ -215,7 +225,7 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8), // Reduced spacing
                 Expanded(
                   child: TextFormField(
                     readOnly: true,
@@ -227,7 +237,7 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12), // Reduced padding
                     ),
                     onTap: () => _selectDate(context, false),
                     controller: TextEditingController(
@@ -239,7 +249,7 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced spacing
             Row(
               children: [
                 Expanded(
@@ -252,7 +262,7 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12), // Reduced padding
                     ),
                     value: _selectedStatus,
                     items: _statusOptions
@@ -269,18 +279,18 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
                     },
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8), // Reduced spacing
                 ElevatedButton(
                   onPressed: _clearFilters,
                   child: const Text('Clear', style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 10), // Reduced padding
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced spacing
             if (_showData)
               Expanded(
                 child: SingleChildScrollView(
@@ -308,4 +318,5 @@ class _SMBookingBookPageState extends State<SMBookingBookPage> {
       ),
     );
   }
+
 }

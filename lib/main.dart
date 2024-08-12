@@ -57,7 +57,6 @@ Future<void> main() async {
       print('Failed to get IP Address: $e');
     }
   }
-// await dbHelper.db;
   // Clear previous database if exists
   //await _clearDatabaseIfFirstLaunch();
   //iqra

@@ -9,7 +9,7 @@ Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designations)
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location') // Adjust this collection path as needed
-      .where('designation', whereIn:  ['SM']) // Fetch RSM markers with designation RSM
+      .where('designation', whereIn: designations) // Fetch markers with specified designations
       .where('NSM_ID', whereIn: [userId])  // Additional condition for userId
       .get();
 
@@ -20,8 +20,6 @@ Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designations)
 
   return markers;
 }
-
-
 
 class SMLocationnsm extends StatefulWidget {
   const SMLocationnsm({super.key});
@@ -34,7 +32,7 @@ class _SMLocationnsmState extends State<SMLocationnsm> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
   final LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
-  final List<String> designations = ['SM']; // Changed to only include 'SM'
+  final List<String> designations = ['SM']; // Only include 'SM'
 
   @override
   void initState() {
@@ -83,10 +81,26 @@ class _SMLocationnsmState extends State<SMLocationnsm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _initialCameraPosition,
+              zoom: 4.0,
+            ),
+            markers: _markers.entries.map((entry) {
+              return Marker(
+                markerId: MarkerId(entry.key),
+                position: entry.value,
+                infoWindow: InfoWindow(title: entry.key),
+              );
+            }).toSet(),
+          ),
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
             child: Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -128,36 +142,6 @@ class _SMLocationnsmState extends State<SMLocationnsm> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 5,
-              child: SizedBox(
-                width: double.infinity,
-                height: 400, // Adjust height here
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: _initialCameraPosition,
-                      zoom: 4.0,
-                    ),
-                    markers: _markers.entries.map((entry) {
-                      return Marker(
-                        markerId: MarkerId(entry.key),
-                        position: entry.value,
-                        infoWindow: InfoWindow(title: entry.key),
-                      );
-                    }).toSet(),
                   ),
                 ),
               ),
