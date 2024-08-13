@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +24,7 @@ import 'SM_bookerbookingdetails.dart';
 import 'sm_bookingstatus.dart';
 import 'SM LOCATION/sm_location_navigation.dart';
 import 'sm_shopvisit.dart';
-import 'package:permission_handler/permission_handler.dart' show Permission, PermissionActions, PermissionStatus, PermissionStatusGetters, openAppSettings;
+
 class SMHomepage extends StatefulWidget {
   const SMHomepage({super.key});
 
@@ -228,31 +227,31 @@ class _SMHomepageState extends State<SMHomepage> {
         );
       },
     );
-    await saveCurrentLocation(context);
-
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
     bool newIsClockedIn = !isClockedIn;
-
     // Perform clock-out operations here
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isClockedIn', false);
+
+
     service.invoke("stopService");
 
     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
     final downloadDirectory = await getDownloadsDirectory();
-    double totalDistance = await calculateTotalDistance("${downloadDirectory?.path}/track$date.gpx");
+    double totalDistance = await calculateTotalDistance(
+        "${downloadDirectory?.path}/track$date.gpx");
     totalDistance ??= 0;
     await Future.delayed(const Duration(seconds: 4));
     await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-        id: prefs.getString('clockInId'),
-        timeOut: _getFormattedtime(),
-        totalTime: _formatDuration(newsecondpassed.toString()),
-        date: _getFormattedDate(),
-        userId: userId.toString(),
-        latOut: globalLatitude1,
-        lngOut: globalLongitude1,
-        totalDistance: totalDistance,
-        address: shopAddress
+      id: prefs.getString('clockInId'),
+      timeOut: _getFormattedtime(),
+      totalTime: _formatDuration(newsecondpassed.toString()),
+      date: _getFormattedDate(),
+      userId: userId.toString(),
+      latOut: globalLatitude1,
+      lngOut: globalLongitude1,
+      totalDistance: totalDistance,
     ));
     isClockedIn = false;
     _saveClockStatus(false);
@@ -273,8 +272,11 @@ class _SMHomepageState extends State<SMHomepage> {
     setState(() {
       isClockedIn = newIsClockedIn;
     });
+    // setState(() {
+    //   isClockedIn = false;
+    // });
 
-    // Show the confirmation dialog
+    // Optionally, show a notification or alert dialog to inform the user
     if (mounted) {
       await showDialog(
         context: context,
@@ -287,12 +289,11 @@ class _SMHomepageState extends State<SMHomepage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const SMHomepage()),
-                    );
-                  });
+                  // Close the dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SMHomepage()),
+                  );
                 },
 
                 child: const Text('OK'),
@@ -302,73 +303,13 @@ class _SMHomepageState extends State<SMHomepage> {
         ),
       );
     }
-
+    await Future.delayed(const Duration(seconds: 10));
     Navigator.pop(context); // Close the loading indicator dialog
     completer.complete();
     return completer.future;
   }
-
-  Future<void> saveCurrentLocation(BuildContext context) async {
-    if (!mounted) return; // Check if the widget is still mounted
-
-
-    PermissionStatus permission = await Permission.location.request();
-
-    if (permission.isGranted) {
-      try {
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        );
-        globalLatitude1 = position.latitude;
-        globalLongitude1 = position.longitude;
-
-        if (kDebugMode) {
-          print('Latitude: $globalLatitude1, Longitude: $globalLongitude1');
-        }
-
-        // Default address to "Pakistan" initially
-        String address1 = "Pakistan";
-
-        try {
-          // Attempt to get the address from coordinates
-          List<Placemark> placemarks = await placemarkFromCoordinates(
-              globalLatitude1!, globalLongitude1!);
-          Placemark? currentPlace = placemarks.isNotEmpty ? placemarks[0] : null;
-
-          if (currentPlace != null) {
-            address1 = "${currentPlace.thoroughfare ?? ''} ${currentPlace.subLocality ?? ''}, ${currentPlace.locality ?? ''} ${currentPlace.postalCode ?? ''}, ${currentPlace.country ?? ''}";
-
-            // Check if the constructed address is empty, fallback to "Pakistan"
-            if (address1.trim().isEmpty) {
-              address1 = "Pakistan";
-            }
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print('Error getting placemark: $e');
-          }
-          // Keep the address as "Pakistan"
-        }
-
-        shopAddress = address1;
-        // GPS is enabled
-
-        if (kDebugMode) {
-          print('Address is: $address1');
-        }
-
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error getting location: $e');
-        }
-        //  isGpsEnabled = false; // GPS is not enabled
-      }
-    }
-
-
-  }
   Future<void> _toggleClockInOut() async {
-    await saveCurrentLocation(context);
+
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
 
@@ -429,16 +370,15 @@ class _SMHomepageState extends State<SMHomepage> {
       isClockedIn = true;
       await Future.delayed(const Duration(seconds: 5));
       await attendanceViewModel.addAttendance(AttendanceModel(
-          id: prefs.getString('clockInId'),
-          timeIn: _getFormattedtime(),
-          date: _getFormattedDate(),
-          userId: userId.toString(),
-          latIn: globalLatitude1,
-          lngIn: globalLongitude1,
-          bookerName: userNames,
-          city: userCitys,
-          designation: userDesignation,
-          address: shopAddress
+        id: prefs.getString('clockInId'),
+        timeIn: _getFormattedtime(),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latIn: globalLatitude1,
+        lngIn: globalLongitude1,
+        bookerName: userNames,
+        city: userCitys,
+        designation: userDesignation,
       ));
       bool isConnected = await isInternetAvailable();
 
@@ -450,7 +390,6 @@ class _SMHomepageState extends State<SMHomepage> {
         print('HomePage:$currentPostId');
       }
     } else {
-      await saveCurrentLocation(context);
       service.invoke("stopService");
 
       final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
@@ -460,15 +399,14 @@ class _SMHomepageState extends State<SMHomepage> {
       totalDistance ??= 0;
       await Future.delayed(const Duration(seconds: 4));
       await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-          id: prefs.getString('clockInId'),
-          timeOut: _getFormattedtime(),
-          totalTime: _formatDuration(newsecondpassed.toString()),
-          date: _getFormattedDate(),
-          userId: userId.toString(),
-          latOut: globalLatitude1,
-          lngOut: globalLongitude1,
-          totalDistance: totalDistance,
-          address: shopAddress
+        id: prefs.getString('clockInId'),
+        timeOut: _getFormattedtime(),
+        totalTime: _formatDuration(newsecondpassed.toString()),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latOut: globalLatitude1,
+        lngOut: globalLongitude1,
+        totalDistance: totalDistance,
       ));
       isClockedIn = false;
       _saveClockStatus(false);
@@ -496,7 +434,6 @@ class _SMHomepageState extends State<SMHomepage> {
     completer.complete();
     return completer.future;
   }
-
   Future<bool> _checkLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
     return permission == LocationPermission.always ||
@@ -635,119 +572,119 @@ class _SMHomepageState extends State<SMHomepage> {
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
-      // Return false to prevent going back
-      return false;
-    },
-    child: Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title:  Center(
-          child: Text(
-            '$userId  $userNames',
-            style: const TextStyle(
-              fontFamily: 'avenir next',
-              fontSize: 17,
-            ),
-          ),
-        ),
-        elevation: 1, // Add a subtle shadow
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.green),
-            onPressed: () {
-              _handleRefresh();
-              // Add reload functionality here
-            },
-          ),
-        ],
-      ),
-      body:Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
+          // Return false to prevent going back
+          return false;
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            title:  Center(
+              child: Text(
+                '$userId  $userNames',
+                style: const TextStyle(
+                  fontFamily: 'avenir next',
+                  fontSize: 17,
                 ),
-                itemCount: 5, // Updated item count
-                itemBuilder: (context, index) {
-                  final cardInfo = [
-                    {'title': 'Shop Visit', 'icon': Icons.store},
-                    {'title': 'Booker Status', 'icon': Icons.person},
-                    {'title': 'Shop Details', 'icon': Icons.info},
-                    {'title': 'Booker Order Details', 'icon': Icons.book},
-                    {'title': 'Location', 'icon': Icons.location_on},
-                  ][index];
-
-                  return _buildCard(
-                    context,
-                    cardInfo['title'] as String,
-                    cardInfo['icon'] as IconData,
-                    Colors.green,
-                  );
-                },
               ),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            elevation: 1, // Add a subtle shadow
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.green),
+                onPressed: () {
+                  _handleRefresh();
+                  // Add reload functionality here
+                },
+              ),
+            ],
+          ),
+          body:Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  'TIMER: ${_formatDuration(newsecondpassed.toString())}',
-                  style: const TextStyle(
-                    fontFamily: 'avenir next',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 50),
-                ElevatedButton.icon(
-                  onPressed: _toggleClockInOut,
-                  icon: Icon(isClockedIn ? Icons.timer_off : Icons.timer,color: isClockedIn ? Colors.red : Colors.white),
-                  label: Text(
-                    isClockedIn ? 'Clock Out' : 'Clock In',
-                    style: const TextStyle(
-                      // color: Colors.white,
-                      fontFamily: 'avenir next',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                const SizedBox(height: 20),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16.0,
+                      mainAxisSpacing: 16.0,
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: isClockedIn ? Colors.red : Colors.white,
-                    backgroundColor: Colors.green, // Background color
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    itemCount: 5, // Updated item count
+                    itemBuilder: (context, index) {
+                      final cardInfo = [
+                        {'title': 'Shop Visit', 'icon': Icons.store},
+                        {'title': 'Booker Status', 'icon': Icons.person},
+                        {'title': 'Shop Details', 'icon': Icons.info},
+                        {'title': 'Booker Order Details', 'icon': Icons.book},
+                        {'title': 'Location', 'icon': Icons.location_on},
+                      ][index];
+
+                      return _buildCard(
+                        context,
+                        cardInfo['title'] as String,
+                        cardInfo['icon'] as IconData,
+                        Colors.green,
+                      );
+                    },
                   ),
                 ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'TIMER: ${_formatDuration(newsecondpassed.toString())}',
+                      style: const TextStyle(
+                        fontFamily: 'avenir next',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 50),
+                    ElevatedButton.icon(
+                      onPressed: _toggleClockInOut,
+                      icon: Icon(isClockedIn ? Icons.timer_off : Icons.timer,color: isClockedIn ? Colors.red : Colors.white),
+                      label: Text(
+                        isClockedIn ? 'Clock Out' : 'Clock In',
+                        style: const TextStyle(
+                          // color: Colors.white,
+                          fontFamily: 'avenir next',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: isClockedIn ? Colors.red : Colors.white,
+                        backgroundColor: Colors.green, // Background color
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      ),
+                    ),
 
+                  ],
+                ),
+                const SizedBox(height: 0),
+
+                // Timer display and Clock In/Clock Out button in a horizontal layout
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text(
+                        version,
+                        style: const TextStyle(
+                          fontFamily: 'avenir next',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ]
+                ),
               ],
             ),
-            const SizedBox(height: 0),
-
-            // Timer display and Clock In/Clock Out button in a horizontal layout
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Text(
-                    version,
-                    style: const TextStyle(
-                      fontFamily: 'avenir next',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ]
-            ),
-          ],
-        ),
-      ),
-    )
+          ),
+        )
     );
   }
 

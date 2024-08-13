@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:order_booking_shop/API/Globals.dart';
+
+import '../../../API/Globals.dart';
 
 Future<Map<String, LatLng>> fetchRSMMarkers() async {
   Map<String, LatLng> markers = {};
@@ -20,7 +21,6 @@ Future<Map<String, LatLng>> fetchRSMMarkers() async {
   return markers;
 }
 
-
 class RSMLocation extends StatefulWidget {
   @override
   _RSMLocationState createState() => _RSMLocationState();
@@ -30,6 +30,7 @@ class _RSMLocationState extends State<RSMLocation> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
   LatLng _initialCameraPosition = const LatLng(24.8607, 67.0011);
+  String? _selectedMarker;
 
   @override
   void initState() {
@@ -53,6 +54,9 @@ class _RSMLocationState extends State<RSMLocation> {
     LatLng? position = _markers[markerName];
     if (position != null) {
       mapController.animateCamera(CameraUpdate.newLatLngZoom(position, 15));
+      setState(() {
+        _selectedMarker = markerName;
+      });
     }
   }
 
@@ -78,10 +82,26 @@ class _RSMLocationState extends State<RSMLocation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _initialCameraPosition,
+              zoom: 4.0,
+            ),
+            markers: _markers.entries.map((entry) {
+              return Marker(
+                markerId: MarkerId(entry.key),
+                position: entry.value,
+                infoWindow: InfoWindow(title: entry.key),
+              );
+            }).toSet(),
+          ),
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
             child: Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -128,36 +148,24 @@ class _RSMLocationState extends State<RSMLocation> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 5,
-              child: Container(
-                width: double.infinity,
-                height: 400, // Adjust height here
-                child: ClipRRect(
+          if (_selectedMarker != null)
+            Positioned(
+              bottom: 20,
+              left: 20,
+              child: Card(
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  child: GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: _initialCameraPosition,
-                      zoom: 4.0,
-                    ),
-                    markers: _markers.entries.map((entry) {
-                      return Marker(
-                        markerId: MarkerId(entry.key),
-                        position: entry.value,
-                        infoWindow: InfoWindow(title: entry.key),
-                      );
-                    }).toSet(),
+                ),
+                elevation: 5,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    _selectedMarker!,
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

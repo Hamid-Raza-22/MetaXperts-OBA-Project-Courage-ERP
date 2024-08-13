@@ -92,10 +92,26 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
           ),
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _initialCameraPosition,
+              zoom: 4.0,
+            ),
+            markers: _markers.entries.map((entry) {
+              return Marker(
+                markerId: MarkerId(entry.key),
+                position: entry.value,
+                infoWindow: InfoWindow(title: entry.key),
+              );
+            }).toSet(),
+          ),
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
             child: Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -137,36 +153,6 @@ class _LiveLocationPageState extends State<LiveLocationPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 5,
-              child: Container(
-                width: double.infinity,
-                height: 400, // Adjust height here
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: _initialCameraPosition,
-                      zoom: 4.0,
-                    ),
-                    markers: _markers.entries.map((entry) {
-                      return Marker(
-                        markerId: MarkerId(entry.key),
-                        position: entry.value,
-                        infoWindow: InfoWindow(title: entry.key),
-                      );
-                    }).toSet(),
                   ),
                 ),
               ),

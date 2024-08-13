@@ -648,7 +648,6 @@ class NSMHomepageState extends State<NSMHomepage> {
               ),
             ),
           ),
-
           iconTheme: const IconThemeData(color: Colors.green),
           automaticallyImplyLeading: false,
           actions: [
@@ -656,7 +655,6 @@ class NSMHomepageState extends State<NSMHomepage> {
               icon: const Icon(Icons.refresh, color: Colors.green),
               onPressed: () {
                 _handleRefresh();
-
               },
             ),
           ],
@@ -684,7 +682,6 @@ class NSMHomepageState extends State<NSMHomepage> {
                     {'title': 'Booker Order Details', 'icon': Icons.book},
                     {'title': 'Location', 'icon': Icons.location_on}, // New card
                   ][index];
-
                   return _buildCard(
                     context,
                     cardInfo['title'] as String,
@@ -695,8 +692,6 @@ class NSMHomepageState extends State<NSMHomepage> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Timer display and Clock In/Clock Out button in a horizontal layout
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -708,7 +703,6 @@ class NSMHomepageState extends State<NSMHomepage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(width: 55),
                 ElevatedButton.icon(
                   onPressed: _toggleClockInOut,
@@ -716,9 +710,8 @@ class NSMHomepageState extends State<NSMHomepage> {
                   label: Text(
                     isClockedIn ? 'Clock Out' : 'Clock In',
                     style: const TextStyle(
-                      // color: Colors.white,
                       fontFamily: 'avenir next',
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -731,8 +724,6 @@ class NSMHomepageState extends State<NSMHomepage> {
               ],
             ),
         const SizedBox(height: 0),
-
-        // Timer display and Clock In/Clock Out button in a horizontal layout
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [

@@ -9,8 +9,8 @@ Future<Map<String, LatLng>> fetchRSMMarkers() async {
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location') // Adjust this collection path as needed
-      .where('designation', whereIn:  ['RSM']) // Fetch RSM markers with designation RSM
-      .where('NSM_ID', whereIn: [userId])  // Additional condition for userId
+      .where('designation', whereIn: ['RSM']) // Fetch RSM markers with designation RSM
+      .where('NSM_ID', whereIn: [userId]) // Additional condition for userId
       .get();
 
   for (var doc in snapshot.docs) {
@@ -21,13 +21,13 @@ Future<Map<String, LatLng>> fetchRSMMarkers() async {
   return markers;
 }
 
-
 class RSMLocationnsm extends StatefulWidget {
   const RSMLocationnsm({super.key});
 
   @override
   _RSMLocationnsmState createState() => _RSMLocationnsmState();
 }
+
 class _RSMLocationnsmState extends State<RSMLocationnsm> {
   late GoogleMapController mapController;
   Map<String, LatLng> _markers = {};
@@ -80,10 +80,26 @@ class _RSMLocationnsmState extends State<RSMLocationnsm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _initialCameraPosition,
+              zoom: 4.0,
+            ),
+            markers: _markers.entries.map((entry) {
+              return Marker(
+                markerId: MarkerId(entry.key),
+                position: entry.value,
+                infoWindow: InfoWindow(title: entry.key),
+              );
+            }).toSet(),
+          ),
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
             child: Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -125,36 +141,6 @@ class _RSMLocationnsmState extends State<RSMLocationnsm> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 5,
-              child: SizedBox(
-                width: double.infinity,
-                height: 400, // Adjust height here
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: _initialCameraPosition,
-                      zoom: 4.0,
-                    ),
-                    markers: _markers.entries.map((entry) {
-                      return Marker(
-                        markerId: MarkerId(entry.key),
-                        position: entry.value,
-                        infoWindow: InfoWindow(title: entry.key),
-                      );
-                    }).toSet(),
                   ),
                 ),
               ),

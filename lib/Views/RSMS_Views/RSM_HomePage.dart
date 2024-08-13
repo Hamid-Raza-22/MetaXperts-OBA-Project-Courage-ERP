@@ -730,132 +730,166 @@ class _RSMHomepageState extends State<RSMHomepage> {
 
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () async {
-      // Return false to prevent going back
-      return false;
-    },
-    child: Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title:  Center(
-          child: Text(
-            '$userId  $userNames',
-            style: const TextStyle(
-              fontFamily: 'avenir next',
-              fontSize: 17,
-            ),
-          ),
-        ),
-        elevation: 1, // Add a subtle shadow
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green), // Green back arrow
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.green),
-            onPressed: () {
-              _handleRefresh();
-              // Add reload functionality here
-            },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
-                ),
-                itemCount: 5,
-                itemBuilder: (context, index) {
-                  final cardInfo = [
-                    {'title': 'SHOP VISIT', 'icon': Icons.store, 'color': Colors.green},
-                    {'title': 'BOOKERS STATUS', 'icon': Icons.person, 'color': Colors.green},
-                    {'title': 'SHOPS DETAILS', 'icon': Icons.info, 'color': Colors.green},
-                    {'title': 'BOOKERS ORDER DETAILS', 'icon': Icons.book, 'color': Colors.green},
-                    {'title': 'LIVE LOCATION', 'icon': Icons.location_on, 'color': Colors.green},
-                  ][index];
+      onWillPop: () async {
+        // Return false to prevent going back
+        return false;
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          double fontSize = 17;
+          double iconSize = 24;
+          double gridCrossAxisCount = 2;
+          double gridSpacing = 16.0;
+          double cardHeight = 150.0;
+          double buttonFontSize = 16;
+          double timerFontSize = 14;
 
-                  return _buildCard(
-                    context,
-                    cardInfo['title'] as String,
-                    cardInfo['icon'] as IconData,
-                    cardInfo['color'] as Color,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Timer: ${_formatDuration(newsecondpassed.toString())}',
-                  style: const TextStyle(
+          // Adjust layout based on the screen width
+          if (constraints.maxWidth < 360) {
+            fontSize = 14;
+            iconSize = 20;
+            gridCrossAxisCount = 1;
+            gridSpacing = 8.0;
+            cardHeight = 120.0;
+            buttonFontSize = 14;
+            timerFontSize = 12;
+          }
+
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              title: Center(
+                child: Text(
+                  '$userId  $userNames',
+                  style: TextStyle(
                     fontFamily: 'avenir next',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontSize: fontSize,
                   ),
                 ),
-                const SizedBox(width: 50),
-                ElevatedButton.icon(
-                  onPressed: _toggleClockInOut,
-                  icon: Icon(isClockedIn ? Icons.timer_off : Icons.timer,color: isClockedIn ? Colors.red : Colors.white),
-                  label: Text(
-                    isClockedIn ? 'Clock Out' : 'Clock In',
-                    style: const TextStyle(
-                      // color: Colors.white,
-                      fontFamily: 'avenir next',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: isClockedIn ? Colors.red : Colors.white,
-                    backgroundColor: Colors.green, // Background color
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  ),
+              ),
+              backgroundColor: Colors.white,
+              elevation: 1, // Add a subtle shadow
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.green),
+                  onPressed: () {
+                    _handleRefresh();
+                  },
                 ),
               ],
             ),
-            const SizedBox(height: 0),
-
-            // Timer display and Clock In/Clock Out button in a horizontal layout
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    version,
-                    style: const TextStyle(
-                      fontFamily: 'avenir next',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: gridCrossAxisCount.toInt(),
+                        crossAxisSpacing: gridSpacing,
+                        mainAxisSpacing: gridSpacing,
+                      ),
+                      itemCount: 4, // Display the first four cards in the grid
+                      itemBuilder: (context, index) {
+                        final cardInfo = [
+                          {'title': 'SHOP VISIT', 'icon': Icons.store, 'color': Colors.green},
+                          {'title': 'BOOKERS STATUS', 'icon': Icons.person, 'color': Colors.green},
+                          {'title': 'SHOPS DETAILS', 'icon': Icons.info, 'color': Colors.green},
+                          {'title': 'BOOKERS ORDER DETAILS', 'icon': Icons.book, 'color': Colors.green},
+                          {'title': 'Location', 'icon': Icons.location_on},
+                        ][index];
+                        return _buildCard(
+                          context,
+                          cardInfo['title'] as String,
+                          cardInfo['icon'] as IconData,
+                          cardInfo['color'] as Color,
+                          iconSize,
+                        );
+                      },
                     ),
                   ),
-                ]
+                  Center(
+                    child: SizedBox(
+                      width: constraints.maxWidth / 2 - gridSpacing * 1.5, // Same width as grid items
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: SizedBox(
+                          height: cardHeight, // Adjust the height of the card
+                          child: _buildCard(
+                            context,
+                            'LIVE LOCATION',
+                            Icons.location_on,
+                            Colors.green,
+                            iconSize,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 94), // Adjust the spacing after the "LIVE LOCATION" card
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Timer: ${_formatDuration(newsecondpassed.toString())}',
+                        style: TextStyle(
+                          fontFamily: 'avenir next',
+                          fontSize: timerFontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 50),
+                      ElevatedButton.icon(
+                        onPressed: _toggleClockInOut,
+                        icon: Icon(
+                          isClockedIn ? Icons.timer_off : Icons.timer,
+                          color: isClockedIn ? Colors.red : Colors.white,
+                          size: iconSize,
+                        ),
+                        label: Text(
+                          isClockedIn ? 'Clock Out' : 'Clock In',
+                          style: TextStyle(
+                            fontFamily: 'avenir next',
+                            fontSize: buttonFontSize,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: isClockedIn ? Colors.red : Colors.white,
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10), // Add some space after the button row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text(
+                        version,
+                        style: TextStyle(
+                          fontFamily: 'avenir next',
+                          fontSize: timerFontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-
-          ],
-        ),
+          );
+        },
       ),
-    )
     );
   }
 
-  Widget _buildCard(BuildContext context, String title, IconData icon, Color color) {
+  Widget _buildCard(BuildContext context, String title, IconData icon, Color color, double iconSize) {
     return Card(
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
       ),
@@ -893,7 +927,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
                     ),
                     child: Icon(
                       icon,
-                      size: 24,
+                      size: iconSize,
                       color: Colors.white,
                     ),
                   ),
@@ -901,7 +935,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
                   Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'avenir next',
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -915,6 +949,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
       ),
     );
   }
+
 
   void _navigateToPage(BuildContext context, String title) {
     // Navigation logic based on the title
