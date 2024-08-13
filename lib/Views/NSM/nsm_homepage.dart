@@ -217,6 +217,7 @@ class NSMHomepageState extends State<NSMHomepage> {
     });
     return totalTime;
   }
+
   Future<void> _handleClockOut() async {
     showDialog(
       context: context,
@@ -230,15 +231,17 @@ class NSMHomepageState extends State<NSMHomepage> {
         );
       },
     );
-    await saveCurrentLocation(context);
+    Completer<void> completer = Completer<void>();
+
 
     final service = FlutterBackgroundService();
-    Completer<void> completer = Completer<void>();
+
     bool newIsClockedIn = !isClockedIn;
 
     // Perform clock-out operations here
     SharedPreferences prefs = await SharedPreferences.getInstance();
     service.invoke("stopService");
+    await saveCurrentLocation(context);
 
     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
     final downloadDirectory = await getDownloadsDirectory();
@@ -370,7 +373,7 @@ class NSMHomepageState extends State<NSMHomepage> {
 
   }
   Future<void> _toggleClockInOut() async {
-    await saveCurrentLocation(context);
+
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
 
@@ -419,6 +422,7 @@ class NSMHomepageState extends State<NSMHomepage> {
       await initializeServiceLocation();
       await location.enableBackgroundMode(enable: true);
       await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+      await saveCurrentLocation(context);
       locationbool = true;
       // startTimer();
       service.startService();
@@ -452,8 +456,9 @@ class NSMHomepageState extends State<NSMHomepage> {
         print('HomePage:$currentPostId');
       }
     } else {
-      await saveCurrentLocation(context);
+
       service.invoke("stopService");
+      await saveCurrentLocation(context);
 
       final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
       final downloadDirectory = await getDownloadsDirectory();

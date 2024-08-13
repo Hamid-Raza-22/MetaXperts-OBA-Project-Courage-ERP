@@ -294,15 +294,17 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         );
       },
     );
-    await saveCurrentLocation(context);
+    Completer<void> completer = Completer<void>();
+
 
     final service = FlutterBackgroundService();
-    Completer<void> completer = Completer<void>();
+
     bool newIsClockedIn = !isClockedIn;
 
     // Perform clock-out operations here
     SharedPreferences prefs = await SharedPreferences.getInstance();
     service.invoke("stopService");
+    await saveCurrentLocation(context);
 
     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
     final downloadDirectory = await getDownloadsDirectory();
@@ -434,7 +436,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
   }
   Future<void> _toggleClockInOut() async {
-    await saveCurrentLocation(context);
+
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
 
@@ -483,6 +485,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       await initializeServiceLocation();
       await location.enableBackgroundMode(enable: true);
       await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+      await saveCurrentLocation(context);
       locationbool = true;
       // startTimer();
       service.startService();
@@ -516,8 +519,9 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         print('HomePage:$currentPostId');
       }
     } else {
-      await saveCurrentLocation(context);
+
       service.invoke("stopService");
+      await saveCurrentLocation(context);
 
       final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
       final downloadDirectory = await getDownloadsDirectory();

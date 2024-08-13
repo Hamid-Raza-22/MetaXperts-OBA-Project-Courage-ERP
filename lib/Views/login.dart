@@ -98,7 +98,7 @@ class LoginFormState extends State<LoginForm> {
   }
 
   Future<void> _login() async {
-    bool isLoggedIn = await _checkLoginStatus();
+
 
     var response = await dblogin.login(
       LoginModel(user_id: _emailController.text, password: _passwordController.text, user_name: ''),
@@ -123,63 +123,17 @@ class LoginFormState extends State<LoginForm> {
         userNSM = userNSM ?? 'NULL';
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('userId', _emailController.text);
-        prefs.setString('userNames', userName);
-        prefs.setString('userCitys', userCity);
-        prefs.setString('userDesignation', designation);
-        prefs.setString('userBrand', brand);
-        prefs.setString('userRSM', userRSM);
-        prefs.setString('userSM', userSM);
-        prefs.setString('userNSM', userNSM);
+        await prefs.setString('userId', _emailController.text);
+        await prefs.setString('userNames', userName);
+        await prefs.setString('userCitys', userCity);
+        await prefs.setString('userDesignation', designation);
+        await prefs.setString('userBrand', brand);
+        await  prefs.setString('userRSM', userRSM);
+        await prefs.setString('userSM', userSM);
+        await prefs.setString('userNSM', userNSM);
 
         await initializeData();
 
-        if (isLoggedIn) {
-          Map<String, dynamic> dataToPass = {
-            'userName': userName,
-          };
-
-          if (kDebugMode) {
-            print('Navigating to homepage for designation: $designation');
-          }
-
-          switch (designation) {
-            case 'RSM':
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const RSMHomepage(),
-                ),
-              );
-              break;
-
-            case 'SM':
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const SMHomepage(),
-                ),
-              );
-              break;
-
-            case 'NSM':
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const NSMHomepage(),
-                ),
-              );
-              break;
-
-            default:
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const HomePage(),
-                  settings: RouteSettings(arguments: dataToPass),
-                ),
-              );
-              break;
-          }
-
-          // return;
-        }
       } else {
         if (kDebugMode) {
           print('Failed to fetch user name or city');
@@ -206,13 +160,24 @@ class LoginFormState extends State<LoginForm> {
     String? brand = prefs.getString('userBrand');
 
     setState(() {
-      _loadingProgress = 10;
+      _loadingProgress = 05;
     });
     await fetchOwnerData(api, db);
-
-
+    setState(() {
+      _loadingProgress = 10;
+    });
+    await fetchOwnerData2(api, db);
+    setState(() {
+      _loadingProgress = 15;
+    });
+    await fetchOwnerData3(api, db);
     setState(() {
       _loadingProgress = 20;
+    });
+    await fetchOwnerData3(api, db);
+
+    setState(() {
+      _loadingProgress = 25;
     });
     await fetchNetBalanceData(api, db, id);
 
@@ -255,6 +220,53 @@ class LoginFormState extends State<LoginForm> {
       _loadingProgress = 100;
     });
     await fetchOrderBookingStatusData(api, db, id);
+    bool isLoggedIn = await _checkLoginStatus();
+    if (isLoggedIn) {
+      Map<String, dynamic> dataToPass = {
+        'userName': userNames,
+      };
+
+      if (kDebugMode) {
+        print('Navigating to homepage for designation: $userDesignation');
+      }
+
+      switch (userDesignation) {
+        case 'RSM':
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const RSMHomepage(),
+            ),
+          );
+          break;
+
+        case 'SM':
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const SMHomepage(),
+            ),
+          );
+          break;
+
+        case 'NSM':
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const NSMHomepage(),
+            ),
+          );
+          break;
+
+        default:
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+              settings: RouteSettings(arguments: dataToPass),
+            ),
+          );
+          break;
+      }
+
+      // return;
+    }
   }
 
 
@@ -641,6 +653,111 @@ class LoginFormState extends State<LoginForm> {
     } else {
       if (kDebugMode) {
         print("Owner data is available.");
+      }
+    }
+  }
+  Future<void> fetchOwnerData2(ApiServices api, DBHelper db) async {
+    bool inserted = false;
+    try {
+      var response = await api.getApi(shopDetails2);
+      inserted = await db.insertownerData(response);
+      if (inserted) {
+        if (kDebugMode) {
+          print("Owner Data inserted successfully.");
+        }
+      } else {
+        throw Exception('Insertion failed with first API');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error with first API. Trying second API.");
+      }
+      try {
+        var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/shopp1/get/");
+        inserted = await db.insertownerData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Owner Data inserted successfully using second API.");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data using second API.");
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with second API as well. Unable to fetch or insert Owner data.");
+        }
+      }
+    }
+  }
+  Future<void> fetchOwnerData3(ApiServices api, DBHelper db) async {
+    bool inserted = false;
+    try {
+      var response = await api.getApi(shopDetails3);
+      inserted = await db.insertownerData(response);
+      if (inserted) {
+        if (kDebugMode) {
+          print("Owner Data inserted successfully.");
+        }
+      } else {
+        throw Exception('Insertion failed with first API');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error with first API. Trying second API.");
+      }
+      try {
+        var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/shopp1/get/");
+        inserted = await db.insertownerData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Owner Data inserted successfully using second API.");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data using second API.");
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with second API as well. Unable to fetch or insert Owner data.");
+        }
+      }
+    }
+  }
+  Future<void> fetchOwnerData4(ApiServices api, DBHelper db) async {
+    bool inserted = false;
+    try {
+      var response = await api.getApi(shopDetails4);
+      inserted = await db.insertownerData(response);
+      if (inserted) {
+        if (kDebugMode) {
+          print("Owner Data inserted successfully.");
+        }
+      } else {
+        throw Exception('Insertion failed with first API');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error with first API. Trying second API.");
+      }
+      try {
+        var response = await api.getApi("https://apex.oracle.com/pls/apex/metaxpertss/shopp1/get/");
+        inserted = await db.insertownerData(response);
+        if (inserted) {
+          if (kDebugMode) {
+            print("Owner Data inserted successfully using second API.");
+          }
+        } else {
+          if (kDebugMode) {
+            print("Error inserting data using second API.");
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error with second API as well. Unable to fetch or insert Owner data.");
+        }
       }
     }
   }

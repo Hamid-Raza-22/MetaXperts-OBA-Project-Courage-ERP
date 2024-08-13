@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,8 @@ import 'package:nanoid/nanoid.dart';
 import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Views/SM/sm_shopdetails.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart' show Permission, PermissionActions, PermissionStatus, PermissionStatusGetters, openAppSettings;
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:location/location.dart' as loc;
 import '../../API/newDatabaseOutPuts.dart';
@@ -214,6 +217,7 @@ class _SMHomepageState extends State<SMHomepage> {
     });
     return totalTime;
   }
+
   Future<void> _handleClockOut() async {
     showDialog(
       context: context,
@@ -227,31 +231,33 @@ class _SMHomepageState extends State<SMHomepage> {
         );
       },
     );
-    final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
+
+
+    final service = FlutterBackgroundService();
+
     bool newIsClockedIn = !isClockedIn;
+
     // Perform clock-out operations here
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isClockedIn', false);
-
-
     service.invoke("stopService");
+    await saveCurrentLocation(context);
 
     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
     final downloadDirectory = await getDownloadsDirectory();
-    double totalDistance = await calculateTotalDistance(
-        "${downloadDirectory?.path}/track$date.gpx");
+    double totalDistance = await calculateTotalDistance("${downloadDirectory?.path}/track$date.gpx");
     totalDistance ??= 0;
     await Future.delayed(const Duration(seconds: 4));
     await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-      id: prefs.getString('clockInId'),
-      timeOut: _getFormattedtime(),
-      totalTime: _formatDuration(newsecondpassed.toString()),
-      date: _getFormattedDate(),
-      userId: userId.toString(),
-      latOut: globalLatitude1,
-      lngOut: globalLongitude1,
-      totalDistance: totalDistance,
+        id: prefs.getString('clockInId'),
+        timeOut: _getFormattedtime(),
+        totalTime: _formatDuration(newsecondpassed.toString()),
+        date: _getFormattedDate(),
+        userId: userId.toString(),
+        latOut: globalLatitude1,
+        lngOut: globalLongitude1,
+        totalDistance: totalDistance,
+        address: shopAddress
     ));
     isClockedIn = false;
     _saveClockStatus(false);
@@ -272,11 +278,8 @@ class _SMHomepageState extends State<SMHomepage> {
     setState(() {
       isClockedIn = newIsClockedIn;
     });
-    // setState(() {
-    //   isClockedIn = false;
-    // });
 
-    // Optionally, show a notification or alert dialog to inform the user
+    // Show the confirmation dialog
     if (mounted) {
       await showDialog(
         context: context,
@@ -289,11 +292,12 @@ class _SMHomepageState extends State<SMHomepage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  // Close the dialog
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SMHomepage()),
-                  );
+                  Navigator.of(context).pop(); // Close the dialog
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const SMHomepage()),
+                    );
+                  });
                 },
 
                 child: const Text('OK'),
@@ -303,10 +307,70 @@ class _SMHomepageState extends State<SMHomepage> {
         ),
       );
     }
-    await Future.delayed(const Duration(seconds: 10));
+
     Navigator.pop(context); // Close the loading indicator dialog
     completer.complete();
     return completer.future;
+  }
+
+  Future<void> saveCurrentLocation(BuildContext context) async {
+    if (!mounted) return; // Check if the widget is still mounted
+
+
+    PermissionStatus permission = await Permission.location.request();
+
+    if (permission.isGranted) {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        globalLatitude1 = position.latitude;
+        globalLongitude1 = position.longitude;
+
+        if (kDebugMode) {
+          print('Latitude: $globalLatitude1, Longitude: $globalLongitude1');
+        }
+
+        // Default address to "Pakistan" initially
+        String address1 = "Pakistan";
+
+        try {
+          // Attempt to get the address from coordinates
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              globalLatitude1!, globalLongitude1!);
+          Placemark? currentPlace = placemarks.isNotEmpty ? placemarks[0] : null;
+
+          if (currentPlace != null) {
+            address1 = "${currentPlace.thoroughfare ?? ''} ${currentPlace.subLocality ?? ''}, ${currentPlace.locality ?? ''} ${currentPlace.postalCode ?? ''}, ${currentPlace.country ?? ''}";
+
+            // Check if the constructed address is empty, fallback to "Pakistan"
+            if (address1.trim().isEmpty) {
+              address1 = "Pakistan";
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error getting placemark: $e');
+          }
+          // Keep the address as "Pakistan"
+        }
+
+        shopAddress = address1;
+        // GPS is enabled
+
+        if (kDebugMode) {
+          print('Address is: $address1');
+        }
+
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error getting location: $e');
+        }
+        //  isGpsEnabled = false; // GPS is not enabled
+      }
+    }
+
+
   }
   Future<void> _toggleClockInOut() async {
 
@@ -358,6 +422,7 @@ class _SMHomepageState extends State<SMHomepage> {
       await initializeServiceLocation();
       await location.enableBackgroundMode(enable: true);
       await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+      await saveCurrentLocation(context);
       locationbool = true;
       // startTimer();
       service.startService();
@@ -370,15 +435,16 @@ class _SMHomepageState extends State<SMHomepage> {
       isClockedIn = true;
       await Future.delayed(const Duration(seconds: 5));
       await attendanceViewModel.addAttendance(AttendanceModel(
-        id: prefs.getString('clockInId'),
-        timeIn: _getFormattedtime(),
-        date: _getFormattedDate(),
-        userId: userId.toString(),
-        latIn: globalLatitude1,
-        lngIn: globalLongitude1,
-        bookerName: userNames,
-        city: userCitys,
-        designation: userDesignation,
+          id: prefs.getString('clockInId'),
+          timeIn: _getFormattedtime(),
+          date: _getFormattedDate(),
+          userId: userId.toString(),
+          latIn: globalLatitude1,
+          lngIn: globalLongitude1,
+          bookerName: userNames,
+          city: userCitys,
+          designation: userDesignation,
+          address: shopAddress
       ));
       bool isConnected = await isInternetAvailable();
 
@@ -390,7 +456,9 @@ class _SMHomepageState extends State<SMHomepage> {
         print('HomePage:$currentPostId');
       }
     } else {
+
       service.invoke("stopService");
+      await saveCurrentLocation(context);
 
       final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
       final downloadDirectory = await getDownloadsDirectory();
@@ -399,14 +467,15 @@ class _SMHomepageState extends State<SMHomepage> {
       totalDistance ??= 0;
       await Future.delayed(const Duration(seconds: 4));
       await attendanceViewModel.addAttendanceOut(AttendanceOutModel(
-        id: prefs.getString('clockInId'),
-        timeOut: _getFormattedtime(),
-        totalTime: _formatDuration(newsecondpassed.toString()),
-        date: _getFormattedDate(),
-        userId: userId.toString(),
-        latOut: globalLatitude1,
-        lngOut: globalLongitude1,
-        totalDistance: totalDistance,
+          id: prefs.getString('clockInId'),
+          timeOut: _getFormattedtime(),
+          totalTime: _formatDuration(newsecondpassed.toString()),
+          date: _getFormattedDate(),
+          userId: userId.toString(),
+          latOut: globalLatitude1,
+          lngOut: globalLongitude1,
+          totalDistance: totalDistance,
+          address: shopAddress
       ));
       isClockedIn = false;
       _saveClockStatus(false);

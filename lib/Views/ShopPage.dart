@@ -344,7 +344,7 @@ class _ShopPageState extends State<ShopPage> {
       if (isCityValid) {
         if (
         // _imageFile == null ||
-        //isLocationFetched == false ||
+            isLocationFetched == false ||
             shopNameController.text.isEmpty ||
             cityController.text.isEmpty ||
             shopAddressController.text.isEmpty ||

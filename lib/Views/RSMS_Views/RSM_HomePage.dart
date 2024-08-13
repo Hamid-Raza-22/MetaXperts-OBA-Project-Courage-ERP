@@ -220,6 +220,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
     });
     return totalTime;
   }
+
   Future<void> _handleClockOut() async {
     showDialog(
       context: context,
@@ -233,15 +234,17 @@ class _RSMHomepageState extends State<RSMHomepage> {
         );
       },
     );
-    await saveCurrentLocation(context);
+    Completer<void> completer = Completer<void>();
+
 
     final service = FlutterBackgroundService();
-    Completer<void> completer = Completer<void>();
+
     bool newIsClockedIn = !isClockedIn;
 
     // Perform clock-out operations here
     SharedPreferences prefs = await SharedPreferences.getInstance();
     service.invoke("stopService");
+    await saveCurrentLocation(context);
 
     final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
     final downloadDirectory = await getDownloadsDirectory();
@@ -373,7 +376,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
 
   }
   Future<void> _toggleClockInOut() async {
-    await saveCurrentLocation(context);
+
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
 
@@ -422,6 +425,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
       await initializeServiceLocation();
       await location.enableBackgroundMode(enable: true);
       await location.changeSettings(interval: 300, accuracy: loc.LocationAccuracy.high);
+      await saveCurrentLocation(context);
       locationbool = true;
       // startTimer();
       service.startService();
@@ -455,8 +459,9 @@ class _RSMHomepageState extends State<RSMHomepage> {
         print('HomePage:$currentPostId');
       }
     } else {
-      await saveCurrentLocation(context);
+
       service.invoke("stopService");
+      await saveCurrentLocation(context);
 
       final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
       final downloadDirectory = await getDownloadsDirectory();
@@ -501,6 +506,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
     completer.complete();
     return completer.future;
   }
+
 
   Future<bool> _checkLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
