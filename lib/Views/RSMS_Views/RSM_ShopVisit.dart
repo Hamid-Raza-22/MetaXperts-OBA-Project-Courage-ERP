@@ -38,8 +38,8 @@ class ShopVisitPageState extends State<ShopVisitPage> {
   bool isGpsEnabled = false;
   bool isLoadingLocation = false; // Loading state variable
 
-  dynamic latitude = '';
-  dynamic longitude = '';
+  dynamic globalLatitude = '';
+  dynamic globalLongitude = '';
   bool isLocationFetched = false;
   bool isLocationChecked = false; // Checkbox state
   final ownerViewModel = Get.put(OwnerViewModel());
@@ -87,9 +87,14 @@ class ShopVisitPageState extends State<ShopVisitPage> {
     }
   }
 
+  bool isSwitchDisabled = false; // Add this state variable
+
   Future<void> saveCurrentLocation(BuildContext context) async {
+    if (!mounted) return; // Check if the widget is still mounted
+
     setState(() {
       isLoadingLocation = true; // Start loading
+      isSwitchDisabled = true;  // Disable the switch while loading
     });
 
     PermissionStatus permission = await Permission.location.request();
@@ -99,24 +104,45 @@ class ShopVisitPageState extends State<ShopVisitPage> {
         Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
-        double latitude = position.latitude;
-        double longitude = position.longitude;
+        globalLatitude = position.latitude;
+        globalLongitude = position.longitude;
 
         if (kDebugMode) {
-          print('Latitude: $latitude, Longitude: $longitude');
+          print('Latitude: $globalLatitude, Longitude: $globalLongitude');
         }
 
-        List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
-        Placemark currentPlace = placemarks[0];
+        // Default address to "Pakistan" initially
+        String address1 = "Pakistan";
 
-        String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
-        address = address1;
+        try {
+          // Attempt to get the address from coordinates
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              globalLatitude!, globalLongitude!);
+          Placemark? currentPlace = placemarks.isNotEmpty ? placemarks[0] : null;
+
+          if (currentPlace != null) {
+            address1 = "${currentPlace.thoroughfare ?? ''} ${currentPlace.subLocality ?? ''}, ${currentPlace.locality ?? ''} ${currentPlace.postalCode ?? ''}, ${currentPlace.country ?? ''}";
+
+            // Check if the constructed address is empty, fallback to "Pakistan"
+            if (address1.trim().isEmpty) {
+              address1 = "Pakistan";
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error getting placemark: $e');
+          }
+          // Keep the address as "Pakistan"
+        }
+
+        shopAddress = address1;
         isLocationFetched = true; // Set location fetched to true
         isGpsEnabled = true; // GPS is enabled
 
         if (kDebugMode) {
           print('Address is: $address1');
         }
+
       } catch (e) {
         if (kDebugMode) {
           print('Error getting location: $e');
@@ -129,16 +155,46 @@ class ShopVisitPageState extends State<ShopVisitPage> {
       }
       // Ensure GPS remains disabled
       isGpsEnabled = false;
-      // Navigate to RsmHomePage
+      // Navigate to HomePage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const RSMHomepage()),
       );
     }
+
+    if (!mounted) return; // Check again before calling setState()
     setState(() {
       isLoadingLocation = false; // Stop loading
-    }); // Update UI after location fetch
+      isSwitchDisabled = false;  // Re-enable the switch after loading
+    });
   }
+
+  Widget _buildGpsStatusWidget() {
+    return Row(
+      children: [
+        Switch(
+          value: isGpsEnabled,
+          onChanged: isSwitchDisabled
+              ? null // Disable interaction when switch is disabled
+              : (bool value) async {
+            if (value) {
+              await saveCurrentLocation(context);
+            } else {
+              setState(() {
+                isGpsEnabled = false;
+              });
+            }
+          },
+          activeColor: Colors.green,
+        ),
+        const Text(
+          'GPS Enabled',
+          style: TextStyle(fontSize: 18),
+        ),
+      ],
+    );
+  }
+
 
   Future<void> fetchShopNamesAll() async {
     ownerViewModel.fetchShopNames();
@@ -239,29 +295,7 @@ class ShopVisitPageState extends State<ShopVisitPage> {
     );
   }
 
-  Widget _buildGpsStatusWidget() {
-    return Row(
-      children: [
-        Switch(
-          value: isGpsEnabled,
-          onChanged: (bool value) async {
-            if (value) {
-              await saveCurrentLocation(context);
-            } else {
-              setState(() {
-                isGpsEnabled = false;
-              });
-            }
-          },
-          activeColor: Colors.green,
-        ),
-        const Text(
-          'GPS Enabled',
-          style: TextStyle(fontSize: 18),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildAnimatedTextField(String label, TextEditingController controller, IconData icon, {bool readOnly = false}) {
     return AnimatedContainer(

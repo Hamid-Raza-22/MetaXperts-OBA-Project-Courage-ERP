@@ -10,7 +10,7 @@ class PostingStatus {
 DBHelper dbHelper = DBHelper();
 String currentPostId= "";
 bool _isPosting = false;
-dynamic version = "v: 0.9.3";
+dynamic version = "v: 0.9.4";
 String pending ="PENDING";
 String SellectedproductName= "";
 double? globalnetBalance;
@@ -44,7 +44,7 @@ String checkbox4="";
 String shopName="";
 String OrderMasterid= "";
 String address = "";
-String shopAddress = "";
+dynamic shopAddress = "";
 bool locationbool = true;
 //dynamic serialCounter ='';
 String globalcurrentMonth= DateFormat('MMM').format(DateTime.now());

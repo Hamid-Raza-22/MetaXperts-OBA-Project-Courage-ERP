@@ -350,10 +350,14 @@ class ShopVisitState extends State<ShopVisit> {
   //     dropdownItems = ownerViewModel.shopNames.map((dynamic item) => item.toString()).toSet().toList();
   //   });
   // }
+  bool isSwitchDisabled = false; // Add this state variable
 
   Future<void> saveCurrentLocation(BuildContext context) async {
+    if (!mounted) return; // Check if the widget is still mounted
+
     setState(() {
       isLoadingLocation = true; // Start loading
+      isSwitchDisabled = true;  // Disable the switch while loading
     });
 
     PermissionStatus permission = await Permission.location.request();
@@ -363,24 +367,45 @@ class ShopVisitState extends State<ShopVisit> {
         Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         );
-        double latitude = position.latitude;
-        double longitude = position.longitude;
+        latitude = position.latitude;
+        longitude = position.longitude;
 
         if (kDebugMode) {
           print('Latitude: $latitude, Longitude: $longitude');
         }
 
-        List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
-        Placemark currentPlace = placemarks[0];
+        // Default address to "Pakistan" initially
+        String address1 = "Pakistan";
 
-        String address1 = "${currentPlace.thoroughfare} ${currentPlace.subLocality}, ${currentPlace.locality}${currentPlace.postalCode}, ${currentPlace.country}";
-        address = address1;
+        try {
+          // Attempt to get the address from coordinates
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              latitude!, longitude!);
+          Placemark? currentPlace = placemarks.isNotEmpty ? placemarks[0] : null;
+
+          if (currentPlace != null) {
+            address1 = "${currentPlace.thoroughfare ?? ''} ${currentPlace.subLocality ?? ''}, ${currentPlace.locality ?? ''} ${currentPlace.postalCode ?? ''}, ${currentPlace.country ?? ''}";
+
+            // Check if the constructed address is empty, fallback to "Pakistan"
+            if (address1.trim().isEmpty) {
+              address1 = "Pakistan";
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error getting placemark: $e');
+          }
+          // Keep the address as "Pakistan"
+        }
+
+        shopAddress = address1;
         isLocationFetched = true; // Set location fetched to true
         isGpsEnabled = true; // GPS is enabled
 
         if (kDebugMode) {
           print('Address is: $address1');
         }
+
       } catch (e) {
         if (kDebugMode) {
           print('Error getting location: $e');
@@ -393,16 +418,46 @@ class ShopVisitState extends State<ShopVisit> {
       }
       // Ensure GPS remains disabled
       isGpsEnabled = false;
-      // Navigate to NSMHomePage
+      // Navigate to HomePage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     }
+
+    if (!mounted) return; // Check again before calling setState()
     setState(() {
       isLoadingLocation = false; // Stop loading
-    }); // Update UI after location fetch
+      isSwitchDisabled = false;  // Re-enable the switch after loading
+    });
   }
+
+  Widget _buildGpsStatusWidget() {
+    return Row(
+      children: [
+        Switch(
+          value: isGpsEnabled,
+          onChanged: isSwitchDisabled
+              ? null // Disable interaction when switch is disabled
+              : (bool value) async {
+            if (value) {
+              await saveCurrentLocation(context);
+            } else {
+              setState(() {
+                isGpsEnabled = false;
+              });
+            }
+          },
+          activeColor: Colors.green,
+        ),
+        const Text(
+          'GPS Enabled',
+          style: TextStyle(fontSize: 18),
+        ),
+      ],
+    );
+  }
+
 
   _loadCounter() async {
     String currentMonth = DateFormat('MMM').format(DateTime.now());
@@ -584,29 +639,7 @@ class ShopVisitState extends State<ShopVisit> {
     feedbackFocusNode.dispose();
     super.dispose();
   }
-  Widget _buildGpsStatusWidget() {
-    return Row(
-      children: [
-        Switch(
-          value: isGpsEnabled,
-          onChanged: (bool value) async {
-            if (value) {
-              await saveCurrentLocation(context);
-            } else {
-              setState(() {
-                isGpsEnabled = false;
-              });
-            }
-          },
-          activeColor: Colors.green,
-        ),
-        const Text(
-          'GPS Enabled',
-          style: TextStyle(fontSize: 18),
-        ),
-      ],
-    );
-  }
+
   @override
 
     Widget build(BuildContext context) {

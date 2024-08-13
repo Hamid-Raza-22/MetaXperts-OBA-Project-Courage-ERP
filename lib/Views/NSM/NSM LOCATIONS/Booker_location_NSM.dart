@@ -8,7 +8,7 @@ Future<Map<String, LatLng>> fetchMarkersByDesignation(List<String> designation) 
   Map<String, LatLng> markers = {};
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection('location') // Adjust this collection path as needed
-      .where('designation', whereIn:  [designation]) // Fetch RSM markers with designation RSM
+      .where('designation', whereIn:  designation) // Fetch RSM markers with designation RSM
       .where('NSM_ID', whereIn: [userId])  // Additional condition for userId
       .get();
   for (var doc in snapshot.docs) {

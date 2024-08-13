@@ -4,13 +4,14 @@ import 'package:flutter/material.dart' show AlertDialog, Align, Alignment, AppBa
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart' show FlutterBackgroundService;
 import 'package:fluttertoast/fluttertoast.dart' show Fluttertoast, Toast, ToastGravity;
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, timer, userBrand, userCitys, userDesignation, userId, userNSM, userNames, userRSM, userSM, version;
+import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, shopAddress, timer, userBrand, userCitys, userDesignation, userId, userNSM, userNames, userRSM, userSM, version;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:order_booking_shop/main.dart';
 import 'package:path_provider/path_provider.dart';
@@ -293,6 +294,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         );
       },
     );
+    await saveCurrentLocation(context);
 
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
@@ -316,6 +318,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
       latOut: globalLatitude1,
       lngOut: globalLongitude1,
       totalDistance: totalDistance,
+      address: shopAddress
     ));
     isClockedIn = false;
     _saveClockStatus(false);
@@ -371,8 +374,67 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     return completer.future;
   }
 
+  Future<void> saveCurrentLocation(BuildContext context) async {
+    if (!mounted) return; // Check if the widget is still mounted
 
+
+    PermissionStatus permission = await Permission.location.request();
+
+    if (permission.isGranted) {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        globalLatitude1 = position.latitude;
+        globalLongitude1 = position.longitude;
+
+        if (kDebugMode) {
+          print('Latitude: $globalLatitude1, Longitude: $globalLongitude1');
+        }
+
+        // Default address to "Pakistan" initially
+        String address1 = "Pakistan";
+
+        try {
+          // Attempt to get the address from coordinates
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              globalLatitude1!, globalLongitude1!);
+          Placemark? currentPlace = placemarks.isNotEmpty ? placemarks[0] : null;
+
+          if (currentPlace != null) {
+            address1 = "${currentPlace.thoroughfare ?? ''} ${currentPlace.subLocality ?? ''}, ${currentPlace.locality ?? ''} ${currentPlace.postalCode ?? ''}, ${currentPlace.country ?? ''}";
+
+            // Check if the constructed address is empty, fallback to "Pakistan"
+            if (address1.trim().isEmpty) {
+              address1 = "Pakistan";
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error getting placemark: $e');
+          }
+          // Keep the address as "Pakistan"
+        }
+
+        shopAddress = address1;
+     // GPS is enabled
+
+        if (kDebugMode) {
+          print('Address is: $address1');
+        }
+
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error getting location: $e');
+        }
+      //  isGpsEnabled = false; // GPS is not enabled
+      }
+    }
+
+
+  }
   Future<void> _toggleClockInOut() async {
+    await saveCurrentLocation(context);
     final service = FlutterBackgroundService();
     Completer<void> completer = Completer<void>();
 
@@ -442,6 +504,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         bookerName: userNames,
         city: userCitys,
         designation: userDesignation,
+        address: shopAddress
       ));
       bool isConnected = await isInternetAvailable();
 
@@ -453,6 +516,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         print('HomePage:$currentPostId');
       }
     } else {
+      await saveCurrentLocation(context);
       service.invoke("stopService");
 
       final date = DateFormat('dd-MM-yyyy').format(DateTime.now());
@@ -470,6 +534,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
         latOut: globalLatitude1,
         lngOut: globalLongitude1,
         totalDistance: totalDistance,
+        address: shopAddress
       ));
       isClockedIn = false;
       _saveClockStatus(false);
@@ -695,6 +760,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
 
     if (isConnected) {
       newDatabaseOutputs outputs = newDatabaseOutputs();
+
       bool tasksCompleted = false;
 
       // Run both functions in parallel with a timeout

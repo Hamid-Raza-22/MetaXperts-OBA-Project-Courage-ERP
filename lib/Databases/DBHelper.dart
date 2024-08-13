@@ -120,6 +120,25 @@ class DBHelper {
           print('Created HeadsShopVisits table');
         }
       }
+      if (oldVersion < 4) {
+        // Adding brand column to shop table
+        await db.execute("ALTER TABLE shop ADD COLUMN brand TEXT;");
+        if (kDebugMode) {
+          print('Added brand column to shop table');
+        }
+
+        // Adding address column to attendance table
+        await db.execute("ALTER TABLE attendance ADD COLUMN address TEXT;");
+        if (kDebugMode) {
+          print('Added address column to attendance table');
+        }
+
+        // Adding address column to attendanceOut table
+        await db.execute("ALTER TABLE attendanceOut ADD COLUMN address TEXT;");
+        if (kDebugMode) {
+          print('Added address column to attendanceOut table');
+        }
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error upgrading database: $e');

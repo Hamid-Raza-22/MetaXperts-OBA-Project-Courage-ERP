@@ -15,7 +15,7 @@ class AttendanceRepository {
 
   Future<List<AttendanceModel>> getAttendance() async {
     var dbClient = await dbHelper.db;
-    List<Map> maps = await dbClient!.query('attendance', columns: ['id', 'date' , 'timeIn' , 'userId' , 'latIn' , 'lngIn','bookerName','city','designation' ]);
+    List<Map> maps = await dbClient!.query('attendance', columns: ['id', 'date' , 'timeIn' , 'userId' , 'latIn' , 'lngIn','bookerName','city','designation', 'address' ]);
     List<AttendanceModel> attendance = [];
 
     for (int i = 0; i < maps.length; i++) {
@@ -49,6 +49,7 @@ class AttendanceRepository {
             bookerName: i['bookerName'].toString(),
             city: i['city'].toString(),
             designation: i['designation'].toString(),
+            address:  i['address'].toString(),
           );
 
           try {
@@ -113,7 +114,7 @@ class AttendanceRepository {
 
   Future<List<AttendanceOutModel>> getAttendanceOut() async {
     var dbClient = await dbHelper.db;
-    List<Map> maps = await dbClient!.query('attendanceOut', columns: ['id', 'date' , 'timeOut' ,'totalTime', 'userId' , 'latOut', 'lngOut','totalDistance', 'posted']);
+    List<Map> maps = await dbClient!.query('attendanceOut', columns: ['id', 'date' , 'timeOut' ,'totalTime', 'userId' , 'latOut', 'lngOut','totalDistance','address', 'posted']);
     List<AttendanceOutModel> attendanceout = [];
 
     for (int i = 0; i < maps.length; i++) {
@@ -145,6 +146,7 @@ class AttendanceRepository {
               totalTime: i['totalTime'].toString(),
               latOut: i['latOut'].toString(),
               lngOut: i['lngOut'].toString(),
+              address:  i['address'].toString(),
               totalDistance: i['totalDistance']?.toString() ?? '0.0'
           );
           var result1 = await api.masterPost(v.toMap(), attendanceOutApi);

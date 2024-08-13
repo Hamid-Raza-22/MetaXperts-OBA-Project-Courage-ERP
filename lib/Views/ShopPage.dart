@@ -14,7 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:nanoid/async.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show shopAddress, userCitys, userDesignation, userId;
+import 'package:order_booking_shop/API/Globals.dart' show shopAddress, userBrand, userCitys, userDesignation, userId;
 import 'package:order_booking_shop/View_Models/ShopViewModel.dart' show ShopViewModel;
 import 'package:order_booking_shop/Views/HomePage.dart' show HomePage;
 import 'package:path_provider/path_provider.dart';
@@ -199,10 +199,14 @@ class _ShopPageState extends State<ShopPage> {
     // saveCurrentLocation(context);
     _checkUserIdAndFetchShopNames();
   }
+  bool isSwitchDisabled = false; // Add this state variable
 
   Future<void> saveCurrentLocation(BuildContext context) async {
+    if (!mounted) return; // Check if the widget is still mounted
+
     setState(() {
       isLoadingLocation = true; // Start loading
+      isSwitchDisabled = true;  // Disable the switch while loading
     });
 
     PermissionStatus permission = await Permission.location.request();
@@ -218,27 +222,42 @@ class _ShopPageState extends State<ShopPage> {
         if (kDebugMode) {
           print('Latitude: $globalLatitude, Longitude: $globalLongitude');
         }
-        // Using geocoding to convert latitude and longitude to an address
-        List<Placemark> placemarks = await placemarkFromCoordinates(
-            globalLatitude!, globalLongitude!);
-        Placemark currentPlace = placemarks[0];
 
-        String address1 = "${currentPlace.thoroughfare} ${currentPlace
-            .subLocality}, ${currentPlace.locality}${currentPlace
-            .postalCode}, ${currentPlace.country}";
+        // Default address to "Pakistan" initially
+        String address1 = "Pakistan";
+
+        try {
+          // Attempt to get the address from coordinates
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              globalLatitude!, globalLongitude!);
+          Placemark? currentPlace = placemarks.isNotEmpty ? placemarks[0] : null;
+
+          if (currentPlace != null) {
+            address1 = "${currentPlace.thoroughfare ?? ''} ${currentPlace.subLocality ?? ''}, ${currentPlace.locality ?? ''} ${currentPlace.postalCode ?? ''}, ${currentPlace.country ?? ''}";
+
+            // Check if the constructed address is empty, fallback to "Pakistan"
+            if (address1.trim().isEmpty) {
+              address1 = "Pakistan";
+            }
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error getting placemark: $e');
+          }
+          // Keep the address as "Pakistan"
+        }
+
         shopAddress = address1;
         isLocationFetched = true; // Set location fetched to true
         isGpsEnabled = true; // GPS is enabled
-
 
         if (kDebugMode) {
           print('Address is: $address1');
         }
 
-        //print('Address is: $address1');
       } catch (e) {
         if (kDebugMode) {
-          print('Error getting location:$e');
+          print('Error getting location: $e');
         }
         isGpsEnabled = false; // GPS is not enabled
       }
@@ -248,16 +267,22 @@ class _ShopPageState extends State<ShopPage> {
       }
       // Ensure GPS remains disabled
       isGpsEnabled = false;
-      // Navigate to SMHomePage
+      // Navigate to HomePage
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     }
+
+    if (!mounted) return; // Check again before calling setState()
     setState(() {
       isLoadingLocation = false; // Stop loading
-    }); // Update UI after location fetch
+      isSwitchDisabled = false;  // Re-enable the switch after loading
+    });
   }
+
+
+
 
   @override
   void dispose() {
@@ -319,7 +344,7 @@ class _ShopPageState extends State<ShopPage> {
       if (isCityValid) {
         if (
         // _imageFile == null ||
-        isLocationFetched == false ||
+        //isLocationFetched == false ||
             shopNameController.text.isEmpty ||
             cityController.text.isEmpty ||
             shopAddressController.text.isEmpty ||
@@ -385,6 +410,7 @@ class _ShopPageState extends State<ShopPage> {
             latitude: globalLatitude,
             longitude: globalLongitude,
             userId: userId,
+            brand: userBrand,
             address: shopAddress
           //body: imageBytes,
           // ... existing parameters ...
@@ -740,7 +766,9 @@ class _ShopPageState extends State<ShopPage> {
       children: [
         Switch(
           value: isGpsEnabled,
-          onChanged: (bool value) async {
+          onChanged: isSwitchDisabled
+              ? null // Disable interaction when switch is disabled
+              : (bool value) async {
             if (value) {
               await saveCurrentLocation(context);
             } else {
@@ -758,7 +786,6 @@ class _ShopPageState extends State<ShopPage> {
       ],
     );
   }
-
   Widget _buildSaveButton() {
     return Align(
       alignment: Alignment.centerRight,
