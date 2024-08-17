@@ -29,7 +29,7 @@ class DBHelper {
     String path = join(documentDirectory.path, 'shop.db');
     var db = await openDatabase(
       path,
-      version: 3, // Increment the version number
+      version: 4, // Increment the version number
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );

@@ -9,12 +9,13 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:nanoid/nanoid.dart';
+import 'package:order_booking_shop/API/Globals.dart';
 import 'package:order_booking_shop/Views/SM/SM%20LOCATION/sm_location_navigation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:io' show File, InternetAddress, SocketException;
-import '../../API/Globals.dart';
+
 import '../../API/newDatabaseOutPuts.dart';
 import '../../Databases/DBHelper.dart';
 import '../../Models/AttendanceModel.dart';
@@ -55,7 +56,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
   @override
   void initState() {
     super.initState();
-
+    checkAndSetInitializationDateTime();
     // backgroundTask();
     // WidgetsBinding.instance.addObserver(this);
     _loadClockStatus();
@@ -598,8 +599,8 @@ class _RSMHomepageState extends State<RSMHomepage> {
       showLoadingIndicator(context);
       await Future.any([
         Future.wait([
-          // backgroundTask(),
-          outputs.refreshData(),
+          headsBackgroundTask(),
+          outputs.refreshHeadsData(),
         ]).then((_) {
           tasksCompleted = true;
         }),

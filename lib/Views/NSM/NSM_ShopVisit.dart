@@ -508,7 +508,7 @@ class NSMShopVisitPageState extends State<NSMShopVisitPage> {
       city: regionController.text,
       date: currentDate,
       feedback: feedbackController.text,
-      address: address,
+      address: shopAddress,
     ));
     await shopVisitViewModel.postHeadsShopVisit();
   }

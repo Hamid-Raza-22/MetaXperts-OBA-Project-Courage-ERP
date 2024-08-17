@@ -11,7 +11,7 @@ import 'package:hive/hive.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:nanoid/nanoid.dart' show customAlphabet;
-import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, currentPostId, isClockedIn, locationbool, secondsPassed, shopAddress, timer, userBrand, userCitys, userDesignation, userId, userNSM, userNames, userRSM, userSM, version;
+import 'package:order_booking_shop/API/Globals.dart' show PostingStatus, checkAndSetInitializationDateTime, currentPostId, isClockedIn, locationbool, secondsPassed, shopAddress, timer, userBrand, userCitys, userDesignation, userId, userNSM, userNames, userRSM, userSM, version;
 import 'package:order_booking_shop/Models/AttendanceModel.dart';
 import 'package:order_booking_shop/main.dart';
 import 'package:path_provider/path_provider.dart';
@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-
+    checkAndSetInitializationDateTime();
     // backgroundTask();
     WidgetsBinding.instance.addObserver(this);
     _loadClockStatus();
@@ -279,7 +279,23 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     });
   }
 
+  void scheduleClockOut() {
+    DateTime now = DateTime.now();
+    DateTime scheduledTime = DateTime(now.year, now.month, now.day, 23, 30); // 11:30 PM
 
+    // If the scheduled time has already passed today, schedule for tomorrow
+    if (now.isAfter(scheduledTime)) {
+      scheduledTime = scheduledTime.add(const Duration(days: 1));
+    }
+
+    Duration initialDelay = scheduledTime.difference(now);
+
+    Timer(initialDelay, () async {
+      await _handleClockOut();
+      // Re-schedule the timer for the next day
+      scheduleClockOut();
+    });
+  }
 
   Future<void> _handleClockOut() async {
     showDialog(
@@ -762,7 +778,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     bool isConnected = await isInternetAvailable();
     Navigator.of(context, rootNavigator: true).pop();
 
-    if (isConnected) {
+    if (isConnected== true) {
       newDatabaseOutputs outputs = newDatabaseOutputs();
 
       bool tasksCompleted = false;
@@ -1516,11 +1532,11 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     await postRecoveryFormTable();
 
   }
-  Future<void> postLocationData() async {
-    await locationViewModel.postLocation();
-  }
   Future<void> postShopVisitData() async {
     await shopisitViewModel.postShopVisit();
+  }
+  Future<void> postLocationData() async {
+    await locationViewModel.postLocation();
   }
 
   Future<void> postStockCheckItems() async {

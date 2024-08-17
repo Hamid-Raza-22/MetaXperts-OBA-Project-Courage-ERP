@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:metaxperts_dynamic_apis/get_apis/Get_apis.dart';
 import 'package:order_booking_shop/Views/SM/sm_homepage.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -150,7 +151,19 @@ class LoginFormState extends State<LoginForm> {
     }
   }
 
-
+  _loginRetrieveSavedValues() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('userId') ?? '';
+      userNames = prefs.getString('userNames') ?? '';
+      userCitys = prefs.getString('userCitys') ?? '';
+      userDesignation = prefs.getString('userDesignation') ?? '';
+      userBrand = prefs.getString('userBrand') ?? '';
+      userSM = prefs.getString('userSM') ?? '';
+      userNSM = prefs.getString('userNSM') ?? '';
+      userRSM= prefs.getString('userRSM') ?? '';
+    });
+  }
 
   Future<void> initializeData() async {
     final api = ApiServices();
@@ -158,6 +171,9 @@ class LoginFormState extends State<LoginForm> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? id = prefs.getString('userId');
     String? brand = prefs.getString('userBrand');
+    // DateTime now = DateTime.now();
+    // String formattedDateTime = DateFormat('dd-MMM-yyyy-HH:mm:ss').format(now);
+    // await prefs.setString('lastInitializationDateTime', formattedDateTime);
 
     setState(() {
       _loadingProgress = 05;
@@ -220,6 +236,7 @@ class LoginFormState extends State<LoginForm> {
       _loadingProgress = 100;
     });
     await fetchOrderBookingStatusData(api, db, id);
+    await _loginRetrieveSavedValues();
     bool isLoggedIn = await _checkLoginStatus();
     if (isLoggedIn) {
       Map<String, dynamic> dataToPass = {
@@ -231,6 +248,7 @@ class LoginFormState extends State<LoginForm> {
       }
 
       switch (userDesignation) {
+
         case 'RSM':
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(

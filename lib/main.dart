@@ -59,6 +59,7 @@ Future<void> main() async {
   }
   // Clear previous database if exists
   //await _clearDatabaseIfFirstLaunch();
+ // await AndroidAlarmManager.initialize();
   //iqra
 // hamid
   // // AndroidAlarmManager.initialize();
@@ -202,6 +203,7 @@ Future<void> initializeServiceLocation() async {
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
+      autoStartOnBoot: false,
       autoStart: false,
       isForegroundMode: true,
       notificationChannelId: 'my_foreground',
@@ -222,7 +224,7 @@ Future<void> initializeServiceLocation() async {
 void monitorInternetConnection() {
   Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
     if (result == ConnectivityResult.mobile || result == ConnectivityResult.wifi) {
-     // backgroundTask();
+      backgroundTask();
     }
   });
 }

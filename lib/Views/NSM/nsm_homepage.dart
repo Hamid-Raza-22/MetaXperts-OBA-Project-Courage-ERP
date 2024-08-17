@@ -52,7 +52,7 @@ class NSMHomepageState extends State<NSMHomepage> {
   @override
   void initState() {
     super.initState();
-
+    checkAndSetInitializationDateTime();
     // backgroundTask();
     // WidgetsBinding.instance.addObserver(this);
     _loadClockStatus();
@@ -591,11 +591,12 @@ class NSMHomepageState extends State<NSMHomepage> {
       newDatabaseOutputs outputs = newDatabaseOutputs();
       bool tasksCompleted = false;
 
+
       showLoadingIndicator(context);
       await Future.any([
         Future.wait([
-         // backgroundTask(),
-          outputs.refreshData(),
+          headsBackgroundTask(),
+          outputs.refreshHeadsData(),
         ]).then((_) {
           tasksCompleted = true;
         }),

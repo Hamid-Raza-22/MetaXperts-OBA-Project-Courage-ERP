@@ -190,6 +190,7 @@ class ShopVisitState extends State<ShopVisit> {
 
     super.initState();
     _checkUserIdAndFetchShopNames();
+    _checkUserIdAndFetchShopNames();
     data();
     // serialCounter=(dbHelper.getLatestSerialNo(userId) as int?)!;
   shopNameNotifier = ValueNotifier<String>(selectedItem);
@@ -1134,7 +1135,7 @@ class ShopVisitState extends State<ShopVisit> {
                               planogram: checkboxValue2,
                               signage: checkboxValue3,
                               productReviewed: checkboxValue4,
-                              address: address,
+                              address: shopAddress,
                               body: imageBytes,
                               longitude: longitude,
                               latitude: latitude,
@@ -1300,7 +1301,7 @@ class ShopVisitState extends State<ShopVisit> {
                               planogram: checkboxValue2,
                               signage: checkboxValue3,
                               productReviewed: checkboxValue4,
-                              address: address,
+                              address: shopAddress,
                               body: imageBytes,
                               latitude: latitude,
                               longitude: longitude,

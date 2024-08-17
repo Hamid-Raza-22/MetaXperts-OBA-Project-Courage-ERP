@@ -508,7 +508,7 @@ class ShopVisitPageState extends State<ShopVisitPage> {
       city: regionController.text,
       date: currentDate,
       feedback: feedbackController.text,
-      address: address,
+      address: shopAddress,
     ));
     await shopVisitViewModel.postHeadsShopVisit();
   }

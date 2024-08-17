@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,7 +53,8 @@ class _SMHomepageState extends State<SMHomepage> {
   @override
   void initState() {
     super.initState();
-
+    checkAndSetInitializationDateTime();
+    _scheduleClockOut();
     // backgroundTask();
     // WidgetsBinding.instance.addObserver(this);
     _loadClockStatus();
@@ -217,7 +219,27 @@ class _SMHomepageState extends State<SMHomepage> {
     });
     return totalTime;
   }
+  void _scheduleClockOut() async {
+    DateTime now = DateTime.now();
+    DateTime scheduledTime = DateTime(now.year, now.month, now.day, 12, 40); // 11:30 PM
 
+    // If the scheduled time has already passed today, schedule for tomorrow
+    if (now.isAfter(scheduledTime)) {
+      scheduledTime = scheduledTime.add(const Duration(days: 1));
+    }
+
+    // Calculate the delay
+    Duration delay = scheduledTime.difference(now);
+
+    // Schedule the task
+    await AndroidAlarmManager.oneShotAt(
+      scheduledTime,
+      0, // Unique identifier for the alarm
+      _handleClockOut,
+      exact: true,
+      wakeup: true,
+    );
+  }
   Future<void> _handleClockOut() async {
     showDialog(
       context: context,
@@ -594,8 +616,8 @@ class _SMHomepageState extends State<SMHomepage> {
       showLoadingIndicator(context);
       await Future.any([
         Future.wait([
-          // backgroundTask(),
-          outputs.refreshData(),
+          headsBackgroundTask(),
+          outputs.refreshHeadsData(),
         ]).then((_) {
           tasksCompleted = true;
         }),

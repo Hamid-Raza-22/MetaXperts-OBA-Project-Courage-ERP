@@ -425,7 +425,7 @@ class newDatabaseOutputs {
       try {
 
         var response = await api.getApi1(
-            "$shopDetails");
+            shopDetails);
         inserted = await db.insertownerData(response); //return True or False
         if (inserted) {
           if (kDebugMode) {
@@ -1825,6 +1825,13 @@ class newDatabaseOutputs {
      await updateloginData();
     await updateCitiesData();
     await updateBalanceData();
+  }
+  Future<void> refreshHeadsData() async{
+
+    await updateOwnerData();
+     await updateloginData();
+    await updateCitiesData();
+
   }
 
 }
