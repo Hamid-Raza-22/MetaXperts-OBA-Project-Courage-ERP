@@ -44,6 +44,105 @@ class ShopVisitRepository {
     }
     return shopvisit;
   }
+  // Future<void> postShopVisitData() async {
+  //   var db = await dbHelpershopvisit.db;
+  //   final ApiServices api = ApiServices();
+  //
+  //   try {
+  //     PostingStatus.isPosting.value = true; // Set posting status to true
+  //
+  //     final products = await db!.rawQuery('''
+  //   SELECT *,
+  //   CASE WHEN walkthrough = 1 THEN 'True' ELSE 'False' END AS walkthrough,
+  //   CASE WHEN planogram = 1 THEN 'True' ELSE 'False' END AS planogram,
+  //   CASE WHEN signage = 1 THEN 'True' ELSE 'False' END AS signage,
+  //   CASE WHEN productReviewed = 1 THEN 'True' ELSE 'False' END AS productReviewed
+  //   FROM shopVisit
+  // ''');
+  //
+  //     await db.rawQuery('VACUUM');
+  //
+  //     if (products.isNotEmpty) {  // Check if the table is not empty
+  //       for (Map<dynamic, dynamic> i in products) {
+  //         ShopVisitModel v = ShopVisitModel(
+  //           id: i['id'].toString(),
+  //           date: i['date'].toString(),
+  //           userId: i['userId'].toString(),
+  //           shopName: i['shopName'].toString(),
+  //           bookerName: i['bookerName'].toString(),
+  //           brand: i['brand'].toString(),
+  //           city: i['city'].toString(),
+  //           walkthrough: i['walkthrough'].toString(),
+  //           planogram: i['planogram'].toString(),
+  //           signage: i['signage'].toString(),
+  //           productReviewed: i['productReviewed'].toString(),
+  //           feedback: i['feedback'].toString(),
+  //           latitude: i['latitude'].toString(),
+  //           longitude: i['longitude'].toString(),
+  //           address: i['address'].toString(),
+  //           body: i['body'] != null && i['body'].toString().isNotEmpty
+  //               ? Uint8List.fromList(base64Decode(i['body'].toString()))
+  //               : Uint8List(0),
+  //         );
+  //
+  //         Uint8List imageBytes;
+  //         final directory = await getApplicationDocumentsDirectory();
+  //         final filePath = File('${directory.path}/captured_image.jpg');
+  //         if (filePath.existsSync()) {
+  //           List<int> imageBytesList = await filePath.readAsBytes();
+  //           imageBytes = Uint8List.fromList(imageBytesList);
+  //         } else {
+  //           if (kDebugMode) {
+  //             print("File does not exist at the specified path: ${filePath.path}");
+  //           }
+  //           continue; // Skip to the next iteration if the file doesn't exist
+  //         }
+  //
+  //         // Repeat the post request 100 times
+  //         for (int attempt = 0; attempt < 100; attempt++) {
+  //           if (kDebugMode) {
+  //             print("Making API request for shop visit ID: ${v.id}, Attempt: $attempt");
+  //           }
+  //
+  //           try {
+  //             final result = await api.masterPostWithImage(
+  //               v.toMap(),
+  //               'http://103.149.33.102:8080/ords/metaxperts/report/post/',
+  //               imageBytes,
+  //             );
+  //
+  //             if (result) {
+  //               if (kDebugMode) {
+  //                 print("Successfully posted data for shop visit ID: ${v.id}, Attempt: $attempt");
+  //               }
+  //             } else {
+  //               if (kDebugMode) {
+  //                 print("Failed to post data for shop visit ID: ${v.id}, Attempt: $attempt");
+  //               }
+  //             }
+  //           } catch (e) {
+  //             if (kDebugMode) {
+  //               print("Error making API requests for shop visit ID: ${v.id}, Attempt: $attempt - $e");
+  //             }
+  //           }
+  //         }
+  //
+  //         // After 100 attempts, mark the record as posted
+  //         // await db.rawUpdate(
+  //         //   "UPDATE shopVisit SET isPosted = 1 WHERE id = ?",
+  //         //   [i['id']],
+  //         // );
+  //       }
+  //     }
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print("Error processing shop visit data: $e");
+  //     }
+  //   } finally {
+  //     PostingStatus.isPosting.value = false; // Set posting status to false
+  //   }
+  // }
+
   Future<void> postShopVisitData() async {
     var db = await dbHelpershopvisit.db;
     final ApiServices api = ApiServices();
@@ -52,7 +151,7 @@ class ShopVisitRepository {
       PostingStatus.isPosting.value = true; // Set posting status to true
 
       final products = await db!.rawQuery('''
-      SELECT *, 
+      SELECT *,
       CASE WHEN walkthrough = 1 THEN 'True' ELSE 'False' END AS walkthrough,
       CASE WHEN planogram = 1 THEN 'True' ELSE 'False' END AS planogram,
       CASE WHEN signage = 1 THEN 'True' ELSE 'False' END AS signage,
@@ -116,7 +215,7 @@ class ShopVisitRepository {
           try {
             final results = await Future.wait([
               api.masterPostWithImage(v.toMap(), shopVisitApi, imageBytes),
-              // api.masterPostWithImage(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/report/post/', imageBytes),
+               //api.masterPostWithImage(v.toMap(), 'http://localhost:8080/ords/metaxperts/report/post/', imageBytes),
             ]);
 
             if (results[0] == true) {

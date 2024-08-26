@@ -942,7 +942,7 @@ class _RSMHomepageState extends State<RSMHomepage> {
                   Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'avenir next',
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
