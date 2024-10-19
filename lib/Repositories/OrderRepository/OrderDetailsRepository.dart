@@ -59,7 +59,8 @@ class OrderDetailsRepository {
             try {
               bool result = await api.masterPost(
                 v.toMap(),
-                orderDetailsApi,
+                  'http://103.149.32.30:4000/api/order-details'
+               // orderDetailsApi,
               );
 
               if (result==true) {

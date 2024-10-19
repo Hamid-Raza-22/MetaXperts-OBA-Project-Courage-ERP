@@ -63,8 +63,8 @@ class OrderMasterRepository{
 
           try {
             final results = await Future.wait([
-              api.masterPost(v.toMap(), orderMasterApi),
-              // api.masterPost(v.toMap(), 'https://apex.oracle.com/pls/apex/metaxpertss/ordermaster/post/'),
+             // api.masterPost(v.toMap(), orderMasterApi),
+               api.masterPost(v.toMap(), 'http://103.149.32.30:4000/api/order-masters'),
             ]);
 
             if (results[0] == true) {

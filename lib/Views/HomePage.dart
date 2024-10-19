@@ -1,4 +1,5 @@
 import 'dart:async' show Completer, Future, StreamSubscription, Timer;
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show Key, kDebugMode;
 import 'package:flutter/material.dart' show AlertDialog, Align, Alignment, AppBar, Border, BorderRadius, BoxDecoration, BoxShape, BuildContext, Center, CircleBorder, CircularProgressIndicator, Colors, Column, Container, EdgeInsets, ElevatedButton, Icon, IconButton, IconData, Icons, Key, MainAxisAlignment, MainAxisSize, Material, MaterialApp, MaterialPageRoute, Navigator, Padding, RoundedRectangleBorder, Row, Scaffold, SingleChildScrollView, SizedBox, State, StatefulWidget, StatelessWidget, Text, TextButton, TextStyle, Widget, WidgetsBinding, WidgetsBindingObserver, WidgetsFlutterBinding, WillPopScope, runApp, showDialog;
 import 'package:flutter/services.dart';
@@ -40,7 +41,8 @@ import 'dart:io' show File, InternetAddress, SocketException;
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, User;
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart' show Permission, PermissionActions, PermissionStatus, PermissionStatusGetters, openAppSettings;
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 
 //tarcker
@@ -141,6 +143,91 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
     data();
     _checkForUpdate(); // Check for updates when the screen opens
   }
+
+
+  final storage = const FlutterSecureStorage();
+
+// Store the secret key
+  Future<void> storeSecretKey() async {
+    await storage.write(key: 'secretKey', value: '@QW12ER45TY');
+    print('Secret key stored successfully');
+  }
+
+  Future<void> authenticateAndStoreToken(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://103.149.32.30:4000/api/users/login'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        String token = responseData['token'];
+        await storage.write(key: 'jwt', value: token);
+        print('Token stored successfully $token');
+        await postData();
+      } else {
+        print('Failed to authenticate: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Error during authentication: $e');
+    }
+  }
+
+  Future<void> postData() async {
+    try {
+      String? token = await storage.read(key: 'jwt');
+      String? secretKey = await storage.read(key: 'secretKey');
+
+      if (token == null || secretKey == null) {
+        print('No token or secret key found');
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse('http://103.149.32.30:4000/api/order-masters'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+          'Secret-Key': secretKey, // Include the secret key in the headers
+        },
+        body: jsonEncode({
+          'orderId': 'B02-Oct-11145',
+          'date': '2024-10-04',
+          'shopName': 'aminaIqra',
+          'ownerName': 'wajiha',
+          'phoneNo': '03133268827',
+          'brand': 'Professional',
+          'userId': 'B02',
+          'userName': 'Hamid',
+          'total': 11820,
+          'shopCity': '2024-Oct-01',
+          'creditLimit': '7 Days',
+          'requiredDelivery': '2024-10-04',
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('Data posted successfully');
+      } else {
+        print('Failed to post data: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Error posting data: $e');
+    }
+  }
+
+ Future <void> main() async {
+    await storeSecretKey(); // Store the secret key
+    await authenticateAndStoreToken('Hamid', 'hamid');
+  }
+
   void _monitorLocationService() {
     locationServiceStatusStream = Geolocator.getServiceStatusStream().listen((ServiceStatus status) async {
       if (status == ServiceStatus.disabled && isClockedIn) {
@@ -1283,6 +1370,7 @@ class _HomePageState extends State<HomePage>with WidgetsBindingObserver {
                           width: 150,
                           child: ElevatedButton(
                             onPressed: () async {
+                              await main();
                               //await initializeDatabase();
                              // await deleteDatabaseFile();
                              // if (isClockedIn) {
