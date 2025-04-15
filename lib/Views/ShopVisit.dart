@@ -1522,7 +1522,6 @@ class Products extends GetxController {
           },
         )),
       ]));
-
     }
   }
 }
